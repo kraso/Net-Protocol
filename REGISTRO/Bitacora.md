@@ -587,3 +587,20 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
   - **Acerca de** → **logotipo de la aplicación** (`Assets/Logo_NetProtocol.png`) dentro del círculo (22×22, padding 3), antes ℹ.
 - El borde del hover deja de usar el acento (naranja) → **`SystemControlForegroundBaseHighBrush`** (borde claro del tema, neutro en claro y oscuro). Sin acentos en toda la sección.
 - Reconstruidos **Debug y Release** (ambos binarios al día); app lanzada 6 s sin crash. `git push` en `kraso/redes-knowledge`.
+## 26-08-2026 — Instaladores multiplataforma y Release oficial v1.0.0
+
+**Petición del responsable:** generar los instaladores de todas las plataformas y subirlos como release a GitHub.
+
+**Implementación (CI ✅ · release publicado):**
+- Ampliado `.github/workflows/github-actions-ci.yml`: en tags `v*` ahora se construyen y publican los instaladores de las **tres plataformas** y se crea el **GitHub Release** automáticamente:
+  - `package-win` → **Inno Setup** (`NetProtocol-Setup-1.0.0.exe`). Corregidos dos fallos latentes: faltaba descargar el artefacto `win-x64` (jobs en runners distintos) y el patrón de subida era `RedesKnowledge-Setup-*` cuando el script genera `NetProtocol-Setup-*`.
+  - `package-linux` → **`.deb`** (dpkg-deb) + **`.rpm`** (rpmbuild). Fallos resueltos en CI: la línea de continuación del campo `Description` de Debian debe llevar un espacio inicial; `rpmbuild` ejecuta `%install` con cwd en `BUILD` → rutas absolutas.
+  - `package-macos` → bundle **`.app`** (Info.plist) + **`.dmg`** (hdiutil, UDZO).
+  - `release` → descarga `setup-*` y `gh release create`. Fallo resuelto: se adjuntaban todos los artefactos (colisión de `.dll` homónimas entre RIDs) → ahora solo `dist/setup-*/*`.
+- **Release publicado:** https://github.com/kraso/redes-knowledge/releases/tag/v1.0.0 con 4 assets:
+  - Windows: `NetProtocol-Setup-1.0.0.exe` (54,0 MB)
+  - Linux: `NetProtocol-1.0.0-amd64.deb` (37,2 MB) y `NetProtocol-1.0.0-x86_64.rpm` (46,5 MB)
+  - macOS: `NetProtocol-1.0.0-macos.dmg` (55,2 MB)
+- Verificación previa local: instalador Windows compilado con Inno Setup 6 local (51,5 MB) ✅.
+- **Pendiente** (backlog): firma de código/instaladores (requiere certificados) — el release es **sin firmar** (Gatekeeper/SmartScreen mostrarán aviso).
+- Commit del flujo `v1.0.0`=última versión del workflow; `REGISTRO/Estado-de-Fases.md` actualizado (61/61 tests, CI activo, release publicado).
