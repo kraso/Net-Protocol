@@ -29,9 +29,9 @@ public sealed class MarqueeTextBlock : Grid
     private bool _punteroSobre;
     private bool _animando;
 
-    private const double VelocidadPx = 1.5;   // px por tick (~90 px/s a 60 FPS)
+    private const double VelocidadPx = 2.5;   // px por tick (~156 px/s a 60 FPS)
     private const double HuecoPx = 24;        // respiro entre fin y reinicio
-    private const int InicioEsperaTicks = 12; // pausa breve (~0,2 s) al entrar con el ratón
+    private const int InicioEsperaTicks = 8;  // pausa muy breve (~0,13 s) al entrar con el ratón
 
     public MarqueeTextBlock()
     {
