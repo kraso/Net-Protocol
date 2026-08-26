@@ -168,8 +168,11 @@ public partial class MainWindow : Window
                      .OrderBy(p => p.Acronimo, StringComparer.OrdinalIgnoreCase))
             CompareTarget.Items.Add(p);
         // Muestra "ACR · Nombre" en el desplegable (ancho suficiente para los 113).
+        // Muestra "ACR · Nombre" en el desplegable (ancho suficiente para los 113).
+        // IMPORTANTE: el data template se invoca con null al reciclar contenedores
+        // del popup al abrir; sin la guarda, p.Acronimo lanza NullReferenceException.
         CompareTarget.ItemTemplate = new FuncDataTemplate<Protocol>((p, _) =>
-            new TextBlock
+            p is null ? null : new TextBlock
             {
                 Text = $"{p.Acronimo} · {p.Nombre}",
                 TextWrapping = TextWrapping.Wrap

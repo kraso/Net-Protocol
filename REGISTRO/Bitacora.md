@@ -488,3 +488,10 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Cambio (build 0/0 · tests 61/61 ✅):**
 - Nueva **"Comparar con:"** — ComboBox en la barra superior con **los 113 protocolos** (muestra "ACR · Nombre" envuelto; TCP por defecto). El botón pasa a "**Comparar**" y usa la referencia seleccionada (`CompararConReferencia`), que puede ser **cualquier protocolo**: se comparan todos los aspectos (familia, estado, capas, PDU, puertos IANA, cifrado, finalidad, encapsulación). `ProtocoloComparador` ya era agnóstico; solo hacía falta el selector.
 - El título de la salida sigue `=== Comparador: A vs B ===` con los acrónimos reales elegidos.
+## 26-08-2026 — Crash al abrir el desplegable del comparador (fix)
+
+**Feedback del responsable:** "Al abrir el desplegable el comparador se cae la aplicación y se cierra."
+
+**Diagnóstico reproducible (drop-down abierto automáticamente al arrancar):** `NullReferenceException` en el lambda del `ItemTemplate` (`CompareTarget.ItemTemplate = FuncDataTemplate<Protocol>`): al abrir el popup, Avalonia **recicla contenedores** e invoca el data template con `data = null`; el lambda hacía `p.Acronimo` sin guarda → crash.
+
+**Corrección (build 0/0 · tests 61/61 ✅):** guarda `p is null ? null : new TextBlock {…}` en el template (patrón estándar de templates reutilizados). Verificado con el dropdown abierto automáticamente (sin crash); retirado el diagnóstico. Los ítems de la sidebar no usan data templates (usan `Tag`/`ItemProtocolo`), no les aplica.
