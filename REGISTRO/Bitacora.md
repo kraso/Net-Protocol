@@ -375,5 +375,24 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Cobertura final del dataset (113 protocolos): fichas F4 113/113 · PDU F5 28 · seguridad F6 61 · grafo F4 67.** Build 0/0 · tests 61/61 ✅.
 
 **Relanzar:** `dotnet run --project FASE-II-DISENO\src\Redes.Knowledge.App`.
+## 26-08-2026 — Leyenda de familias, verificación ATT&CK (L-003) y git+CI
+
+**Petición del responsable:** (1) sección "Leyenda" que explique escuetamente cada familia de protocolos; (2) verificar IDs ATT&CK (L-003); (3) activar git + CI.
+
+**1. Leyenda de familias (app):** botón **"Leyenda"** en la barra superior; muestra las 13 familias con su descripción (del campo `familias` de F3, sin duplicar datos) y 5 ejemplos de acrónimos de cada una. Cierra el "no sé a qué categoría pertenece" sin memorizar abreviaturas.
+
+**2. IDs ATT&CK (L-003 → cerrado):** el servicio de búsqueda web sigue sin saldo, por lo que se aplicó el método documentado en la propia laguna (conocimiento experto de la taxonomía, confianza ALTA). Auditoría de todos los IDs presentes en F6:
+- Correctos: T1046, T1071.001/.003/.004, T1090.001, T1110, T1557.002, T1558, T1021.002, T0866.
+- **Corregidos 4 erróneos en F6:** RADIUS `T1021.006` (era WinRM) → **T1110**; NTP `T1070.008` (era borrado de buzón) → **T1557**; RTP `T1573.002` (era cifrado del adversario) → **T1040/T1557**; RIP `T1553` retirado (no aplica a inyección de rutas).
+- T1078/T1040 confirmados por taxonomía aunque no se usan en F6. Actualización de `F8-Lagunas.json` (L-003: `pendiente` → `cerrado`; confirmación online formal queda como mantenimiento de pipeline).
+
+**3. git + CI activados:**
+- `git init` (rama `main`), `.gitignore` (excluye bin/obj, dist/, run/, config del entorno), **commit inicial `0b94429`** (126 archivos, working tree limpio).
+- CI movido de `ci/github-actions-ci.yml` a **`.github/workflows/github-actions-ci.yml`**; job `package-win` ahora instala Inno Setup (choco) para no fallar en el runner. Pipeline: `quality` (tests Release 61/61) + `build` (win-x64/linux-x64/osx-x64 self-contained) + `package-win` solo en tags `v*`.
+- No hay remoto GitHub configurado (no se pidió): para activar, `git remote add origin <url>` + `git push -u origin main`.
+
+**Build 0/0 · tests 61/61 ✅**
+
+**Relanzar:** `dotnet run --project FASE-II-DISENO\src\Redes.Knowledge.App`.
 ---
 Última actualización: 26-08-2026
