@@ -425,3 +425,8 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 4. `DiagramView.cs`: los diagramas (pila/grafo/wire format) usan la misma familia vía `Typeface` embebida (antes `Typeface.Default`). Se eliminó el `FontFamily="Consolas, monospace"` explícito de la ficha.
 
 **Notas:** se descartó el selector `:root` (AVLN2200/AVLN3000 en Avalonia 12) y `x:Shared` (no soportado); la herencia va desde el `Window`. Build 0/0 · tests 61/61 ✅.
+## 26-08-2026 — ComboBox ampliados (Todas las familias / Todos los estados)
+
+**Feedback del responsable:** las casillas "Todas las familias" / "Todos los estados" (menús desplegables) eran demasiado estrechas y no se veía el texto completo con la nueva fuente monospaciada.
+
+**Corrección (build 0/0):** `FilterFamilia` y `FilterEstado` pasaron de **150 → 210 px**; se rebalanceó la barra superior para que todo siga cabiendo (búsqueda 300 → 170 px); se mantienen las etiquetas "Familia:"/"Estado:".

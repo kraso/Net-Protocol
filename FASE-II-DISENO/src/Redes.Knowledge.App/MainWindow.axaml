@@ -10,12 +10,12 @@
   <DockPanel>
     <!-- Barra superior: búsqueda + filtros Familia/Estado + acciones globales -->
     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8">
-      <TextBox x:Name="SearchBox" Width="300" PlaceholderText="Buscar protocolo, RFC, puerto, campo…" />
+      <TextBox x:Name="SearchBox" Width="170" PlaceholderText="Buscar protocolo, RFC, puerto, campo…" />
       <Button x:Name="SearchButton" Content="Buscar" />
       <SelectableTextBlock Text="Familia:" VerticalAlignment="Center" />
-      <ComboBox x:Name="FilterFamilia" Width="150" />
+      <ComboBox x:Name="FilterFamilia" Width="210" />
       <SelectableTextBlock Text="Estado:" VerticalAlignment="Center" />
-      <ComboBox x:Name="FilterEstado" Width="150" />
+      <ComboBox x:Name="FilterEstado" Width="210" />
       <Button x:Name="ThemeButton" Content="Tema claro/oscuro" />
       <Button x:Name="CompareButton" Content="Comparar vs TCP" />
       <Button x:Name="LegendButton" Content="Leyenda" />
