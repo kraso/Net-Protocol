@@ -57,7 +57,7 @@
       </Grid>
     </Border>
 
-    <!-- Barra superior: búsqueda + filtros Familia/Estado + acciones globales.
+    <!-- Barra superior: búsqueda + filtros Familia/Estado + comparador.
          WrapPanel: si la ventana no da para una sola línea, los controles bajan de
          línea en vez de recortarse (nunca se oculta texto). -->
     <WrapPanel DockPanel.Dock="Top" Orientation="Horizontal" ItemSpacing="8" LineSpacing="6" Margin="8">
@@ -67,11 +67,9 @@
       <ComboBox x:Name="FilterFamilia" Width="210" />
       <SelectableTextBlock Text="Estado:" VerticalAlignment="Center" />
       <ComboBox x:Name="FilterEstado" Width="210" />
-      <Button x:Name="ThemeButton" Content="Tema claro/oscuro" />
       <SelectableTextBlock Text="Comparar con:" VerticalAlignment="Center" />
       <ComboBox x:Name="CompareTarget" Width="300" />
       <Button x:Name="CompareButton" Content="Comparar" />
-      <Button x:Name="LegendButton" Content="Leyenda" />
     </WrapPanel>
 
     <!-- Barra de estado -->
@@ -81,6 +79,7 @@
       Sidebar lateral: SOLO los grupos de familias ("dropdowns" de la navegación).
       - Filtro rápido para localizar familias/protocolos
       - Todos los paneles con anchura idéntica (fija) y altura uniforme (acordeón)
+      - En la parte inferior: Tema, Leyenda y Acerca de
     -->
     <Border x:Name="Sidebar" DockPanel.Dock="Left" Width="360"
             BorderBrush="#334155" BorderThickness="0,0,1,0">
@@ -88,6 +87,12 @@
         <StackPanel DockPanel.Dock="Top" Spacing="6">
           <TextBox x:Name="NavFilter" PlaceholderText="Filtrar familias…" />
           <Border Height="1" Background="#334155" />
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Bottom" Spacing="6">
+          <Border Height="1" Background="#334155" />
+          <Button x:Name="ThemeButton" Content="Tema claro/oscuro" />
+          <Button x:Name="LegendButton" Content="Leyenda" />
+          <Button x:Name="AboutButton" Content="Acerca de" />
         </StackPanel>
         <ScrollViewer HorizontalScrollBarVisibility="Disabled">
           <StackPanel x:Name="NavPanel" Spacing="6" />

@@ -535,3 +535,18 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Causa:** la versión con `Canvas` ocultaba el texto del popup (el Canvas como raíz del ítem no renderizaba el texto de forma fiable en el contexto del popup del ComboBox).
 
 **Corrección (build 0/0 · tests 61/61 ✅):** `MarqueeTextBlock` ahora es un **`Grid` con `ClipToBounds`** que contiene un **`TextBlock` hijo visible por defecto** (HorizontalAlignment=Left, sin desplazamiento inicial → el texto se ve desde el arranque). El movimiento usa **`Margin` del TextBlock** (el relayout del contenedor fuerza el repintado — sin depender del renderer de transforms). Se reutilizan directamente las propiedades de `TextBlock` (sin `AddOwner`), evitando advertencias de nulabilidad. El `SelectionBoxItemTemplate` del recuadro sigue siendo un TextBlock estático con elipsis.
+## 26-08-2026 — Botones inferiores en la sidebar y sección "Acerca de"
+
+**Petición del responsable:**
+1. Mover "Tema claro/oscuro" y "Leyenda" de la barra superior a la **parte inferior izquierda de la sidebar**.
+2. Botón **"Acerca de"** abajo del todo en la sidebar, que abra una nueva sección con los datos de la aplicación centrados y formateados.
+
+**Implementación (build 0/0 · tests 61/61 ✅):**
+- `MainWindow.axaml`: la barra superior queda solo con búsqueda + filtros + comparador; la **sidebar** gana un bloque inferior (Dock=Bottom): separador + **Tema claro/oscuro** + **Leyenda** + **Acerca de**.
+- Nueva vista **MostrarAcercaDe()**: texto centrado (`TextAlignment.Center`) con:
+  - Nombre de la aplicación: **Net Protocol**
+  - Versión: **1.0.0**
+  - Autor: **Marcos Calabrés Ibáñez**
+  - Email: **marcoscalabresibaniez@gmail.com**
+  - **© Todos los derechos reservados**
+  - Oculta los diagramas; la ficha vuelve a alinear a la izquierda al seleccionar un protocolo (`RenderFicha` restaura `TextAlignment.Left`).

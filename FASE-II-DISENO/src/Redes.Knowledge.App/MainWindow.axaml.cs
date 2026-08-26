@@ -123,6 +123,7 @@ public partial class MainWindow : Window
         ThemeButton.Click += (_, _) => AlternarTema();
         CompareButton.Click += (_, _) => CompararConReferencia();
         LegendButton.Click += (_, _) => MostrarLeyenda();
+        AboutButton.Click += (_, _) => MostrarAcercaDe();
         FilterFamilia.SelectionChanged += (_, _) => { if (!_cargando) ReconstruirNavegacion(); };
         FilterEstado.SelectionChanged += (_, _) => { if (!_cargando) ReconstruirNavegacion(); };
         NavFilter.TextChanged += (_, _) => { if (!_cargando) ReconstruirNavegacion(); };
@@ -310,6 +311,7 @@ public partial class MainWindow : Window
     {
         _seleccionado = p;
         if (p is null) { DetailText.Text = "Seleccione un protocolo."; return; }
+        DetailText.TextAlignment = TextAlignment.Left; // "Acerca de" centra el texto; al volver, izquierda.
 
         _notasFuentes.TryGetValue(p.Acronimo, out var nf);
         var nota = string.IsNullOrWhiteSpace(nf?.Nota) ? null : nf.Nota;
@@ -628,6 +630,34 @@ public partial class MainWindow : Window
 
         if (IsLoaded)
             StatusText.Text = $"Leyenda de familias · zoom {_zoom * 100:0}%";
+    }
+
+    /// <summary>Sección "Acerca de" con los datos de la aplicación, centrados y formateados.</summary>
+    private void MostrarAcercaDe()
+    {
+        // Visto textual: oculta los diagramas del protocolo previamente seleccionado.
+        DiagramPanel.Children.Clear();
+        DiagramTitle.IsVisible = false;
+
+        var sb = new StringBuilder();
+        sb.AppendLine();
+        sb.AppendLine("=== Acerca de ===");
+        sb.AppendLine();
+        sb.AppendLine("Nombre de la aplicación: Net Protocol");
+        sb.AppendLine();
+        sb.AppendLine("Versión: 1.0.0");
+        sb.AppendLine();
+        sb.AppendLine("Autor: Marcos Calabrés Ibáñez");
+        sb.AppendLine();
+        sb.AppendLine("Email: marcoscalabresibaniez@gmail.com");
+        sb.AppendLine();
+        sb.AppendLine();
+        sb.AppendLine("© Todos los derechos reservados");
+        DetailText.Text = sb.ToString();
+        DetailText.TextAlignment = TextAlignment.Center;
+
+        if (IsLoaded)
+            StatusText.Text = "Acerca de · zoom " + $"{_zoom * 100:0}%";
     }
 
     private static string Normalizar(string s)
