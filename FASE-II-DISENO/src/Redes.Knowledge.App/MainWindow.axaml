@@ -27,6 +27,30 @@
     <Style Selector="Button.WinBtn.CloseBtn:pointerover /template/ ContentPresenter">
       <Setter Property="Background" Value="#E81123" />
     </Style>
+    <!-- Botones de acción de la sidebar: réplica del diseño de los ComboBox superiores
+         (mismo fondo y borde del tema) pero más estrechos (220 px) y con un matiz
+         propio: fondo de relleno sutil en hover y el resaltado está en el icono circular. -->
+    <Style Selector="Button.SidebarAction">
+      <Setter Property="Width" Value="220" />
+      <Setter Property="Height" Value="34" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+    </Style>
+    <Style Selector="Button.SidebarAction:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
+    </Style>
+    <Style Selector="Button.SidebarAction:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListMediumBrush}" />
+    </Style>
   </Window.Styles>
   <DockPanel>
     <!-- Barra de título Net Protocol: gradiente negro→blanco horizontal, cristalizado
@@ -90,9 +114,43 @@
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom" Spacing="6">
           <Border Height="1" Background="#334155" />
-          <Button x:Name="ThemeButton" Content="Tema claro/oscuro" />
-          <Button x:Name="LegendButton" Content="Leyenda" />
-          <Button x:Name="AboutButton" Content="Acerca de" />
+          <!-- Sección especial: botones con diseño "tipo desplegable" (mismo fondo/borde
+               que los ComboBox de la barra superior) pero más estrechos y con matiz
+               propio: icono circular + texto + chevrón tenue. -->
+          <TextBlock Text="Acciones" FontSize="11" Opacity="0.6" Margin="4,2,0,2" />
+          <Button x:Name="ThemeButton" Classes="SidebarAction">
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <Border Width="20" Height="20" CornerRadius="10"
+                      Background="{DynamicResource SystemControlHighlightAccentBrush}" Opacity="0.85">
+                <TextBlock Text="&#x25D0;" FontSize="12" Foreground="#FFFFFFFF"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="Tema claro/oscuro" VerticalAlignment="Center" />
+              <TextBlock Text="&#x25B8;" FontSize="10" Opacity="0.45" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button x:Name="LegendButton" Classes="SidebarAction">
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <Border Width="20" Height="20" CornerRadius="10"
+                      Background="{DynamicResource SystemControlHighlightAccentBrush}" Opacity="0.85">
+                <TextBlock Text="&#x2630;" FontSize="11" Foreground="#FFFFFFFF"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="Leyenda" VerticalAlignment="Center" />
+              <TextBlock Text="&#x25B8;" FontSize="10" Opacity="0.45" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button x:Name="AboutButton" Classes="SidebarAction">
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <Border Width="20" Height="20" CornerRadius="10"
+                      Background="{DynamicResource SystemControlHighlightAccentBrush}" Opacity="0.85">
+                <TextBlock Text="&#x2139;" FontSize="12" Foreground="#FFFFFFFF"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="Acerca de" VerticalAlignment="Center" />
+              <TextBlock Text="&#x25B8;" FontSize="10" Opacity="0.45" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
         </StackPanel>
         <ScrollViewer HorizontalScrollBarVisibility="Disabled">
           <StackPanel x:Name="NavPanel" Spacing="6" />

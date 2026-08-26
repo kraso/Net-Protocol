@@ -550,3 +550,12 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
   - Email: **marcoscalabresibaniez@gmail.com**
   - **© Todos los derechos reservados**
   - Oculta los diagramas; la ficha vuelve a alinear a la izquierda al seleccionar un protocolo (`RenderFicha` restaura `TextAlignment.Left`).
+## 26-08-2026 — Sección "Acciones" en la sidebar con botones estilo desplegable
+
+**Petición del responsable:** hacer una sección especial en la sidebar con los tres botones (Tema/Leyenda/Acerca de) estilizados como los desplegables superiores, más estrechos y con un matiz que los diferencie (son botones, no desplegables).
+
+**Implementación (build 0/0 · tests 61/61 ✅):**
+- Rótulo **"Acciones"** + separador en la parte inferior de la sidebar.
+- Botones `SidebarAction` (220 × 34 px, más estrechos que los ComboBox de 210–300): **réplica del aspecto de los desplegables** usando los mismos recursos del tema Fluent (`SystemControlBackgroundChromeMediumLowBrush` de fondo · `SystemControlForegroundBaseMediumBrush` de borde · texto `SystemControlForegroundBaseHighBrush`), esquinas 4 px, ancho completo de la sección.
+- **Matiz diferenciador** (porque son botones, no desplegables): **icono circular de acento** a la izquierda (◐ tema, ☰ leyenda, ℹ acerca) + **chevrón "▸" tenue** a la derecha (sugiere acción, inverso del ▾ del desplegable); hover con fondo de lista baja + borde de acento; pressed con fondo de lista media.
+- Se quitaron los handlers duplicados del XAML (los Click siguen conectándose en el constructor).
