@@ -394,5 +394,16 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Build 0/0 · tests 61/61 ✅**
 
 **Relanzar:** `dotnet run --project FASE-II-DISENO\src\Redes.Knowledge.App`.
+## 26-08-2026 — Repositorio publicado en GitHub (privado)
+
+**Petición del responsable:** "hay GitHub CLI instalado, hazlo desde línea de comando."
+
+**Hecho tras reautenticación (cuenta `kraso`, token con scopes `repo` + `workflow`):**
+- `gh repo create redes-knowledge --private --source . --remote origin --push`
+- Repositorio: **https://github.com/kraso/redes-knowledge** (privado, rama por defecto `main`).
+- `origin` configurado (fetch/push HTTPS); `main` trackea `origin/main`; 2 commits publicados.
+
+**CI:** los jobs de Actions (`quality`: 61 tests; `build`: win/linux/osx; `package-win` en tags `v*`) quedan activos automáticamente al publicar — primera ejecución disparada por el push. Estado consultable con `gh run list` / web Actions tab. (Pendiente no bloqueante: pasar el repo a público cuando se decida.)
+
 ---
 Última actualización: 26-08-2026
