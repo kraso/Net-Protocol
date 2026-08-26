@@ -14,6 +14,13 @@ namespace Redes.Knowledge.App;
 /// </summary>
 public sealed class DiagramView : Control
 {
+    // La misma tipografía global de la app (embebida, portátil). El nombre de familia
+    // real del TTF es "JetBrainsMono NFM" (Nerd Font Mono).
+    private static readonly FontFamily Fuente =
+        FontFamily.Parse("avares://Redes.Knowledge.App/Assets/Fonts/JetBrainsMonoNerdFontMono-SemiBold.ttf#JetBrainsMono NFM");
+
+    private static readonly Typeface TypefaceUi =
+        new(Fuente, FontStyle.Normal, FontWeight.Normal);
     public static readonly StyledProperty<DiagramDocument?> DocumentProperty =
         AvaloniaProperty.Register<DiagramView, DiagramDocument?>(nameof(Document));
 
@@ -93,7 +100,6 @@ public sealed class DiagramView : Control
 
                 case PrimitiveKind.Text:
                     var colorTexto = p.Fill is null ? TextoPorDefecto : new SolidColorBrush(Color.Parse(p.Fill));
-                    var typeface = new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.Normal);
                     var texto = p.Label;
                     // Si el layout indica un ancho máximo (W>0, p. ej. etiqueta dentro de una
                     // casilla del wire format), medir y truncar con "…" en caso de desborde.
@@ -101,7 +107,7 @@ public sealed class DiagramView : Control
                     {
                         var ftMedida = new FormattedText(texto,
                             System.Globalization.CultureInfo.CurrentCulture,
-                            FlowDirection.LeftToRight, typeface, 13, colorTexto);
+                            FlowDirection.LeftToRight, TypefaceUi, 13, colorTexto);
                         if (ftMedida.Width > p.W)
                         {
                             var i = texto.Length;
@@ -110,7 +116,7 @@ public sealed class DiagramView : Control
                                 var candidato = texto[..i] + "…";
                                 var ft2 = new FormattedText(candidato,
                                     System.Globalization.CultureInfo.CurrentCulture,
-                                    FlowDirection.LeftToRight, typeface, 13, colorTexto);
+                                    FlowDirection.LeftToRight, TypefaceUi, 13, colorTexto);
                                 if (ft2.Width <= p.W) { texto = candidato; break; }
                                 i--;
                             }
@@ -118,7 +124,7 @@ public sealed class DiagramView : Control
                     }
                     var ft = new FormattedText(texto,
                         System.Globalization.CultureInfo.CurrentCulture,
-                        FlowDirection.LeftToRight, typeface, 13, colorTexto);
+                        FlowDirection.LeftToRight, TypefaceUi, 13, colorTexto);
                     context.DrawText(ft, new Point(p.X, p.Y));
                     break;
             }

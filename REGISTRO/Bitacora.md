@@ -414,3 +414,14 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 
 ---
 Última actualización: 26-08-2026
+## 26-08-2026 — Tipografía global: JetBrainsMono Nerd Font Mono (SemiBold)
+
+**Petición del responsable:** cambiar la tipografía de toda la UI/UX a `JetBrainsMonoNerdFontMono-SemiBold.ttf` (fuente localizada en `F:\Fuentes Tipográficas\Jetbrains Mono\JetBrainsMonoNerdFonts`).
+
+**Implementación (portátil, no depende del sistema):**
+1. TTF copiado a `src/Redes.Knowledge.App/Assets/Fonts/JetBrainsMonoNerdFontMono-SemiBold.ttf` e incluido como `AvaloniaResource` (csproj) → queda **embebido en el binario** (App.dll ~2,3 MB), por lo que los builds de CI en Linux/macOS también la usan.
+2. `App.axaml`: recurso global `FuenteUi` apuntando a `avares://…#JetBrainsMono NFM` (nombre real de familia del TTF, verificado en el registro de Windows).
+3. `MainWindow.axaml`: `FontFamily="{DynamicResource FuenteUi}"` en la ventana raíz → **herencia global** a todos los controles (botones, combos, listas, texto).
+4. `DiagramView.cs`: los diagramas (pila/grafo/wire format) usan la misma familia vía `Typeface` embebida (antes `Typeface.Default`). Se eliminó el `FontFamily="Consolas, monospace"` explícito de la ficha.
+
+**Notas:** se descartó el selector `:root` (AVLN2200/AVLN3000 en Avalonia 12) y `x:Shared` (no soportado); la herencia va desde el `Window`. Build 0/0 · tests 61/61 ✅.
