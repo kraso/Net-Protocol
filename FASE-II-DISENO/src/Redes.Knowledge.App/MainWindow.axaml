@@ -68,7 +68,9 @@
       <SelectableTextBlock Text="Estado:" VerticalAlignment="Center" />
       <ComboBox x:Name="FilterEstado" Width="210" />
       <Button x:Name="ThemeButton" Content="Tema claro/oscuro" />
-      <Button x:Name="CompareButton" Content="Comparar vs TCP" />
+      <SelectableTextBlock Text="Comparar con:" VerticalAlignment="Center" />
+      <ComboBox x:Name="CompareTarget" Width="280" />
+      <Button x:Name="CompareButton" Content="Comparar" />
       <Button x:Name="LegendButton" Content="Leyenda" />
     </WrapPanel>
 

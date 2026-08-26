@@ -479,3 +479,12 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 2. Se calculó la capacidad real: área de ficha ≈ 1012 px → ~130 chars/línea a 13 px JetBrainsMono; la línea más larga (230 chars) ahora se envuelve en ~2 líneas completas.
 3. `ItemProtocolo` en la sidebar: se retiró `MaxLines=2` + `TextTrimming` que **recortaban** el nombre en 2 líneas; ahora el nombre se envuelve sin límite.
 4. El `WrapPanel` de la barra superior (paso anterior) sigue activo: si no cabe, los controles bajan de línea.
+## 26-08-2026 — Comparador configurable: ya no solo contra TCP
+
+**Pregunta del responsable:** "¿por qué solo se comparan con TCP y no se pueden comparar con otros protocolos?"
+
+**Motivo original:** el comparador nació en el prototipo D5 con **TCP como referencia canónica fija** (transporte de referencia para el primer spike); era una limitación de diseño, no técnica.
+
+**Cambio (build 0/0 · tests 61/61 ✅):**
+- Nueva **"Comparar con:"** — ComboBox en la barra superior con **los 113 protocolos** (muestra "ACR · Nombre" envuelto; TCP por defecto). El botón pasa a "**Comparar**" y usa la referencia seleccionada (`CompararConReferencia`), que puede ser **cualquier protocolo**: se comparan todos los aspectos (familia, estado, capas, PDU, puertos IANA, cifrado, finalidad, encapsulación). `ProtocoloComparador` ya era agnóstico; solo hacía falta el selector.
+- El título de la salida sigue `=== Comparador: A vs B ===` con los acrónimos reales elegidos.

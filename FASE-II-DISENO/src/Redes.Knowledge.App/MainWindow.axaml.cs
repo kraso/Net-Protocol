@@ -1,6 +1,7 @@
 using System.Text;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -102,6 +103,7 @@ public partial class MainWindow : Window
             _fichas[kv.Key] = kv.Value;
 
         CargarFiltros();
+        CargarComparador();
         ReconstruirNavegacion();
         // Ficha inicial: primer protocolo con relaciones catalogadas (TCP) para mostrar
         // el grafo F4 al abrir; si no existe, el primero del catálogo.
@@ -119,7 +121,7 @@ public partial class MainWindow : Window
         SearchButton.Click += (_, _) => EjecutarBusqueda();
         SearchBox.KeyDown += (_, e) => { if (e.Key == Key.Enter) EjecutarBusqueda(); };
         ThemeButton.Click += (_, _) => AlternarTema();
-        CompareButton.Click += (_, _) => CompararConTcp();
+        CompareButton.Click += (_, _) => CompararConReferencia();
         LegendButton.Click += (_, _) => MostrarLeyenda();
         FilterFamilia.SelectionChanged += (_, _) => { if (!_cargando) ReconstruirNavegacion(); };
         FilterEstado.SelectionChanged += (_, _) => { if (!_cargando) ReconstruirNavegacion(); };
@@ -154,6 +156,25 @@ public partial class MainWindow : Window
         FilterEstado.Items.Add("Todos los estados");
         foreach (LifecycleState e in Enum.GetValues<LifecycleState>()) FilterEstado.Items.Add(e.ToString());
         FilterEstado.SelectedIndex = 0;
+        _cargando = false;
+    }
+
+    /// <summary>Selector de la referencia de comparación: permite comparar el protocolo
+    /// seleccionado contra cualquier protocolo del catálogo (TCP por defecto).</summary>
+    private void CargarComparador()
+    {
+        _cargando = true;
+        foreach (var p in _protocolos.Values
+                     .OrderBy(p => p.Acronimo, StringComparer.OrdinalIgnoreCase))
+            CompareTarget.Items.Add(p);
+        // Muestra "ACR · Nombre" en el desplegable (ancho suficiente para los 113).
+        CompareTarget.ItemTemplate = new FuncDataTemplate<Protocol>((p, _) =>
+            new TextBlock
+            {
+                Text = $"{p.Acronimo} · {p.Nombre}",
+                TextWrapping = TextWrapping.Wrap
+            });
+        CompareTarget.SelectedItem = _protocolos.Values.FirstOrDefault(p => p.Acronimo == "TCP");
         _cargando = false;
     }
 
@@ -465,18 +486,21 @@ public partial class MainWindow : Window
             : string.Join(", ", servicios.Where(s => s.Port.HasValue).Select(s => $"{s.Port}/{s.Transport}"));
     }
 
-    private void CompararConTcp()
+    private void CompararConReferencia()
     {
         if (_seleccionado is null) return;
-        var tcp = _protocolos.Values.FirstOrDefault(p => p.Acronimo == "TCP");
-        if (tcp is null) return;
+        // Referencia elegida por el usuario (ComboBox "Comparar con:"); TCP por defecto,
+        // pero cualquier protocolo del catálogo es válido.
+        var referencia = CompareTarget.SelectedItem as Protocol
+            ?? _protocolos.Values.FirstOrDefault(p => p.Acronimo == "TCP");
+        if (referencia is null) return;
 
         // La comparación es textual: oculta los diagramas individuales del protocolo.
         DiagramPanel.Children.Clear();
         DiagramTitle.IsVisible = false;
 
         var filas = ProtocoloComparador.Comparar(
-            new[] { _seleccionado, tcp },
+            new[] { _seleccionado, referencia },
             (nombre, lim) => _servicios.PorNombre(nombre, lim),
             _pduPorAcronimo,
             _cifradoPorAcronimo,
@@ -491,7 +515,7 @@ public partial class MainWindow : Window
 
         // Tabla transpuesta: filas = aspectos cortos, columnas = protocolos.
         var a = filas.First(f => f.Protocolo == _seleccionado.Acronimo);
-        var b = filas.First(f => f.Protocolo == "TCP");
+        var b = filas.First(f => f.Protocolo == referencia.Acronimo);
         var cortos = new[]
         {
             ("Familia", a.Familia, b.Familia),
