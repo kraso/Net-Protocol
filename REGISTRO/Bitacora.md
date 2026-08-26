@@ -495,3 +495,10 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Diagnóstico reproducible (drop-down abierto automáticamente al arrancar):** `NullReferenceException` en el lambda del `ItemTemplate` (`CompareTarget.ItemTemplate = FuncDataTemplate<Protocol>`): al abrir el popup, Avalonia **recicla contenedores** e invoca el data template con `data = null`; el lambda hacía `p.Acronimo` sin guarda → crash.
 
 **Corrección (build 0/0 · tests 61/61 ✅):** guarda `p is null ? null : new TextBlock {…}` en el template (patrón estándar de templates reutilizados). Verificado con el dropdown abierto automáticamente (sin crash); retirado el diagnóstico. Los ítems de la sidebar no usan data templates (usan `Tag`/`ItemProtocolo`), no les aplica.
+## 26-08-2026 — Desplegable "Comparar con:": ancho fijo y texto tipo carrusel
+
+**Petición del responsable:** "Haz que el desplegable del protocolo a comparar sea de un ancho fijo y que el texto en su interior sea el que se mueva como si fuera un carrusel, siempre que su tamaño lo requiera."
+
+**Implementación (build 0/0 · tests 61/61 ✅):**
+1. Nuevo control **`MarqueeTextBlock`**: mide el texto real (`FormattedText`); si desborda el ancho disponible, **se desplaza en bucle** (entra por la derecha → sale por la izquierda → reinicia, con pausa inicial para poder leer el principio); si cabe, queda estático. Usa `DispatcherTimer` (16 ms, ~90 px/s) + `TranslateTransform`; se detiene al salir del árbol visual.
+2. `CompareTarget` con **ancho fijo 300 px**; su `ItemTemplate` envuelve el texto en un **`Border` con `ClipToBounds`** (recorte del carrusel) y `MarqueeTextBlock` (se conserva la guarda null contra el reciclaje del popup). Al abrir el desplegable, los ítems del popup disponen de más ancho → el texto completo se muestra; en el área cerrada del selector, el texto largo se mueve como carrusel.

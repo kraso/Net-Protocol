@@ -168,14 +168,19 @@ public partial class MainWindow : Window
                      .OrderBy(p => p.Acronimo, StringComparer.OrdinalIgnoreCase))
             CompareTarget.Items.Add(p);
         // Muestra "ACR · Nombre" en el desplegable (ancho suficiente para los 113).
-        // Muestra "ACR · Nombre" en el desplegable (ancho suficiente para los 113).
+        // Muestra "ACR · Nombre" en el desplegable con ancho fijo y efecto carrusel:
+        // si el texto no cabe, se desplaza (marquee) dentro del área visible.
         // IMPORTANTE: el data template se invoca con null al reciclar contenedores
         // del popup al abrir; sin la guarda, p.Acronimo lanza NullReferenceException.
         CompareTarget.ItemTemplate = new FuncDataTemplate<Protocol>((p, _) =>
-            p is null ? null : new TextBlock
+            p is null ? null : new Border
             {
-                Text = $"{p.Acronimo} · {p.Nombre}",
-                TextWrapping = TextWrapping.Wrap
+                ClipToBounds = true,
+                Child = new MarqueeTextBlock
+                {
+                    Text = $"{p.Acronimo} · {p.Nombre}",
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+                }
             });
         CompareTarget.SelectedItem = _protocolos.Values.FirstOrDefault(p => p.Acronimo == "TCP");
         _cargando = false;
