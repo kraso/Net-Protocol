@@ -516,3 +516,15 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Correcciones (build 0/0 · tests 61/61 ✅):**
 1. **Recuadro del selector** → nuevo **`SelectionBoxItemTemplate`** (API de Avalonia 12, equivalente al `SelectionBoxItemTemplate` de WPF): el recuadro usa un TextBlock **estático con elipsis** (sin el `Border` de 300 px ni el marquee) — desaparecen los caracteres extra que producía reutilizar el template del popup en el recuadro. El `ItemTemplate` (con ancho 300 + carrusel) queda **solo para el popup**.
 2. **Carrusel bajo el puntero**: el marquee ya no depende de `IsPointerOver` (poco fiable dentro del `ListBoxItem` del popup): ahora se suscribe a **`PointerEntered`/`PointerExited`** del propio control (que cubre todo el ancho del ítem por `HorizontalAlignment=Stretch`) y anima **solo cuando el puntero está encima de ESE ítem**; al salir, se detiene y vuelve a elipsis estática. El `Border` del popup mantiene `Width=300` fijo (la ventanita no crece con el texto).
+## 26-08-2026 — Carrusel rediseñado (Canvas + SetLeft): animación garantizada bajo el puntero
+
+**Feedback del responsable:** "La animación tipo carrusel horizontal del texto no se consigue."
+
+**Causa:** la versión anterior usaba un `TextBlock` con `RenderTransform` (TranslateTransform); en el popup el cambio de transform **no invalidaba el render** de forma fiable (texto movido que no se repintaba) y, además, sin fondo el control no era hit-testable → los eventos de puntero no llegaban.
+
+**Corrección (build 0/0 · tests 61/61 ✅):** `MarqueeTextBlock` rediseñado como **`Canvas`** que:
+- Recorta con su propio `ClipToBounds` (ancho fijo 300 px del ítem).
+- **Reposiciona un `TextBlock` hijo con `Canvas.SetLeft` en cada tick** → el reposicionamiento invalida el layout → repintado **garantizado** (no depende del renderer de transform).
+- `Background = Transparent` → hit-testable → recibe `PointerEntered`/`PointerExited`.
+- Detecta popup vs recuadro por `VisualRoot` (PopupRoot vs Window): **solo en el popup y bajo el puntero anima**; en el recuadro (SelectionBoxItemTemplate) estático con elipsis.
+- Reenvía Text/FontSize/FontStyle/FontWeight/Foreground al TextBlock interno (bindings).

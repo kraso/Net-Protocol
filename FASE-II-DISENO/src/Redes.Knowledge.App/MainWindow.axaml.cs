@@ -173,19 +173,15 @@ public partial class MainWindow : Window
 // el puntero está sobre ese ítem.
 // - ItemTemplate: se aplica a los ítems del POPUP (carrusel bajo el puntero).
 // - SelectionBoxItemTemplate: se aplica al RECUADRO del selector (texto estático,
-//   sin Border de 300 px ni animación; esto elimina los caracteres extra del recuadro).
+//   sin animación; elimina los caracteres extra del recuadro).
 // IMPORTANTE: el data template se invoca con null al reciclar contenedores
 // del popup al abrir; sin la guarda, p.Acronimo lanza NullReferenceException.
         CompareTarget.ItemTemplate = new FuncDataTemplate<Protocol>((p, _) =>
-            p is null ? null : new Border
+            p is null ? null : new MarqueeTextBlock
             {
                 Width = 300,
-                ClipToBounds = true,
-                Child = new MarqueeTextBlock
-                {
-                    Text = $"{p.Acronimo} · {p.Nombre}",
-                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
-                }
+                Text = $"{p.Acronimo} · {p.Nombre}",
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
             });
         CompareTarget.SelectionBoxItemTemplate = new FuncDataTemplate<Protocol>((p, _) =>
             p is null ? null : new TextBlock
