@@ -101,7 +101,7 @@ jobs:
           Architecture: amd64
           Maintainer: Proyecto Redes
           Description: Net Protocol - base de conocimiento de protocolos de red
-          Catálogo, fichas, PDU y seguridad de protocolos de red (Fase I/II).
+           Catálogo, fichas, PDU y seguridad de protocolos de red (Fase I/II).
           EOF
           dpkg-deb --build --root-owner-group debroot "dist/NetProtocol-${VER}-amd64.deb"
       - name: Empaquetar .rpm (Fedora/RHEL)
