@@ -4,9 +4,12 @@ Estrategia aprobada en el plan de Fase II (§E) y materiales de esta carpeta:
 
 | SO | Formato objetivo | Herramienta | Estado |
 |---|---|---|---|
-| Windows | Instalador `.exe` | **Inno Setup** (script: [`windows/Redes.Knowledge.iss`](windows/Redes.Knowledge.iss)) | Plantilla lista; ejecutar en CI/release |
-| macOS | `.dmg` | `hdiutil` (en runner macOS) | Script CI por definir en release |
-| Linux | AppImage / `.deb` | AppImageKit / dpkg-deb | Plantilla por definir en release |
+| Windows | Instalador `.exe` | **Inno Setup** (script: [`windows/Redes.Knowledge.iss`](windows/Redes.Knowledge.iss)) | ✅ En CI (tag `v*`) |
+| macOS | `.dmg` | `hdiutil` + bundle `.app` (en runner macOS) | ✅ En CI (tag `v*`) |
+| Linux | `.deb` + `.rpm` | `dpkg-deb` / `rpmbuild` (en runner Ubuntu) | ✅ En CI (tag `v*`) |
+
+Los tres instaladores se generan en CI al empujar un tag `v*` y se publican como
+**GitHub Release** (job `release` del workflow `github-actions-ci.yml`).
 
 ## Reglas vinculantes (del plan)
 
