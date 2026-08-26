@@ -568,3 +568,10 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - Lo mismo en `CompararConReferencia()`: la tabla y los campos largos del comparador vuelven a alinearse a la izquierda aunque se haya visitado "Acerca de" antes.
 - "Acerca de" conserva su centrado (`MostrarAcercaDe` sigue fijando `TextAlignment.Center`), y cualquier ficha/comparador/leyenda posterior lo restaura.
 - Verificación: app lanzada 6 s sin crash; git push en `kraso/redes-knowledge`.
+## 26-08-2026 — Diagnóstico del "heredado centrado" en Leyenda: binario Debug obsoleto
+
+**Síntoma reportado:** con la corrección de alineación ya en el código, pulsar "Acerca de" y luego "Leyenda" seguía mostrando el texto centrado.
+
+**Causa raíz (build 0/0 · tests 61/61 ✅):** el código fuente ya restauraba `TextAlignment.Left` en `MostrarLeyenda`/`CompararConReferencia`, pero **existían dos binarios**: `bin\Debug\net9.0\NetProtocol.exe` (20:38, anterior a la corrección) y `bin\Release\net9.0\NetProtocol.exe` (20:46, corregido). El responsable lanzaba el perfil **Debug** (F5/`dotnet run`), que seguía conteniendo el bug.
+
+**Acción:** reconstruido el perfil **Debug** con la corrección (20:54): ambos binarios quedan al día y el comportamiento es idéntico en los dos perfiles. Smokes test Debug: lanzamiento 6 s sin crash. `git push` en `kraso/redes-knowledge`.
