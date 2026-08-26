@@ -575,3 +575,15 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Causa raíz (build 0/0 · tests 61/61 ✅):** el código fuente ya restauraba `TextAlignment.Left` en `MostrarLeyenda`/`CompararConReferencia`, pero **existían dos binarios**: `bin\Debug\net9.0\NetProtocol.exe` (20:38, anterior a la corrección) y `bin\Release\net9.0\NetProtocol.exe` (20:46, corregido). El responsable lanzaba el perfil **Debug** (F5/`dotnet run`), que seguía conteniendo el bug.
 
 **Acción:** reconstruido el perfil **Debug** con la corrección (20:54): ambos binarios quedan al día y el comportamiento es idéntico en los dos perfiles. Smokes test Debug: lanzamiento 6 s sin crash. `git push` en `kraso/redes-knowledge`.
+## 26-08-2026 — Botones "Acciones": adiós al color de acento, iconos en blanco brillante
+
+**Petición del responsable:** quitar el color **marrón anaranjado** (acento de Windows, `SystemControlHighlightAccentBrush`) de los tres botones de la sidebar y sustituirlo por **blanco brillante**; cambiar también los iconos, usando el **logotipo de la aplicación** en "Acerca de". Se mantiene el patrón de diseño (círculo + texto + chevrón).
+
+**Implementación (build 0/0 · tests 61/61 ✅):**
+- El círculo de cada botón pasa de acento naranja al 85 % de opacidad a **blanco brillante permanente** (`#FFFFFFFF`, opacidad 1): ahora es el único color fijo de la sección, igual que la barra de título.
+- Glifos en **gris oscuro** (`#FF1C1C1C`) sobre el círculo blanco para mantener contraste en ambos temas:
+  - **Tema claro/oscuro** → ☾ (luna, antes ◐).
+  - **Leyenda** → ≡ (índice de líneas, antes ☰).
+  - **Acerca de** → **logotipo de la aplicación** (`Assets/Logo_NetProtocol.png`) dentro del círculo (22×22, padding 3), antes ℹ.
+- El borde del hover deja de usar el acento (naranja) → **`SystemControlForegroundBaseHighBrush`** (borde claro del tema, neutro en claro y oscuro). Sin acentos en toda la sección.
+- Reconstruidos **Debug y Release** (ambos binarios al día); app lanzada 6 s sin crash. `git push` en `kraso/redes-knowledge`.
