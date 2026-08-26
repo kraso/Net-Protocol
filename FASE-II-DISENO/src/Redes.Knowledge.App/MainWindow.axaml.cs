@@ -506,6 +506,8 @@ public partial class MainWindow : Window
 
     private void CompararConReferencia()
     {
+        // Restaura la alineación izquierda por si "Acerca de" la dejó centrada.
+        DetailText.TextAlignment = TextAlignment.Left;
         if (_seleccionado is null) return;
         // Referencia elegida por el usuario (ComboBox "Comparar con:"); TCP por defecto,
         // pero cualquier protocolo del catálogo es válido.
@@ -599,6 +601,8 @@ public partial class MainWindow : Window
     /// <summary>Leyenda de las 13 familias: acrónimo → descripción escueta + ejemplos del catálogo.</summary>
     private void MostrarLeyenda()
     {
+        // Alineación izquierda siempre: "Acerca de" centra el texto y hay que restaurarla.
+        DetailText.TextAlignment = TextAlignment.Left;
         // Visto textual: oculta los diagramas del protocolo previamente seleccionado.
         DiagramPanel.Children.Clear();
         DiagramTitle.IsVisible = false;

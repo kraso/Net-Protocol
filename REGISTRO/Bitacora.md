@@ -559,3 +559,12 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - Botones `SidebarAction` (220 × 34 px, más estrechos que los ComboBox de 210–300): **réplica del aspecto de los desplegables** usando los mismos recursos del tema Fluent (`SystemControlBackgroundChromeMediumLowBrush` de fondo · `SystemControlForegroundBaseMediumBrush` de borde · texto `SystemControlForegroundBaseHighBrush`), esquinas 4 px, ancho completo de la sección.
 - **Matiz diferenciador** (porque son botones, no desplegables): **icono circular de acento** a la izquierda (◐ tema, ☰ leyenda, ℹ acerca) + **chevrón "▸" tenue** a la derecha (sugiere acción, inverso del ▾ del desplegable); hover con fondo de lista baja + borde de acento; pressed con fondo de lista media.
 - Se quitaron los handlers duplicados del XAML (los Click siguen conectándose en el constructor).
+## 26-08-2026 — Leyenda alineada a la izquierda (manteniéndola en la zona central)
+
+**Petición del responsable:** el texto de la sección **Leyenda** no debe verse centrado; alineado a la **izquierda**, pero mostrado en la zona central de la app (panel de detalle).
+
+**Implementación (build 0/0 · tests 61/61 ✅):**
+- `MostrarLeyenda()` restaura `DetailText.TextAlignment = TextAlignment.Left` al inicio (antes solo `RenderFicha` lo hacía; tras visitar "Acerca de", que centra el texto, la Leyenda quedaba centrada por herencia).
+- Lo mismo en `CompararConReferencia()`: la tabla y los campos largos del comparador vuelven a alinearse a la izquierda aunque se haya visitado "Acerca de" antes.
+- "Acerca de" conserva su centrado (`MostrarAcercaDe` sigue fijando `TextAlignment.Center`), y cualquier ficha/comparador/leyenda posterior lo restaura.
+- Verificación: app lanzada 6 s sin crash; git push en `kraso/redes-knowledge`.
