@@ -27,7 +27,7 @@ public class ExploracionTests
     [Fact]
     public void Grafo_Carga_Relaciones_Reales()
     {
-        var rels = CatalogoExploracion.CargarRelacionesF4(Raiz() + @"\" + F4.Replace('\\', '\\'));
+        var rels = CatalogoExploracion.CargarRelacionesF4(R(F4.Split('\\')[0], string.Join('\\', F4.Split('\\').Skip(1))));
         Assert.True(rels.Count >= 20);
         // Las URN del grafo usan nombres normalizados (urn:entidad:http3)
         Assert.Contains(rels, r =>
