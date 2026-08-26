@@ -217,6 +217,6 @@ jobs:
             echo ""
             echo "**Notas:** builds self-contained (no requieren .NET instalado). Sin firma de código (pendiente de certificados)."
           } > RELEASE_NOTES.md
-          gh release create "$GITHUB_REF_NAME" dist/*/* \
+          gh release create "$GITHUB_REF_NAME" dist/setup-*/* \
             --title "Net Protocol ${VER}" \
             --notes-file RELEASE_NOTES.md
