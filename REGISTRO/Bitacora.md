@@ -528,3 +528,10 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - `Background = Transparent` → hit-testable → recibe `PointerEntered`/`PointerExited`.
 - Detecta popup vs recuadro por `VisualRoot` (PopupRoot vs Window): **solo en el popup y bajo el puntero anima**; en el recuadro (SelectionBoxItemTemplate) estático con elipsis.
 - Reenvía Text/FontSize/FontStyle/FontWeight/Foreground al TextBlock interno (bindings).
+## 26-08-2026 — Carrusel v3 (Grid + Margin): texto siempre visible en el popup
+
+**Feedback del responsable:** "Ahora no hay texto que seleccionar en el popup de los protocolos, no se ve el texto."
+
+**Causa:** la versión con `Canvas` ocultaba el texto del popup (el Canvas como raíz del ítem no renderizaba el texto de forma fiable en el contexto del popup del ComboBox).
+
+**Corrección (build 0/0 · tests 61/61 ✅):** `MarqueeTextBlock` ahora es un **`Grid` con `ClipToBounds`** que contiene un **`TextBlock` hijo visible por defecto** (HorizontalAlignment=Left, sin desplazamiento inicial → el texto se ve desde el arranque). El movimiento usa **`Margin` del TextBlock** (el relayout del contenedor fuerza el repintado — sin depender del renderer de transforms). Se reutilizan directamente las propiedades de `TextBlock` (sin `AddOwner`), evitando advertencias de nulabilidad. El `SelectionBoxItemTemplate` del recuadro sigue siendo un TextBlock estático con elipsis.

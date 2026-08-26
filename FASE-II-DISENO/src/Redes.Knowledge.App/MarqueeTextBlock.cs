@@ -8,17 +8,18 @@ namespace Redes.Knowledge.App;
 
 /// <summary>
 /// Carrusel (marquee) para los ítems de un desplegable que el usuario recorre con el ratón.
-/// Es un Canvas de ancho fijo (recorta con ClipToBounds) que reposiciona un TextBlock hijo
-/// con Canvas.SetLeft en cada tick: el reposicionamiento invalida el layout → repintado
-/// garantizado (no depende de que el renderer repinte un RenderTransform).
-/// - Dentro del popup: el texto se desplaza SOLO cuando el puntero está sobre ese ítem.
+/// Es un Grid de ancho fijo con ClipToBounds que contiene un TextBlock SIEMPRE visible;
+/// el texto se desplaza cambiando su Margin (el relayout del contenedor fuerza el
+/// repintado, sin depender del renderer de transforms).
+/// - Dentro del popup: se desplaza SOLO cuando el puntero está sobre ese ítem.
 /// - Fuera del popup (recuadro del selector tras elegir): estático con elipsis.
 /// </summary>
-public sealed class MarqueeTextBlock : Canvas
+public sealed class MarqueeTextBlock : Grid
 {
     private readonly TextBlock _texto = new()
     {
-        VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+        VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left
     };
 
     private DispatcherTimer? _timer;
@@ -34,75 +35,57 @@ public sealed class MarqueeTextBlock : Canvas
 
     public MarqueeTextBlock()
     {
-        // El propio Canvas recorta: así no hay que envolverlo en un Border externo.
         ClipToBounds = true;
         Background = Brushes.Transparent; // imprescindible para recibir el puntero
         Children.Add(_texto);
 
-        // Ruta de propiedades: reenviamos propiedades al TextBlock interno.
-        _texto.Bind(TextBlock.TextProperty, this.GetObservable(TextProperty));
-        _texto.Bind(TextBlock.FontSizeProperty, this.GetObservable(FontSizeProperty));
-        _texto.Bind(TextBlock.FontStyleProperty, this.GetObservable(FontStyleProperty));
-        _texto.Bind(TextBlock.FontWeightProperty, this.GetObservable(FontWeightProperty));
-        _texto.Bind(TextBlock.ForegroundProperty, this.GetObservable(ForegroundProperty));
+        // Reenvío de propiedades al TextBlock interno (mismas propiedades de TextBlock,
+        // sin AddOwner: sin problemas de nulabilidad y binding directo).
+        _texto.Bind(TextBlock.TextProperty, this.GetObservable(TextBlock.TextProperty));
+        _texto.Bind(TextBlock.FontFamilyProperty, this.GetObservable(TextBlock.FontFamilyProperty));
+        _texto.Bind(TextBlock.FontSizeProperty, this.GetObservable(TextBlock.FontSizeProperty));
+        _texto.Bind(TextBlock.FontStyleProperty, this.GetObservable(TextBlock.FontStyleProperty));
+        _texto.Bind(TextBlock.FontWeightProperty, this.GetObservable(TextBlock.FontWeightProperty));
 
         PointerEntered += (_, _) => { _punteroSobre = true; Replantear(); };
         PointerExited += (_, _) => { _punteroSobre = false; Replantear(); };
     }
 
-    // Recubre las propiedades de TextBlock para que el Canvas se use igual en XAML/código.
-    public static readonly StyledProperty<string?> TextProperty =
-        TextBlock.TextProperty.AddOwner<MarqueeTextBlock>();
-
+    // Propiedades públicas que delegan directamente en las de TextBlock.
     public string? Text
     {
-        get => GetValue(TextProperty);
-        set => SetValue(TextProperty, value);
+        get => GetValue(TextBlock.TextProperty);
+        set => SetValue(TextBlock.TextProperty, value);
     }
-
-    public static readonly StyledProperty<FontFamily> FontFamilyProperty =
-        TextBlock.FontFamilyProperty.AddOwner<MarqueeTextBlock>();
 
     public FontFamily? FontFamily
     {
-        get => GetValue(FontFamilyProperty);
-        set => SetValue(FontFamilyProperty, value!);
+        get => GetValue(TextBlock.FontFamilyProperty);
+        set => SetValue(TextBlock.FontFamilyProperty, value!);
     }
-
-    public static readonly StyledProperty<double> FontSizeProperty =
-        TextBlock.FontSizeProperty.AddOwner<MarqueeTextBlock>();
 
     public double FontSize
     {
-        get => GetValue(FontSizeProperty);
-        set => SetValue(FontSizeProperty, value);
+        get => GetValue(TextBlock.FontSizeProperty);
+        set => SetValue(TextBlock.FontSizeProperty, value);
     }
-
-    public static readonly StyledProperty<FontStyle> FontStyleProperty =
-        TextBlock.FontStyleProperty.AddOwner<MarqueeTextBlock>();
 
     public FontStyle FontStyle
     {
-        get => GetValue(FontStyleProperty);
-        set => SetValue(FontStyleProperty, value);
+        get => GetValue(TextBlock.FontStyleProperty);
+        set => SetValue(TextBlock.FontStyleProperty, value);
     }
-
-    public static readonly StyledProperty<FontWeight> FontWeightProperty =
-        TextBlock.FontWeightProperty.AddOwner<MarqueeTextBlock>();
 
     public FontWeight FontWeight
     {
-        get => GetValue(FontWeightProperty);
-        set => SetValue(FontWeightProperty, value);
+        get => GetValue(TextBlock.FontWeightProperty);
+        set => SetValue(TextBlock.FontWeightProperty, value);
     }
-
-    public static readonly StyledProperty<IBrush?> ForegroundProperty =
-        TextBlock.ForegroundProperty.AddOwner<MarqueeTextBlock>();
 
     public IBrush? Foreground
     {
-        get => GetValue(ForegroundProperty);
-        set => SetValue(ForegroundProperty, value);
+        get => GetValue(TextBlock.ForegroundProperty);
+        set => SetValue(TextBlock.ForegroundProperty, value);
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -111,6 +94,7 @@ public sealed class MarqueeTextBlock : Canvas
         // Dentro del popup del ComboBox, el root visual es un PopupRoot (no Window);
         // el recuadro del selector pertenece al Window.
         _enPopup = VisualRoot is not Window;
+        _texto.TextTrimming = _enPopup ? TextTrimming.None : TextTrimming.CharacterEllipsis;
         Replantear();
     }
 
@@ -123,9 +107,7 @@ public sealed class MarqueeTextBlock : Canvas
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if (change.Property == BoundsProperty)
-            Replantear();
-        if (change.Property == TextProperty)
+        if (change.Property == BoundsProperty || change.Property == TextBlock.TextProperty)
             Replantear();
     }
 
@@ -150,8 +132,6 @@ public sealed class MarqueeTextBlock : Canvas
         return size;
     }
 
-    protected override Size ArrangeOverride(Size finalSize) => finalSize;
-
     private void Replantear()
     {
         var ancho = Bounds.Width > 0 ? Bounds.Width : DesiredSize.Width;
@@ -161,8 +141,8 @@ public sealed class MarqueeTextBlock : Canvas
         if (!_enPopup)
         {
             PararAnimacion();
+            _texto.Margin = new Thickness(0);
             _texto.TextTrimming = TextTrimming.CharacterEllipsis;
-            Canvas.SetLeft(_texto, 0);
             return;
         }
 
@@ -170,14 +150,13 @@ public sealed class MarqueeTextBlock : Canvas
         if (!_punteroSobre || _anchoTexto <= ancho + 1)
         {
             PararAnimacion();
+            _texto.Margin = new Thickness(0);
             _texto.TextTrimming = TextTrimming.CharacterEllipsis;
-            Canvas.SetLeft(_texto, 0);
             return;
         }
 
         // Por encima y desborda: carrusel.
         _texto.TextTrimming = TextTrimming.None;
-        _texto.Width = double.NaN;       // deja que el texto ocupe su ancho natural
         if (_timer is null)
         {
             _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
@@ -187,7 +166,8 @@ public sealed class MarqueeTextBlock : Canvas
         {
             _animando = true;
             _ticksInicio = 0;
-            Canvas.SetLeft(_texto, ancho + HuecoPx); // entra desde la derecha
+            // Entra desde la derecha: margin izquierdo igual al ancho del contenedor.
+            _texto.Margin = new Thickness(ancho + HuecoPx, 0, 0, 0);
         }
         _timer.Start();
     }
@@ -209,10 +189,11 @@ public sealed class MarqueeTextBlock : Canvas
             return; // pausa breve antes de moverse
         }
 
-        var x = Canvas.GetLeft(_texto) - VelocidadPx;
+        var x = _texto.Margin.Left - VelocidadPx;
         if (x + _anchoTexto < 0)
             x = ancho + HuecoPx; // salió por la izquierda → vuelve a entrar
-        Canvas.SetLeft(_texto, x); // reposicionar invalida el layout → repintado garantizado
+        // Cambiar el Margin recoloca el texto (layout) → repintado garantizado.
+        _texto.Margin = new Thickness(x, 0, 0, 0);
     }
 
     private void PararAnimacion()
