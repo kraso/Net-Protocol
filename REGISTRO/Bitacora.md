@@ -403,7 +403,14 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - Repositorio: **https://github.com/kraso/redes-knowledge** (privado, rama por defecto `main`).
 - `origin` configurado (fetch/push HTTPS); `main` trackea `origin/main`; 2 commits publicados.
 
-**CI:** los jobs de Actions (`quality`: 61 tests; `build`: win/linux/osx; `package-win` en tags `v*`) quedan activos automáticamente al publicar — primera ejecución disparada por el push. Estado consultable con `gh run list` / web Actions tab. (Pendiente no bloqueante: pasar el repo a público cuando se decida.)
+**CI:** los jobs de Actions (`quality`: 61 tests; `build`: win/linux/osx; `package-win` en tags `v*`) quedan activos automáticamente al publicar. (Pendiente no bloqueante: pasar el repo a público cuando se decida.)
+
+### CI verificado y en verde ✅ (26-08-2026)
+
+- Primer run falló por un **bug real de portabilidad que detectó CI**: `ExploracionTests.Grafo_Carga_Relaciones_Reales` construía la ruta con separador manual (`@"\"`), válido en Windows pero roto en Linux (`FileNotFoundException`). Corregido al helper portable `R(...)` (la suite local de Windows no lo veía; el runner ubuntu sí).
+- Añadido trigger `workflow_dispatch` (el evento `push` no disparó en el repo recién creado; dispatch permite ejecución manual de diagnóstico).
+- **Run `32987043202` → success**: quality 61/61 + build win-x64 + linux-x64 + osx-x64 (self-contained); `package-win` skippeado (sin tag `v*`).
+- Trabajo de CI completo; el push de la rama `main` debería seguir disparando runs, y tags `v*` activan el instalador Inno.
 
 ---
 Última actualización: 26-08-2026
