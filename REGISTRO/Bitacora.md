@@ -507,5 +507,12 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Aclaración del responsable:** el carrusel NO debía estar en el recuadro del selector (superfluo); se refería a los valores seleccionables: la ventanita de la lista se ajustaba al ancho del texto (quería que quedara fija) y el texto del elemento bajo el puntero debía moverse hasta el clic.
 
 **Corrección (build 0/0 · tests 61/61 ✅):**
-- `MarqueeTextBlock` detecta el contexto: si su `VisualRoot` **no** es un `Window` (es decir, vive dentro del `PopupRoot` del desplegable) → **carrusel solo cuando `IsPointerOver`** sobre ese ítem (entra por la derecha con pausa breve; al salir el puntero o al cerrar, se detiene y vuelve a elipsis estática). Si `VisualRoot` es el `Window` (recuadro del selector) → **siempre estático con elipsis**.
+- `MarqueeTextBlock` detecta el contexto: si su `VisualRoot` **no** es un `Window` (es decir, vive dentro del `PopupRoot` del desplegable) → **carrusel solo cuando el puntero está sobre ese ítem** (entra por la derecha con pausa breve; al salir el puntero o al cerrar, se detiene y vuelve a elipsis estática). Si `VisualRoot` es el `Window` (recuadro del selector) → **siempre estático con elipsis**.
 - `Border` del template con **`Width = 300` fijo** → la ventanita de la lista **deja de crecer** con el ancho del texto; todos los ítems comparten el mismo ancho y el texto largo se recorta/desplaza dentro de él.
+## 26-08-2026 — Recuadro limpio (SelectionBoxItemTemplate) y carrusel bajo el puntero activado
+
+**Feedback del responsable:** (1) "se han colado dos caracteres en el cuadro de selección del desplegable… aparecen para cualquier protocolo"; (2) "no existe animación para los textos debajo del puntero del ratón; debería animarse el texto cuando el puntero esté encima de ese elemento".
+
+**Correcciones (build 0/0 · tests 61/61 ✅):**
+1. **Recuadro del selector** → nuevo **`SelectionBoxItemTemplate`** (API de Avalonia 12, equivalente al `SelectionBoxItemTemplate` de WPF): el recuadro usa un TextBlock **estático con elipsis** (sin el `Border` de 300 px ni el marquee) — desaparecen los caracteres extra que producía reutilizar el template del popup en el recuadro. El `ItemTemplate` (con ancho 300 + carrusel) queda **solo para el popup**.
+2. **Carrusel bajo el puntero**: el marquee ya no depende de `IsPointerOver` (poco fiable dentro del `ListBoxItem` del popup): ahora se suscribe a **`PointerEntered`/`PointerExited`** del propio control (que cubre todo el ancho del ítem por `HorizontalAlignment=Stretch`) y anima **solo cuando el puntero está encima de ESE ítem**; al salir, se detiene y vuelve a elipsis estática. El `Border` del popup mantiene `Width=300` fijo (la ventanita no crece con el texto).

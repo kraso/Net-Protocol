@@ -170,7 +170,10 @@ public partial class MainWindow : Window
         // Muestra "ACR · Nombre" en el desplegable (ancho suficiente para los 113).
         // Muestra "ACR · Nombre" en el desplegable con ancho FIJO (300 px): la ventanita de la
 // lista no crece con el texto; el texto de cada ítem solo se desplaza (carrusel) cuando
-// el puntero está sobre ese ítem (el recuadro del selector queda estático, con elipsis).
+// el puntero está sobre ese ítem.
+// - ItemTemplate: se aplica a los ítems del POPUP (carrusel bajo el puntero).
+// - SelectionBoxItemTemplate: se aplica al RECUADRO del selector (texto estático,
+//   sin Border de 300 px ni animación; esto elimina los caracteres extra del recuadro).
 // IMPORTANTE: el data template se invoca con null al reciclar contenedores
 // del popup al abrir; sin la guarda, p.Acronimo lanza NullReferenceException.
         CompareTarget.ItemTemplate = new FuncDataTemplate<Protocol>((p, _) =>
@@ -183,6 +186,13 @@ public partial class MainWindow : Window
                     Text = $"{p.Acronimo} · {p.Nombre}",
                     VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
                 }
+            });
+        CompareTarget.SelectionBoxItemTemplate = new FuncDataTemplate<Protocol>((p, _) =>
+            p is null ? null : new TextBlock
+            {
+                Text = $"{p.Acronimo} · {p.Nombre}",
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
             });
         CompareTarget.SelectedItem = _protocolos.Values.FirstOrDefault(p => p.Acronimo == "TCP");
         _cargando = false;

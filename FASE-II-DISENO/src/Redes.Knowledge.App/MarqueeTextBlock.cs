@@ -21,7 +21,8 @@ public sealed class MarqueeTextBlock : TextBlock
     private readonly TranslateTransform _transform = new();
     private double _anchoTexto;
     private int _ticksInicio;
-    private bool _enPopup;   // true si este control está dentro del popup del desplegable
+    private bool _enPopup;    // true si este control está dentro del popup del desplegable
+    private bool _punteroSobre;
     private bool _animando;
 
     private const double VelocidadPx = 1.5;   // px por tick (~90 px/s a 60 FPS)
@@ -33,6 +34,13 @@ public sealed class MarqueeTextBlock : TextBlock
         RenderTransform = _transform;
         TextTrimming = TextTrimming.CharacterEllipsis;
         VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
+        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+        // El puntero sobre el ítem (incluida la zona vacía a la derecha del texto) debe
+        // activar el carrusel: nos suscribimos a los eventos de puntero de ESTE control,
+        // que cubre todo el ancho del Border contenedor (Stretch). IsPointerOver del
+        // TextBlock puede quedarse sin actualizar dentro del ListBoxItem del popup.
+        PointerEntered += (_, _) => { _punteroSobre = true; Replantear(); };
+        PointerExited += (_, _) => { _punteroSobre = false; Replantear(); };
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -75,8 +83,8 @@ public sealed class MarqueeTextBlock : TextBlock
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        // Reacciona al puntero para arrancar/parar el carrusel en el ítem bajo el ratón.
-        if (change.Property == IsPointerOverProperty)
+        // Si el tamaño (bounds) cambia tras el layout, re-evaluamos el carrusel.
+        if (change.Property == BoundsProperty)
             Replantear();
     }
 
@@ -89,13 +97,12 @@ public sealed class MarqueeTextBlock : TextBlock
         if (!_enPopup)
         {
             PararAnimacion();
-            TextTrimming = TextTrimming.CharacterEllipsis;
             _transform.X = 0;
             return;
         }
 
         // Dentro del popup: carrusel solo bajo el puntero del ratón.
-        if (!IsPointerOver || _anchoTexto <= ancho + 1)
+        if (!_punteroSobre || _anchoTexto <= ancho + 1)
         {
             PararAnimacion();
             TextTrimming = TextTrimming.CharacterEllipsis;
@@ -124,7 +131,7 @@ public sealed class MarqueeTextBlock : TextBlock
         var ancho = Bounds.Width > 0 ? Bounds.Width : DesiredSize.Width;
         if (ancho <= 0) return;
 
-        if (!IsPointerOver || _anchoTexto <= ancho + 1)
+        if (!_punteroSobre || _anchoTexto <= ancho + 1)
         {
             Replantear(); // salió el puntero o ya cabe → detener
             return;
