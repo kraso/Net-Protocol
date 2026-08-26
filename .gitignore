@@ -1,0 +1,32 @@
+# .NET
+bin/
+obj/
+*.user
+
+# App
+FASE-II-DISENO/run/
+FASE-II-DISENO/dist/
+*.db
+*.db-shm
+*.db-wal
+
+# Entorno
+.vs/
+.vscode/
+.idea/
+*.suo
+.claude/
+.cursor/
+.gemini/
+.codegraph/
+.mcp.json
+AGENTS.md
+opencode.jsonc
+_prompt_extraido.txt
+
+# Logs y temporales
+*.log
+Thumbs.db
+
+# Git
+.git/

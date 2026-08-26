@@ -1,0 +1,34 @@
+{
+  "version": "0.1",
+  "fecha_consulta": "2026-08-26",
+  "documento_rector": "PLANREDES.md",
+  "fase": "F6 — Seguridad y operatividad",
+  "nist_sp800207": {
+    "fuente": "https://csrc.nist.gov/pubs/sp/800/207/final",
+    "nota": "R4. Principios centrales de la arquitectura Zero Trust (SP 800-207).",
+    "principios": [
+      "Proteger recursos, no la ubicación de red",
+      "Separación PDP (decisión) y PE (ejecución)",
+      "Autenticación y autorización continuas",
+      "Mínimo privilegio",
+      "Segmentación (incl. microsegmentación)",
+      "Asumir brecha (monitorización y respuesta)"
+    ]
+  },
+  "mitre_attack": {
+    "fuente": "https://attack.mitre.org/",
+    "nota": "R5. Uso complementario y defensivo (política F0 §4.3): no sustituye la documentación del protocolo. Los IDs se verifican contra la taxonomía vigente en el pipeline (datos versionables)."
+  },
+  "mapeo": [
+    {"id": "M-01", "protocolo_mecanismo": "ARP", "nist_principios": ["Asumir brecha", "Segmentación"], "attack_tecnicas": [{"id": "T1557", "nombre": "Adversary-in-the-Middle", "nota": "sub-técnica .002 ARP Cache Poisoning"}, {"id": "T1040", "nombre": "Network Sniffing"}], "deteccion": "DHCP snooping, 802.1X, tablas ARP estáticas, alertas de direcciones duplicadas", "confianza": "MEDIO (IDs verificar en R5)", "fuente": "R5"},
+    {"id": "M-02", "protocolo_mecanismo": "DHCP", "nist_principios": ["Autorización continua", "Mínimo privilegio"], "attack_tecnicas": [{"id": "T1557", "nombre": "Adversary-in-the-Middle", "nota": "DHCP Spoofing (sub-técnica a verificar)"}], "deteccion": "DHCP snooping, opción 82, 802.1X", "confianza": "MEDIO (IDs verificar en R5)", "fuente": "R5"},
+    {"id": "M-03", "protocolo_mecanismo": "DNS", "nist_principios": ["Proteger recursos"], "attack_tecnicas": [{"id": "T1071.004", "nombre": "DNS (Application Layer Protocol)", "nota": "exfiltración/canal de control"}], "deteccion": "Monitoreo de consultas anómalas, DNSSEC, logs de resolver", "confianza": "ALTO", "fuente": "R5"},
+    {"id": "M-04", "protocolo_mecanismo": "HTTP(S)", "nist_principios": ["Proteger recursos", "Asumir brecha"], "attack_tecnicas": [{"id": "T1071.001", "nombre": "Web Protocols (Application Layer Protocol)", "nota": ""}], "deteccion": "Proxy/logs web, correlación de eventos", "confianza": "ALTO", "fuente": "R5"},
+    {"id": "M-05", "protocolo_mecanismo": "BGP", "nist_principios": ["Proteger recursos"], "attack_tecnicas": [], "deteccion": "Sin mapeo directo en ATT&CK; RPKI/ROA, filtrado de prefijos, monitoreo de AS_PATH (RIPE RIS/ROA freshness)", "confianza": "ALTO (afirmación de práctica, no técnica)", "fuente": "R4/R5"},
+    {"id": "M-06", "protocolo_mecanismo": "Kerberos", "nist_principios": ["Autenticación continua", "Mínimo privilegio"], "attack_tecnicas": [{"id": "T1558", "nombre": "Steal or Forge Kerberos Tickets", "nota": "golden ticket .001, silver ticket .002, Kerberoasting .003, AS-Rep Roasting .004"}, {"id": "T1078", "nombre": "Valid Accounts", "nota": "si el atacante usa credenciales legítimas"}], "deteccion": "Monitoreo AS-REP/Kerberoasting, rotación de claves de service accounts", "confianza": "ALTO", "fuente": "R5"},
+    {"id": "M-07", "protocolo_mecanismo": "TLS", "nist_principios": ["Proteger recursos", "Asumir brecha"], "attack_tecnicas": [], "deteccion": "Cifrado legítimo: sin mapeo directo; metadatos de conexión, reputación de destinos, monitoreo de protocolos encapsulados", "confianza": "ALTO (afirmación, no técnica)", "fuente": "R5"},
+    {"id": "M-08", "protocolo_mecanismo": "802.1X/EAP", "nist_principios": ["Autenticación continua", "Separación PDP/PE"], "attack_tecnicas": [{"id": "T1078", "nombre": "Valid Accounts", "nota": "indirecto, si el atacante posee credenciales"}], "deteccion": "Logs RADIUS, eventos de autenticación de puerto", "confianza": "MEDIO", "fuente": "R5"},
+    {"id": "M-09", "protocolo_mecanismo": "TCP/UDP (escaneo)", "nist_principios": ["Asumir brecha"], "attack_tecnicas": [{"id": "T1046", "nombre": "Network Service Discovery", "nota": ""}], "deteccion": "IDS/IPS, firewall stateful, alertas de escaneo", "confianza": "ALTO", "fuente": "R5"},
+    {"id": "M-10", "protocolo_mecanismo": "SSH", "nist_principios": ["Autenticación continua", "Mínimo privilegio"], "attack_tecnicas": [{"id": "T1110", "nombre": "Brute Force", "nota": ""}, {"id": "T1078", "nombre": "Valid Accounts", "nota": "si roban credenciales"}], "deteccion": "Rate limiting, MFA, monitoreo de intentos de login fallidos", "confianza": "ALTO", "fuente": "R5"}
+  ]
+}

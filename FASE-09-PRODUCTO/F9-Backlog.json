@@ -1,0 +1,47 @@
+{
+  "version": "0.1",
+  "fecha": "2026-08-26",
+  "fase": "F9 — Especificación de producto",
+  "documento_rector": "PLANREDES.md §14",
+  "nota": "Backlog técnico priorizado. Prioridad: must (imprescindible) | should (deseable) | could (opcional). Compuerta: no se programa hasta ejecutar la Fase II (PLANREDES §17).",
+  "epicas": [
+    {"id": "D0", "titulo": "Decisiones y spikes", "prioridad": "must", "historias": [
+      {"id": "D0-1", "titulo": "Spike UI rica con volúmenes grandes", "descripcion": "Prototipar en Avalonia tablas virtualizadas (10k+ filas), paneles acoplables, temas claro/oscuro y navegación por grafo", "prioridad": "must", "criterios_aceptacion": ["Renderiza 10.000 filas sin degradación apreciable", "Paneles acoplables funcionales", "Temas claro/oscuro consistentes"], "dependencias": []},
+      {"id": "D0-2", "titulo": "Spike renderer de diagramas determinista", "descripcion": "Layouts deterministas (pila/encapsulación, mensaje bit/byte) y exportación SVG/PNG/PDF; evaluar Mermaid/Graphviz/Cytoscape según vista", "prioridad": "must", "criterios_aceptacion": ["Mismo input produce el mismo diagrama", "Exportación SVG/PNG/PDF funcional", "ADR de elección de motor documentado"], "dependencias": []},
+      {"id": "D0-3", "titulo": "ADR de stack y módulos", "descripcion": "Actas de decisión de arquitectura: stack (Avalonia vs. Tauri), módulos y contratos entre capas", "prioridad": "must", "criterios_aceptacion": ["ADR-001..003 aprobados", "Alternativas descartadas documentadas"], "dependencias": ["D0-1", "D0-2"]}
+    ]},
+    {"id": "D1", "titulo": "Núcleo de dominio y datos", "prioridad": "must", "historias": [
+      {"id": "D1-1", "titulo": "Modelo de dominio C#", "descripcion": "Entidades Protocol, Standard, Version, MessageType, Field, PDU, Device, NetworkType, Layer, Plane, Source, Implementation, Capture, Diagram, SecurityMechanism, Relationship", "prioridad": "must", "criterios_aceptacion": ["Claves URN estables separadas del nombre", "Versionado temporal valid_from/valid_to", "Validación de dominio"], "dependencias": ["D0-3"]},
+      {"id": "D1-2", "titulo": "Persistencia SQLite + FTS5", "descripcion": "CRUD por entidad e índice FTS5 para búsqueda", "prioridad": "must", "criterios_aceptacion": ["CRUD implementado", "Búsqueda FTS por protocolo/campo/puerto"], "dependencias": ["D1-1"]},
+      {"id": "D1-3", "titulo": "Serialización JSON/YAML y validación", "descripcion": "Importación/exportación de fixtures y validación de esquema", "prioridad": "must", "criterios_aceptacion": ["Round-trip JSON/YAML fiel", "Esquema validable y rechazo de fichas inválidas"], "dependencias": ["D1-1"]}
+    ]},
+    {"id": "D2", "titulo": "Pipeline de datos", "prioridad": "must", "historias": [
+      {"id": "D2-1", "titulo": "Importador IANA (CSV oficial)", "descripcion": "Parseo del registro IANA Service Names (15.401 registros) con mapeo de cabecera y fecha de consulta", "prioridad": "must", "criterios_aceptacion": ["Parseo completo del CSV oficial", "Mapeo de columnas según F3 §3.2", "Fecha de consulta registrada"], "dependencias": ["D1-2"]},
+      {"id": "D2-2", "titulo": "Normalización, deduplicación y entity-linking", "descripcion": "Claves (service name, transporte), alias y vínculos con el inventario maestro", "prioridad": "must", "criterios_aceptacion": ["Sin duplicados (clave compuesta)", "Vínculos integros con F3"], "dependencias": ["D2-1"]},
+      {"id": "D2-3", "titulo": "Snapshots versionados, diff y rollback", "descripcion": "Artefacto inmutable {fecha, hash, procedencia, diff} y reconstrucción de índices", "prioridad": "must", "criterios_aceptacion": ["Snapshot con hash y diff vs. previo", "Rollback funcional", "Índices FTS reconstruibles"], "dependencias": ["D2-2"]}
+    ]},
+    {"id": "D3", "titulo": "UI básica", "prioridad": "must", "historias": [
+      {"id": "D3-1", "titulo": "Navegación jerárquica y panel lateral", "descripcion": "Exploración por ejes F0 (familias, capas, planos, dominios) y acceso a fichas", "prioridad": "must", "criterios_aceptacion": ["Navegación por los 9 ejes de clasificación", "Acceso en 2 clics a cualquier ficha"], "dependencias": ["D1-2"]},
+      {"id": "D3-2", "titulo": "Vista de ficha de protocolo (18 campos)", "descripcion": "Renderiza fichas F-01..F-12 y el resto del catálogo con marcas [n.p.d.]", "prioridad": "must", "criterios_aceptacion": ["18 campos visibles", "Marcas de incertidumbre mostradas", "Enlaces a fuentes funcionales"], "dependencias": ["D3-1"]},
+      {"id": "D3-3", "titulo": "Búsqueda y filtros", "descripcion": "Búsqueda FTS por protocolo/campo/RFC/puerto/capa/dispositivo/fabricante/dominio + filtros por ejes", "prioridad": "must", "criterios_aceptacion": ["Resultados relevantes con autocompletado", "Filtros combinables por ejes F0"], "dependencias": ["D1-2"]}
+    ]},
+    {"id": "D4", "titulo": "Diagramas y visualización", "prioridad": "should", "historias": [
+      {"id": "D4-1", "titulo": "Renderer desacoplado con layouts deterministas", "descripcion": "Modelo de grafo separado del renderer; mismo dato → mismo diagrama", "prioridad": "should", "criterios_aceptacion": ["Determinismo verificado por prueba", "Desacople entre modelo y renderer"], "dependencias": ["D0-2"]},
+      {"id": "D4-2", "titulo": "Plantillas de diagramas (≥5 de 10)", "descripcion": "pila/encapsulación, secuencia, estados, mensaje bit/byte, ruta e2e (mínimo)", "prioridad": "should", "criterios_aceptacion": ["5 plantillas funcionales", "Regenerables desde datos estructurados"], "dependencias": ["D4-1"]},
+      {"id": "D4-3", "titulo": "Exportación SVG/PNG/PDF", "descripcion": "Exportación de diagramas a formatos vectoriales/raster", "prioridad": "should", "criterios_aceptacion": ["Archivos SVG/PNG/PDF válidos"], "dependencias": ["D4-2"]}
+    ]},
+    {"id": "D5", "titulo": "Exploración avanzada", "prioridad": "should", "historias": [
+      {"id": "D5-1", "titulo": "Grafo de relaciones navegable", "descripcion": "Vecinos a 1 salto desde cualquier entidad; matrices de encapsulación visibles", "prioridad": "should", "criterios_aceptacion": ["Navegación por relaciones del grafo", "Matriz de encapsulación (F4) cargada"], "dependencias": ["D4-1"]},
+      {"id": "D5-2", "titulo": "Comparador de protocolos/versiones", "descripcion": "Tabla comparativa regenerable (capa, PDU, puertos, seguridad, casos de uso)", "prioridad": "should", "criterios_aceptacion": ["Comparación de 2+ protocolos", "Exportable"], "dependencias": ["D3-2"]}
+    ]},
+    {"id": "D6", "titulo": "Capturas y validación de layouts", "prioridad": "should", "historias": [
+      {"id": "D6-1", "titulo": "Adaptador PCAP/PCAPNG", "descripcion": "Apertura de capturas y lista de paquetes; dissection por capas (referencia Wireshark, sin embeder)", "prioridad": "should", "criterios_aceptacion": ["Abre capturas PCAP/PCAPNG", "Disección por capas básica"], "dependencias": ["D3-2"]},
+      {"id": "D6-2", "titulo": "Validación de layouts contra capturas (L-004)", "descripcion": "Correspondencia paquete real ↔ campos documentados de F5-Campos-PDU.json", "prioridad": "should", "criterios_aceptacion": ["6 layouts verificados contra capturas", "Informe de coincidencia generado"], "dependencias": ["D6-1"]}
+    ]},
+    {"id": "D7", "titulo": "Calidad, distribución y Release", "prioridad": "must", "historias": [
+      {"id": "D7-1", "titulo": "CI/CD y controles automáticos", "descripcion": "Esquema, enlaces rotos, fuentes obsoletas, duplicados, contradicciones, integridad referencial, regresiones", "prioridad": "must", "criterios_aceptacion": ["Pipeline de calidad en CI", "Golden-master del dataset"], "dependencias": ["D2-3"]},
+      {"id": "D7-2", "titulo": "Instaladores y actualización de dataset", "descripcion": "Instaladores Windows/macOS/Linux; dataset versionado independiente del ejecutable; actualización sin recompilar", "prioridad": "must", "criterios_aceptacion": ["Instalación limpia en las 3 plataformas", "Dataset actualizable en tiempo de ejecución"], "dependencias": ["D3-3"]},
+      {"id": "D7-3", "titulo": "Modo offline y Release 1.0", "descripcion": "Operación sin Internet con dataset embebido; dashboard de métricas de cobertura", "prioridad": "must", "criterios_aceptacion": ["Funcionalidad completa offline", "Métricas de cobertura visibles en la app"], "dependencias": ["D7-2"]}
+    ]}
+  ]
+}

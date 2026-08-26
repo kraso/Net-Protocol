@@ -1,0 +1,53 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Restaurar y probar (quality gate A01..A07 + golden-master)
+        run: dotnet test FASE-II-DISENO/tests/Redes.Knowledge.Tests/Redes.Knowledge.Tests.csproj --configuration Release
+
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: macos-latest
+            rid: osx-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Publicar self-contained (${{ matrix.rid }})
+        run: dotnet publish src/Redes.Knowledge.App/Redes.Knowledge.App.csproj -c Release -r ${{ matrix.rid }} --self-contained true -o dist/${{ matrix.rid }}
+        working-directory: FASE-II-DISENO
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ matrix.rid }}
+          path: FASE-II-DISENO/dist/${{ matrix.rid }}
+
+  package-win:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-latest
+    needs: [quality, build]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar Inno Setup
+        run: choco install innosetup --yes --no-progress
+      - name: Compilar instalador (Inno Setup)
+        run: iscc FASE-II-DISENO/packaging/windows/Redes.Knowledge.iss
+      - uses: actions/upload-artifact@v4
+        with:
+          name: setup-win-x64
+          path: FASE-II-DISENO/dist/RedesKnowledge-Setup-*.exe

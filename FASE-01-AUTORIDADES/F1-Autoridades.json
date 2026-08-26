@@ -1,0 +1,185 @@
+{
+  "version": "0.1",
+  "fecha_consulta": "2026-08-26",
+  "documento_rector": "PLANREDES.md",
+  "fase": "F1 — Inventario maestro de autoridades",
+  "nota": "Catálogo machine-readable de autoridades y registros. Entradas con nivel de autoridad según F0-Politica-de-Fuentes.md §1.",
+  "autoridades": [
+    {
+      "id": "AUTH-001",
+      "organismo": "IETF / RFC Editor",
+      "ambito": "Estándares de Internet (protocolos, formatos, procedimientos)",
+      "registros_clave": ["RFC", "Internet Drafts", "Grupos de trabajo (WG)"],
+      "url": "https://www.rfc-editor.org/",
+      "metodo_acceso": "Datatracker y RFC Editor; descarga de índices y documentos (.txt/.xml)",
+      "frecuencia_sugerida": "Mensual",
+      "nivel_autoridad": "Primaria normativa",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-002",
+      "organismo": "IANA",
+      "ambito": "Registros centrales de Internet",
+      "registros_clave": ["Service Name and Transport Protocol Port Number Registry", "Protocol Numbers", "EtherTypes", "MIME types", "AS numbers"],
+      "url": "https://www.iana.org/",
+      "metodo_acceso": "Descarga oficial; sincronizar como fuente de datos (pipeline), nunca copia manual",
+      "frecuencia_sugerida": "Mensual",
+      "nivel_autoridad": "Primaria normativa (registro oficial)",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-003",
+      "organismo": "IEEE",
+      "ambito": "LAN/MAN y estándares industriales",
+      "registros_clave": ["802.1", "802.3", "802.11", "P802.15"],
+      "url": "https://standards.ieee.org/",
+      "metodo_acceso": "Get IEEE / IEEE SA (catálogo de estándares)",
+      "frecuencia_sugerida": "Trimestral",
+      "nivel_autoridad": "Primaria normativa",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-004",
+      "organismo": "ISO/IEC",
+      "ambito": "Estándares internacionales",
+      "registros_clave": ["ISO/IEC 7498 (OSI)", "ISO/IEC 11801 (cableado)"],
+      "url": "https://www.iso.org/",
+      "metodo_acceso": "Catálogo ISO",
+      "frecuencia_sugerida": "Bajo demanda",
+      "nivel_autoridad": "Primaria normativa",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-005",
+      "organismo": "ITU-T",
+      "ambito": "Telecomunicaciones",
+      "registros_clave": ["Recomendaciones X/Y/G", "Señalización"],
+      "url": "https://www.itu.int/rec/",
+      "metodo_acceso": "Catálogo ITU-T",
+      "frecuencia_sugerida": "Bajo demanda",
+      "nivel_autoridad": "Primaria normativa",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-006",
+      "organismo": "3GPP",
+      "ambito": "Redes móviles",
+      "registros_clave": ["TS 23.x", "TS 24.x", "TS 38.x", "GSM/UMTS/LTE/5G NR"],
+      "url": "https://www.3gpp.org/",
+      "metodo_acceso": "Portal 3GPP (descarga de especificaciones)",
+      "frecuencia_sugerida": "Mensual",
+      "nivel_autoridad": "Primaria normativa",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-007",
+      "organismo": "ETSI",
+      "ambito": "Telecomunicaciones europeas",
+      "registros_clave": ["GSM", "NFV", "MEC"],
+      "url": "https://www.etsi.org/",
+      "metodo_acceso": "Catálogo ETSI",
+      "frecuencia_sugerida": "Trimestral",
+      "nivel_autoridad": "Primaria normativa",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-008",
+      "organismo": "W3C",
+      "ambito": "Web (cuando corresponda)",
+      "registros_clave": ["Recomendaciones (HTTP/HTML/URL...)"],
+      "url": "https://www.w3.org/",
+      "metodo_acceso": "Recomendaciones W3C",
+      "frecuencia_sugerida": "Trimestral",
+      "nivel_autoridad": "Primaria normativa",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-009",
+      "organismo": "ICANN / registries",
+      "ambito": "Dominios y direccionamiento global",
+      "registros_clave": ["Registries de TLD", "Policy"],
+      "url": "https://www.icann.org/",
+      "metodo_acceso": "Páginas oficiales",
+      "frecuencia_sugerida": "Trimestral",
+      "nivel_autoridad": "Registro",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-010",
+      "organismo": "Organismos industriales",
+      "ambito": "Perfiles de interoperabilidad",
+      "registros_clave": ["MEF", "ONF", "OASIS"],
+      "url": "https://www.mef.net/",
+      "metodo_acceso": "Sitios oficiales",
+      "frecuencia_sugerida": "Trimestral",
+      "nivel_autoridad": "Estándar industrial",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-011",
+      "organismo": "NIST",
+      "ambito": "Ciberseguridad y guías",
+      "registros_clave": ["SP 800-series (incl. SP 800-207 Zero Trust)", "NIST CSF"],
+      "url": "https://csrc.nist.gov/",
+      "metodo_acceso": "csrc.nist.gov (descarga de publicaciones)",
+      "frecuencia_sugerida": "Trimestral",
+      "nivel_autoridad": "Guía normativa de referencia",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-012",
+      "organismo": "MITRE",
+      "ambito": "Amenazas y defensa",
+      "registros_clave": ["ATT&CK", "CWE", "CVE"],
+      "url": "https://attack.mitre.org/",
+      "metodo_acceso": "attack.mitre.org; uso complementario (tácticas/técnicas defensivas)",
+      "frecuencia_sugerida": "Mensual",
+      "nivel_autoridad": "Base de conocimiento defensiva (complementaria)",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-013",
+      "organismo": "DLA ASSIST / QuickSearch",
+      "ambito": "Estándares militares públicos (EE. UU.)",
+      "registros_clave": ["MIL-STD-188", "MIL-STD-2045", "MIL-STD-6020"],
+      "url": "https://quicksearch.dla.mil/",
+      "metodo_acceso": "QuickSearch (verificación de estado/fecha de documentos)",
+      "frecuencia_sugerida": "Trimestral / bajo demanda",
+      "nivel_autoridad": "Military/Public Standard",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-014",
+      "organismo": "Proyectos open source",
+      "ambito": "Implementaciones y observabilidad",
+      "registros_clave": ["Wireshark (Developer's Guide)", "libpcap/tcpdump", "FRRouting"],
+      "url": "https://www.wireshark.org/docs/wsdg_html/",
+      "metodo_acceso": "Repositorios y documentación oficiales",
+      "frecuencia_sugerida": "Trimestral",
+      "nivel_autoridad": "Primaria de implementación",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-015",
+      "organismo": "Fabricantes",
+      "ambito": "Documentación de implementación",
+      "registros_clave": ["Manuales técnicos", "White papers", "Datasheets"],
+      "url": null,
+      "metodo_acceso": "Sitios oficiales de cada fabricante (bajo demanda)",
+      "frecuencia_sugerida": "Bajo demanda",
+      "nivel_autoridad": "Primaria de implementación",
+      "estado": "vigente"
+    },
+    {
+      "id": "AUTH-016",
+      "organismo": "Repositorios académicos",
+      "ambito": "Investigación y estándares emergentes",
+      "registros_clave": ["IEEE Xplore", "ACM Digital Library", "arXiv"],
+      "url": "https://arxiv.org/",
+      "metodo_acceso": "Bibliotecas digitales (documentación de ingeniería reconocida)",
+      "frecuencia_sugerida": "Trimestral",
+      "nivel_autoridad": "Secundaria especializada",
+      "estado": "vigente"
+    }
+  ]
+}

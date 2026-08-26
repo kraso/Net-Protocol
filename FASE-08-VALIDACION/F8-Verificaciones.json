@@ -1,0 +1,18 @@
+{
+  "version": "0.1",
+  "fecha_ejecucion": "2026-08-26",
+  "fase": "F8 — Validación",
+  "nota": "Resultados reales de las verificaciones automatizadas ejecutadas el 26-08-2026. Resultado: OK | ATENCION | N.A.",
+  "verificaciones": [
+    {"id": "V-01", "verificacion": "Parseo JSON de todos los catálogos", "resultado": "OK", "detalle": "9/9 archivos JSON válidos", "evidencia": "ConvertFrom-Json sobre todos los *.json del repositorio"},
+    {"id": "V-02", "verificacion": "Unicidad de IDs PR-xxx en F3", "resultado": "OK", "detalle": "113 IDs únicos (tras F3 v2)", "evidencia": "Group-Object por id"},
+    {"id": "V-03", "verificacion": "Integridad referencial F5 -> F3", "resultado": "OK", "detalle": "6/6 protocolos existen en F3", "evidencia": "IDs de F5-Campos-PDU.json presentes en F3-Protocolos.json"},
+    {"id": "V-04", "verificacion": "Integridad referencial F6 -> F3", "resultado": "OK", "detalle": "16/16 protocolos existen en F3", "evidencia": "protocolo_id de F6-Seguridad-Protocolos.json presentes en F3"},
+    {"id": "V-05", "verificacion": "Integridad referencial F7 -> F3", "resultado": "OK", "detalle": "Todas las referencias de F7-Dominios.json existen en F3", "evidencia": "Cross-check por dominio"},
+    {"id": "V-06", "verificacion": "Familias declaradas vs. usadas (F3)", "resultado": "OK", "detalle": "Ninguna familia usada fuera del mapa declarado", "evidencia": "familias vs. familia por entrada"},
+    {"id": "V-07", "verificacion": "Estados de ciclo de vida vs. vocabulario F0", "resultado": "OK", "detalle": "Normalizado 'historico' -> 'histórico' (12 entradas); vocabulario F0 aplicado", "evidencia": "reemplazo + revalidación"},
+    {"id": "V-08", "verificacion": "Enlaces relativos del repositorio (.md)", "resultado": "OK", "detalle": "Sin enlaces internos rotos", "evidencia": "Resolución de referencias relativas sobre todos los .md"},
+    {"id": "V-09", "verificacion": "Verificación operativa IANA (pipeline)", "resultado": "OK", "detalle": "Fetch real: 15.402 filas (aprox. 15.401 registros), 1.156.686 bytes; cabecera mapeada; muestras ssh/22 (tcp|udp|sctp) y domain/53 (tcp|udp)", "evidencia": "Invoke-WebRequest sobre el registro oficial CSV, 26-08-2026"},
+    {"id": "V-10", "verificacion": "Verificación de IDs MITRE ATT&CK contra R5", "resultado": "ATENCION", "detalle": "Servicio de búsqueda web no disponible (saldo insuficiente); IDs de alta confianza por conocimiento, confirmación formal registrada como laguna L-003", "evidencia": "web_search fallido -> L-003 en F8-Lagunas.json"}
+  ]
+}

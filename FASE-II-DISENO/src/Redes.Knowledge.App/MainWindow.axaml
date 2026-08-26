@@ -1,0 +1,53 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="760"
+        x:Class="Redes.Knowledge.App.MainWindow"
+        Title="Redes Knowledge — Plataforma de referencia, exploración y simulación de redes"
+        Width="1200" Height="760">
+  <DockPanel>
+    <!-- Barra superior: búsqueda + filtros Familia/Estado + acciones globales -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8">
+      <TextBox x:Name="SearchBox" Width="300" PlaceholderText="Buscar protocolo, RFC, puerto, campo…" />
+      <Button x:Name="SearchButton" Content="Buscar" />
+      <SelectableTextBlock Text="Familia:" VerticalAlignment="Center" />
+      <ComboBox x:Name="FilterFamilia" Width="150" />
+      <SelectableTextBlock Text="Estado:" VerticalAlignment="Center" />
+      <ComboBox x:Name="FilterEstado" Width="150" />
+      <Button x:Name="ThemeButton" Content="Tema claro/oscuro" />
+      <Button x:Name="CompareButton" Content="Comparar vs TCP" />
+      <Button x:Name="LegendButton" Content="Leyenda" />
+    </StackPanel>
+
+    <!-- Barra de estado -->
+    <SelectableTextBlock DockPanel.Dock="Bottom" x:Name="StatusText" Margin="10,6" TextWrapping="Wrap" />
+
+    <!--
+      Sidebar lateral: SOLO los grupos de familias ("dropdowns" de la navegación).
+      - Filtro rápido para localizar familias/protocolos
+      - Todos los paneles con anchura idéntica (fija) y altura uniforme (acordeón)
+    -->
+    <Border x:Name="Sidebar" DockPanel.Dock="Left" Width="340"
+            BorderBrush="#334155" BorderThickness="0,0,1,0">
+      <DockPanel Margin="8">
+        <StackPanel DockPanel.Dock="Top" Spacing="6">
+          <TextBox x:Name="NavFilter" PlaceholderText="Filtrar familias… (ACEL, ADCONF, TCP…)" />
+          <Border Height="1" Background="#334155" />
+        </StackPanel>
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+          <StackPanel x:Name="NavPanel" Spacing="6" />
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+
+    <!-- Ficha de protocolo + diagramas de arquitectura (pila F4, grafo vecinos, wire format F5) -->
+    <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto">
+      <StackPanel Margin="14" Spacing="10">
+        <SelectableTextBlock x:Name="DetailText" FontFamily="Consolas, monospace" TextWrapping="Wrap" />
+        <SelectableTextBlock x:Name="DiagramTitle" Text="Diagramas de arquitectura:" FontWeight="Bold" IsVisible="False" />
+        <StackPanel x:Name="DiagramPanel" Spacing="14" />
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

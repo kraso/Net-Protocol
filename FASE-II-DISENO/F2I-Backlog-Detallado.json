@@ -1,0 +1,49 @@
+{
+  "version": "0.1",
+  "fecha": "2026-08-26",
+  "fase": "Fase II — Diseño y generación de software",
+  "documento_rector": "PLANREDES.md §14 / F2I-Diseno-de-Software.md",
+  "nota": "Backlog detallado: épicas D0-D7, historias con prioridad (must/should/could), puntos de estimación relativa (XS=1, S=2, M=3, L=5, XL=8) y criterios de aceptación. Orden objetivo: D0 -> D1 -> D2 -> D3 -> (D4 || D5) -> D6 -> D7.",
+  "epicas": [
+    {"id": "D0", "titulo": "Decisiones y spikes", "prioridad": "must", "salida": "ADR finales de stack, datos, visualización", "historias": [
+      {"id": "D0-1", "titulo": "Confirmar entorno y templates .NET 9 + Avalonia", "descripcion": "Validar dotnet --info, dotnet new list, plantillas Avalonia y primeras compilaciones en VS2022 Enterprise", "prioridad": "must", "puntos": "S", "dependencias": [], "criterios_aceptacion": ["Proyecto net9.0 compila desde CLI y VS2022", "Plantilla Avalonia funcional"]},
+      {"id": "D0-2", "titulo": "Spike UI rica con volúmenes grandes", "descripcion": "Tablas virtualizadas (10k+ filas), paneles acoplables, temas claro/oscuro en Avalonia", "prioridad": "must", "puntos": "M", "dependencias": ["D0-1"], "criterios_aceptacion": ["10.000 filas sin degradación apreciable", "Paneles acoplables funcionales", "Temas claro/oscuro"]},
+      {"id": "D0-3", "titulo": "Spike renderer de diagramas determinista", "descripcion": "Layouts deterministas (pila/encapsulación, mensaje bit/byte) y exportación SVG/PNG/PDF; evaluar Graphviz/Mermaid/Cytoscape según tipo", "prioridad": "must", "puntos": "M", "dependencias": ["D0-1"], "criterios_aceptacion": ["Mismo input -> mismo diagrama", "Exportación SVG/PNG/PDF funcional", "ADR-003 confirmado"]},
+      {"id": "D0-4", "titulo": "ADR finales y ACTA de decisión de stack", "descripcion": "Cerrar ADR-001/002/003 (stack, datos, visualización) con resultados de spikes; actualizar F2I", "prioridad": "must", "puntos": "S", "dependencias": ["D0-2", "D0-3"], "criterios_aceptacion": ["ADR-001..003 cerrados", "Alternativa Tauri evaluada y documentada"]}
+    ]},
+    {"id": "D1", "titulo": "Núcleo de dominio y datos", "prioridad": "must", "salida": "Solución .NET con dominio + SQLite/FTS5", "historias": [
+      {"id": "D1-1", "titulo": "Modelo de dominio C# (17 entidades)", "descripcion": "Entidades y reglas con claves URN y versionado temporal", "prioridad": "must", "puntos": "L", "dependencias": ["D0-4"], "criterios_aceptacion": ["Claves URN estables separadas del nombre", "valid_from/valid_to funcionales", "Validación de dominio con tests unitarios"]},
+      {"id": "D1-2", "titulo": "Persistencia SQLite + FTS5", "descripcion": "Repositorios, migraciones versionadas e índice FTS5", "prioridad": "must", "puntos": "L", "dependencias": ["D1-1"], "criterios_aceptacion": ["CRUD por entidad", "Migraciones versionadas", "Integridad referencial verificada"]},
+      {"id": "D1-3", "titulo": "Serialización JSON/YAML y validación de esquema", "descripcion": "Importación/exportación de fixtures y validación contra esquemas F1/F5/F6", "prioridad": "must", "puntos": "M", "dependencias": ["D1-1"], "criterios_aceptacion": ["Round-trip fiel", "Rechazo de fichas inválidas con informe"]}
+    ]},
+    {"id": "D2", "titulo": "Pipeline de datos", "prioridad": "must", "salida": "Dataset semilla importado con snapshots", "historias": [
+      {"id": "D2-1", "titulo": "Importador IANA (CSV oficial)", "descripcion": "Parseo del registro real (15.401 registros) con mapeo de cabecera y fecha de consulta", "prioridad": "must", "puntos": "M", "dependencias": ["D1-2"], "criterios_aceptacion": ["Parseo completo del CSV oficial", "Mapeo según F3 §3.2", "Fecha de consulta registrada"]},
+      {"id": "D2-2", "titulo": "Normalización, deduplicación y entity-linking", "descripcion": "Claves (service name, transporte), alias y vínculos con el inventario maestro", "prioridad": "must", "puntos": "M", "dependencias": ["D2-1"], "criterios_aceptacion": ["Sin duplicados (clave compuesta)", "Vínculos íntegros con catálogos F1-F7"]},
+      {"id": "D2-3", "titulo": "Snapshots, diff, rollback e índices", "descripcion": "Artefacto inmutable {fecha, hash, procedencia, diff}, rollback y reconstrucción FTS", "prioridad": "must", "puntos": "M", "dependencias": ["D2-2"], "criterios_aceptacion": ["Snapshot con hash y diff", "Rollback funcional", "Índices reconstruibles"]}
+    ]},
+    {"id": "D3", "titulo": "UI básica", "prioridad": "must", "salida": "App navegable con búsqueda", "historias": [
+      {"id": "D3-1", "titulo": "Shell, navegación jerárquica y panel lateral", "descripcion": "Exploración por los 9 ejes F0 y accesos a fichas", "prioridad": "must", "puntos": "M", "dependencias": ["D1-2", "D0-2"], "criterios_aceptacion": ["Navegación por ejes funcional", "Acceso a cualquier ficha en 2 clics"]},
+      {"id": "D3-2", "titulo": "Vista de ficha de protocolo (18 campos)", "descripcion": "Renderiza fichas F-01..F-12 y catálogo con marcas [n.p.d.] y fuentes", "prioridad": "must", "puntos": "M", "dependencias": ["D3-1"], "criterios_aceptacion": ["18 campos visibles", "Marcas de incertidumbre mostradas", "Enlaces a fuentes"]},
+      {"id": "D3-3", "titulo": "Búsqueda y filtros FTS5", "descripcion": "Búsqueda por protocolo/campo/RFC/puerto/capa/dispositivo/fabricante/dominio + filtros ejes", "prioridad": "must", "puntos": "M", "dependencias": ["D1-2"], "criterios_aceptacion": ["Resultados relevantes con autocompletado", "Filtros combinables"]}
+    ]},
+    {"id": "D4", "titulo": "Diagramas y visualización", "prioridad": "should", "salida": "Vistas de pila/estado/mensaje/e2e exportables", "historias": [
+      {"id": "D4-1", "titulo": "Renderer desacoplado con layouts deterministas", "descripcion": "Modelo de grafo separado del renderer; determinismo probado", "prioridad": "should", "puntos": "L", "dependencias": ["D0-3"], "criterios_aceptacion": ["Determinismo verificado por prueba", "Desacople modelo-renderer"]},
+      {"id": "D4-2", "titulo": "Plantillas de diagramas (>=5 de 10)", "descripcion": "pila/encapsulación, secuencia, estados, mensaje bit/byte, ruta e2e", "prioridad": "should", "puntos": "L", "dependencias": ["D4-1"], "criterios_aceptacion": ["5 plantillas funcionales", "Regenerables desde datos estructurados"]},
+      {"id": "D4-3", "titulo": "Exportación SVG/PNG/PDF", "descripcion": "Exportación desde la app", "prioridad": "should", "puntos": "S", "dependencias": ["D4-2"], "criterios_aceptacion": ["Archivos válidos en los 3 formatos"]}
+    ]},
+    {"id": "D5", "titulo": "Exploración avanzada", "prioridad": "should", "salida": "Grafo + comparador + fichas detalladas", "historias": [
+      {"id": "D5-1", "titulo": "Grafo de relaciones navegable", "descripcion": "Vecinos a 1 salto; matrices de encapsulación visibles", "prioridad": "should", "puntos": "L", "dependencias": ["D4-1"], "criterios_aceptacion": ["Navegación por relaciones", "Matriz de encapsulación (F4) cargada"]},
+      {"id": "D5-2", "titulo": "Comparador de protocolos/versiones", "descripcion": "Tabla comparativa regenerable (capa, PDU, puertos, seguridad, casos de uso)", "prioridad": "should", "puntos": "M", "dependencias": ["D3-2"], "criterios_aceptacion": ["Comparación de 2+ protocolos", "Exportable"]},
+      {"id": "D5-3", "titulo": "Fichas detalladas (dispositivo/red/mensaje/campo)", "descripcion": "Vistas por plantillas F2/F5/F6", "prioridad": "should", "puntos": "M", "dependencias": ["D3-2"], "criterios_aceptacion": ["Plantillas aplicadas", "Catálogos cargados"]}
+    ]},
+    {"id": "D6", "titulo": "Capturas y validación de layouts", "prioridad": "should", "salida": "PCAP abierto con dissection y L-004 cerrada", "historias": [
+      {"id": "D6-1", "titulo": "Adaptador PCAP/PCAPNG", "descripcion": "Apertura, listado de paquetes y dissection por capas (referencia Wireshark, sin embebido)", "prioridad": "should", "puntos": "L", "dependencias": ["D3-2"], "criterios_aceptacion": ["Abre PCAP/PCAPNG", "Dissection por capas básica"]},
+      {"id": "D6-2", "titulo": "Validación de layouts contra capturas (L-004)", "descripcion": "Correspondencia paquete real <=> campos de F5-Campos-PDU.json", "prioridad": "should", "puntos": "M", "dependencias": ["D6-1"], "criterios_aceptacion": ["6 layouts verificados", "Informe de coincidencia generado"]}
+    ]},
+    {"id": "D7", "titulo": "Calidad, distribución y Release", "prioridad": "must", "salida": "Release 1.0 offline multiplataforma", "historias": [
+      {"id": "D7-1", "titulo": "CI/CD y controles automáticos de datos", "descripcion": "Esquema, enlaces rotos, fuentes obsoletas, duplicados, contradicciones, integridad referencial, regresiones; golden-master", "prioridad": "must", "puntos": "L", "dependencias": ["D2-3"], "criterios_aceptacion": ["Pipeline de calidad en CI", "Golden-master del dataset verde"]},
+      {"id": "D7-2", "titulo": "Instaladores y actualización de dataset", "descripcion": "Windows (Inno/MSIX), macOS (.dmg), Linux (AppImage/deb); dataset versionado independiente; update sin recompilar", "prioridad": "must", "puntos": "L", "dependencias": ["D3-3"], "criterios_aceptacion": ["Instalación limpia en las 3 plataformas", "Dataset actualizable en runtime"]},
+      {"id": "D7-3", "titulo": "Modo offline y Release 1.0", "descripcion": "Funcionamiento sin Internet; dashboard de métricas de cobertura", "prioridad": "must", "puntos": "M", "dependencias": ["D7-2"], "criterios_aceptacion": ["Funcionalidad completa offline", "Métricas de cobertura visibles en la app", "Release 1.0 publicado"]}
+    ]}
+  ]
+}

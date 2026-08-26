@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="688" height="230" viewBox="0 0 688 230">
+  <text x="10" y="18" font-family="Consolas, monospace" font-size="14">TCP Header (RFC 9293) - layout determinista</text>
+  <text x="6" y="65" font-family="Consolas, monospace" font-size="10">00</text>
+  <rect x="44" y="44" width="320" height="30" fill="#eef2ff" stroke="#334155" stroke-width="1" />
+  <text x="47" y="65" font-family="Consolas, monospace" font-size="9">Source Port (0-16)</text>
+  <rect x="364" y="44" width="320" height="30" fill="#eef2ff" stroke="#334155" stroke-width="1" />
+  <text x="367" y="65" font-family="Consolas, monospace" font-size="9">Destination Port (16-32)</text>
+  <text x="6" y="99" font-family="Consolas, monospace" font-size="10">32</text>
+  <rect x="44" y="78" width="640" height="30" fill="#eef2ff" stroke="#334155" stroke-width="1" />
+  <text x="47" y="99" font-family="Consolas, monospace" font-size="9">Sequence Number (32-64)</text>
+  <text x="6" y="133" font-family="Consolas, monospace" font-size="10">64</text>
+  <rect x="44" y="112" width="640" height="30" fill="#eef2ff" stroke="#334155" stroke-width="1" />
+  <text x="47" y="133" font-family="Consolas, monospace" font-size="9">Acknowledgment Number (64-96)</text>
+  <text x="6" y="167" font-family="Consolas, monospace" font-size="10">96</text>
+  <rect x="44" y="146" width="80" height="30" fill="#eef2ff" stroke="#334155" stroke-width="1" />
+  <text x="47" y="167" font-family="Consolas, monospace" font-size="9">Data Offset (96-100)</text>
+  <rect x="124" y="146" width="80" height="30" fill="#eef2ff" stroke="#334155" stroke-width="1" />
+  <text x="127" y="167" font-family="Consolas, monospace" font-size="9">Reserved (100-104)</text>
+  <rect x="204" y="146" width="160" height="30" fill="#eef2ff" stroke="#334155" stroke-width="1" />
+  <text x="207" y="167" font-family="Consolas, monospace" font-size="9">Flags (104-112)</text>
+  <rect x="364" y="146" width="320" height="30" fill="#eef2ff" stroke="#334155" stroke-width="1" />
+  <text x="367" y="167" font-family="Consolas, monospace" font-size="9">Window (112-128)</text>
+  <text x="6" y="201" font-family="Consolas, monospace" font-size="10">128</text>
+  <rect x="44" y="180" width="320" height="30" fill="#eef2ff" stroke="#334155" stroke-width="1" />
+  <text x="47" y="201" font-family="Consolas, monospace" font-size="9">Checksum (128-144)</text>
+  <rect x="364" y="180" width="320" height="30" fill="#eef2ff" stroke="#334155" stroke-width="1" />
+  <text x="367" y="201" font-family="Consolas, monospace" font-size="9">Urgent Pointer (144-160)</text>
+</svg>

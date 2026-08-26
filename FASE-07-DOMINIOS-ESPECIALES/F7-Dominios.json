@@ -1,0 +1,19 @@
+{
+  "version": "0.1",
+  "fecha_consulta": "2026-08-26",
+  "documento_rector": "PLANREDES.md",
+  "fase": "F7 — Dominios profesionales y especiales",
+  "nota": "Catálogo de dominios especiales. Cobertura militar/táctico limitada a documentación pública verificable (política F0 §4.2). Estado: semilla | pendiente | parcial.",
+  "dominios": [
+    {"id": "DOM-01", "dominio": "Industrial/OT (ICS)", "ambito": "Planta, fábrica, infraestructura crítica", "protocolos": ["PR-084", "PR-085", "PR-086", "PR-087", "PR-088", "PR-091"], "autoridades": ["AUTH-010", "AUTH-016"], "estado_cobertura": "semilla", "prioridad": "alta", "nota": "Fichas en ciclos F4 posteriores; redes NET-11"},
+    {"id": "DOM-02", "dominio": "Telecom móvil", "ambito": "Redes celulares", "protocolos": ["PR-092", "PR-093", "PR-094", "PR-095", "PR-032", "PR-096"], "autoridades": ["AUTH-006", "AUTH-007"], "estado_cobertura": "semilla", "prioridad": "alta", "nota": "3GPP/ETSI; redes NET-13"},
+    {"id": "DOM-03", "dominio": "Cloud", "ambito": "Infraestructura como servicio", "protocolos": ["PR-080", "PR-025", "PR-073", "PR-056"], "autoridades": ["AUTH-010"], "estado_cobertura": "semilla", "prioridad": "media", "nota": ""},
+    {"id": "DOM-04", "dominio": "Data center", "ambito": "Centros de datos", "protocolos": ["PR-067", "PR-068", "PR-069", "PR-070", "PR-080"], "autoridades": ["AUTH-003", "AUTH-010"], "estado_cobertura": "semilla", "prioridad": "alta", "nota": "Redes NET-08"},
+    {"id": "DOM-05", "dominio": "IoT", "ambito": "Dispositivos embebidos", "protocolos": ["PR-082", "PR-083", "PR-089", "PR-090"], "autoridades": ["AUTH-010", "AUTH-003"], "estado_cobertura": "semilla", "prioridad": "alta", "nota": "Redes NET-12"},
+    {"id": "DOM-06", "dominio": "Satélite", "ambito": "Enlaces espaciales", "protocolos": ["PR-098"], "autoridades": ["AUTH-005", "AUTH-010"], "estado_cobertura": "semilla", "prioridad": "media", "nota": "Redes NET-14"},
+    {"id": "DOM-07", "dominio": "Radio profesional", "ambito": "Radio móvil profesional", "protocolos": ["PR-096", "PR-097"], "autoridades": ["AUTH-007"], "estado_cobertura": "semilla", "prioridad": "media", "nota": ""},
+    {"id": "DOM-08", "dominio": "Vehicular (V2X)", "ambito": "Automoción y transporte", "protocolos": ["PR-112", "PR-113"], "autoridades": ["AUTH-003", "AUTH-016"], "estado_cobertura": "semilla", "prioridad": "media", "nota": "ITS-G5 (PR-112) y C-V2X (PR-113) incorporados en F3 v2 (F8)"},
+    {"id": "DOM-09", "dominio": "Militar/táctico (público)", "ambito": "Defensa — solo documentación pública", "protocolos": ["PR-099", "PR-100"], "autoridades": ["AUTH-013"], "estado_cobertura": "semilla", "prioridad": "media", "nota": "Política militar/pública; MIL-STD-188/2045/6020 (R6-R8); detalles [n.p.d.]"},
+    {"id": "DOM-10", "dominio": "Académico/investigación", "ambito": "Universidades, laboratorios", "protocolos": [], "autoridades": ["AUTH-016"], "estado_cobertura": "semilla", "prioridad": "baja", "nota": "Fuentes secundarias especializadas"}
+  ]
+}

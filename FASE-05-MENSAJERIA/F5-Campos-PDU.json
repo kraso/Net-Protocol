@@ -1,0 +1,440 @@
+{
+  "version": "0.1",
+  "fecha_consulta": "2026-08-26",
+  "documento_rector": "PLANREDES.md",
+  "fase": "F5 — Mensajería y PDU",
+  "nota": "Catálogo de campos de PDU por protocolo. endianness: network order (big-endian) salvo indicación. offset_bits desde el inicio de la cabecera/PDU (base 0). longitud_bits null = variable/opcional. Layouts normativos según RFC/estándar; validación con capturas en F8.",
+  "protocolos": [
+    {
+      "id": "PR-001",
+      "acronimo": "ETH",
+      "pdu": "trama",
+      "endianness": "network order",
+      "fuente": "IEEE 802.3",
+      "campos": [
+        {"nombre": "Preamble", "offset_bits": 0, "longitud_bits": 56, "tipo": "física", "semantica": "Sincronización de la capa física", "valores": null, "obligatorio": true, "nota": "Física, no forma parte del payload"},
+        {"nombre": "SFD", "offset_bits": 56, "longitud_bits": 8, "tipo": "física", "semantica": "Start Frame Delimiter (0xAB)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Destination MAC", "offset_bits": 64, "longitud_bits": 48, "tipo": "address", "semantica": "Dirección MAC destino", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Source MAC", "offset_bits": 112, "longitud_bits": 48, "tipo": "address", "semantica": "Dirección MAC origen", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "EtherType / Length", "offset_bits": 160, "longitud_bits": 16, "tipo": "uint16", "semantica": "EtherType (>=1536) o longitud (IEEE 802.3)", "valores": "0x0800 IPv4, 0x86DD IPv6, 0x0806 ARP, 0x8100 VLAN", "obligatorio": true, "nota": "Determina el protocolo encapsulado"},
+        {"nombre": "Payload", "offset_bits": 176, "longitud_bits": null, "tipo": "datos", "semantica": "Datos de la capa superior", "valores": null, "obligatorio": true, "nota": "Mínimo 46 bytes (trama mínima 64 B con FCS)"},
+        {"nombre": "FCS", "offset_bits": null, "longitud_bits": 32, "tipo": "checksum", "semantica": "Frame Check Sequence (CRC32)", "valores": null, "obligatorio": true, "nota": "Al final de la trama"}
+      ]
+    },
+    {
+      "id": "PR-011",
+      "acronimo": "IPv4",
+      "pdu": "paquete/datagrama",
+      "endianness": "network order",
+      "fuente": "RFC 791",
+      "campos": [
+        {"nombre": "Version", "offset_bits": 0, "longitud_bits": 4, "tipo": "uint4", "semantica": "Versión de IP (4)", "valores": "4", "obligatorio": true, "nota": ""},
+        {"nombre": "IHL", "offset_bits": 4, "longitud_bits": 4, "tipo": "uint4", "semantica": "Longitud de cabecera en palabras de 32 bits", "valores": "5-15", "obligatorio": true, "nota": "Cabecera 20-60 bytes"},
+        {"nombre": "DSCP/ECN", "offset_bits": 8, "longitud_bits": 8, "tipo": "flags", "semantica": "Differentiated Services + Explicit Congestion Notification", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Total Length", "offset_bits": 16, "longitud_bits": 16, "tipo": "uint16", "semantica": "Longitud total (cabecera + datos)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Identification", "offset_bits": 32, "longitud_bits": 16, "tipo": "uint16", "semantica": "Identificador de fragmentación", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Flags", "offset_bits": 48, "longitud_bits": 3, "tipo": "flags", "semantica": "Reserved (1), DF, MF", "valores": "0b010 DF, 0b001 MF", "obligatorio": true, "nota": ""},
+        {"nombre": "Fragment Offset", "offset_bits": 51, "longitud_bits": 13, "tipo": "uint13", "semantica": "Desplazamiento del fragmento", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "TTL", "offset_bits": 64, "longitud_bits": 8, "tipo": "uint8", "semantica": "Time To Live (saltos)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Protocol", "offset_bits": 72, "longitud_bits": 8, "tipo": "uint8", "semantica": "Protocolo encapsulado", "valores": "1 ICMP, 6 TCP, 17 UDP, 89 OSPF, 50 ESP", "obligatorio": true, "nota": "IANA Protocol Numbers"},
+        {"nombre": "Header Checksum", "offset_bits": 80, "longitud_bits": 16, "tipo": "checksum", "semantica": "Checksum de la cabecera (1's complement)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Source Address", "offset_bits": 96, "longitud_bits": 32, "tipo": "address", "semantica": "Dirección IPv4 origen", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Destination Address", "offset_bits": 128, "longitud_bits": 32, "tipo": "address", "semantica": "Dirección IPv4 destino", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Options", "offset_bits": 160, "longitud_bits": null, "tipo": "opciones", "semantica": "Opciones IP (raras)", "valores": null, "obligatorio": false, "nota": "Según IHL"}
+      ]
+    },
+    {
+      "id": "PR-012",
+      "acronimo": "IPv6",
+      "pdu": "paquete/datagrama",
+      "endianness": "network order",
+      "fuente": "RFC 8200",
+      "campos": [
+        {"nombre": "Version", "offset_bits": 0, "longitud_bits": 4, "tipo": "uint4", "semantica": "Versión de IP (6)", "valores": "6", "obligatorio": true, "nota": ""},
+        {"nombre": "Traffic Class", "offset_bits": 4, "longitud_bits": 8, "tipo": "uint8", "semantica": "Clase de tráfico (DSCP/ECN)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Flow Label", "offset_bits": 12, "longitud_bits": 20, "tipo": "uint20", "semantica": "Etiqueta de flujo", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Payload Length", "offset_bits": 32, "longitud_bits": 16, "tipo": "uint16", "semantica": "Longitud del payload (sin cabecera fija)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Next Header", "offset_bits": 48, "longitud_bits": 8, "tipo": "uint8", "semantica": "Protocolo/extensión siguiente", "valores": "6 TCP, 17 UDP, 58 ICMPv6, 59 No Next Header", "obligatorio": true, "nota": "Cadena de extension headers"},
+        {"nombre": "Hop Limit", "offset_bits": 56, "longitud_bits": 8, "tipo": "uint8", "semantica": "Límite de saltos (reemplaza TTL)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Source Address", "offset_bits": 64, "longitud_bits": 128, "tipo": "address", "semantica": "Dirección IPv6 origen", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Destination Address", "offset_bits": 192, "longitud_bits": 128, "tipo": "address", "semantica": "Dirección IPv6 destino", "valores": null, "obligatorio": true, "nota": "Cabecera fija de 40 bytes"}
+      ]
+    },
+    {
+      "id": "PR-036",
+      "acronimo": "TCP",
+      "pdu": "segmento",
+      "endianness": "network order",
+      "fuente": "RFC 9293",
+      "campos": [
+        {"nombre": "Source Port", "offset_bits": 0, "longitud_bits": 16, "tipo": "uint16", "semantica": "Puerto origen", "valores": null, "obligatorio": true, "nota": "IANA registra well-known"},
+        {"nombre": "Destination Port", "offset_bits": 16, "longitud_bits": 16, "tipo": "uint16", "semantica": "Puerto destino", "valores": null, "obligatorio": true, "nota": "Puerto registrado != uso real"},
+        {"nombre": "Sequence Number", "offset_bits": 32, "longitud_bits": 32, "tipo": "uint32", "semantica": "Número de secuencia", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Acknowledgment Number", "offset_bits": 64, "longitud_bits": 32, "tipo": "uint32", "semantica": "Número de acuse (si ACK)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Data Offset", "offset_bits": 96, "longitud_bits": 4, "tipo": "uint4", "semantica": "Cabecera en palabras de 32 bits", "valores": "5-15", "obligatorio": true, "nota": "20-60 bytes"},
+        {"nombre": "Reserved", "offset_bits": 100, "longitud_bits": 4, "tipo": "flags", "semantica": "Reservados (3) + NS flag (RFC 9293)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Flags", "offset_bits": 104, "longitud_bits": 8, "tipo": "bitset", "semantica": "CWR, ECE, URG, ACK, PSH, RST, SYN, FIN", "valores": null, "obligatorio": true, "nota": "Control del segmento"},
+        {"nombre": "Window", "offset_bits": 112, "longitud_bits": 16, "tipo": "uint16", "semantica": "Tamaño de ventana de recepción", "valores": null, "obligatorio": true, "nota": "Escalable con opción (RFC 7323)"},
+        {"nombre": "Checksum", "offset_bits": 128, "longitud_bits": 16, "tipo": "checksum", "semantica": "Checksum de cabecera+datos+pseudoheader (obligatorio en IPv6)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Urgent Pointer", "offset_bits": 144, "longitud_bits": 16, "tipo": "uint16", "semantica": "Puntero urgente (si URG)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Options", "offset_bits": 160, "longitud_bits": null, "tipo": "opciones", "semantica": "MSS, Window Scale, SACK, Timestamps…", "valores": null, "obligatorio": false, "nota": "Según Data Offset"}
+      ]
+    },
+    {
+      "id": "PR-037",
+      "acronimo": "UDP",
+      "pdu": "datagrama",
+      "endianness": "network order",
+      "fuente": "RFC 768",
+      "campos": [
+        {"nombre": "Source Port", "offset_bits": 0, "longitud_bits": 16, "tipo": "uint16", "semantica": "Puerto origen (0 si no aplica)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Destination Port", "offset_bits": 16, "longitud_bits": 16, "tipo": "uint16", "semantica": "Puerto destino", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Length", "offset_bits": 32, "longitud_bits": 16, "tipo": "uint16", "semantica": "Longitud del datagrama (cabecera + datos)", "valores": null, "obligatorio": true, "nota": "Mínimo 8"},
+        {"nombre": "Checksum", "offset_bits": 48, "longitud_bits": 16, "tipo": "checksum", "semantica": "Checksum con pseudoheader; opcional en IPv4", "valores": null, "obligatorio": false, "nota": "Obligatorio en IPv6 (RFC 8200)"}
+      ]
+    },
+    {
+      "id": "PR-015",
+      "acronimo": "DNS",
+      "pdu": "mensaje",
+      "endianness": "network order",
+      "fuente": "RFC 1035",
+      "campos": [
+        {"nombre": "ID", "offset_bits": 0, "longitud_bits": 16, "tipo": "uint16", "semantica": "Identificador de la transacción", "valores": null, "obligatorio": true, "nota": "Correlación query/response"},
+        {"nombre": "Flags", "offset_bits": 16, "longitud_bits": 16, "tipo": "bitset", "semantica": "QR, Opcode, AA, TC, RD, RA, Z, AD, CD, RCODE", "valores": "QR=0x8000, RD=0x0100, RCODE 0-5", "obligatorio": true, "nota": "TC=truncación (usar TCP)"},
+        {"nombre": "QDCOUNT", "offset_bits": 32, "longitud_bits": 16, "tipo": "uint16", "semantica": "Nº de preguntas", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "ANCOUNT", "offset_bits": 48, "longitud_bits": 16, "tipo": "uint16", "semantica": "Nº de respuestas", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "NSCOUNT", "offset_bits": 64, "longitud_bits": 16, "tipo": "uint16", "semantica": "Nº de registros de autoridad", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "ARCOUNT", "offset_bits": 80, "longitud_bits": 16, "tipo": "uint16", "semantica": "Nº de registros adicionales", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Question", "offset_bits": 96, "longitud_bits": null, "tipo": "secciones", "semantica": "QNAME, QTYPE, QCLASS", "valores": "A=1, AAAA=28, CNAME=5, MX=15, SOA=6", "obligatorio": true, "nota": "Codificación por etiquetas"},
+        {"nombre": "Answer/Authority/Additional", "offset_bits": null, "longitud_bits": null, "tipo": "secciones", "semantica": "RRs con TTL y RDATA", "valores": null, "obligatorio": false, "nota": "Según counts"}
+      ]
+    },
+    {
+      "id": "PR-063",
+      "acronimo": "ICMP",
+      "pdu": "mensaje",
+      "endianness": "network order",
+      "fuente": "RFC 792",
+      "campos": [
+        {"nombre": "Type", "offset_bits": 0, "longitud_bits": 8, "tipo": "uint8", "semantica": "Tipo de mensaje (0 echo reply, 8 echo request, 3 dest unreachable…)", "valores": "3, 5, 8, 11, 0", "obligatorio": true, "nota": "IANA ICMP Types"},
+        {"nombre": "Code", "offset_bits": 8, "longitud_bits": 8, "tipo": "uint8", "semantica": "Código dentro del tipo", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Checksum", "offset_bits": 16, "longitud_bits": 16, "tipo": "checksum", "semantica": "Checksum de 1's complement sobre todo el mensaje", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Rest of Header", "offset_bits": 32, "longitud_bits": 32, "tipo": "datos", "semantica": "Depende del tipo (id/secuencia en echo; gateway en redirect; IP+cabecera en unreachable)", "valores": null, "obligatorio": false, "nota": "Variable por tipo"}
+      ]
+    },
+    {
+      "id": "PR-064",
+      "acronimo": "ICMPv6",
+      "pdu": "mensaje",
+      "endianness": "network order",
+      "fuente": "RFC 4443",
+      "campos": [
+        {"nombre": "Type", "offset_bits": 0, "longitud_bits": 8, "tipo": "uint8", "semantica": "Tipo (128 echo request, 129 echo reply, 135 NS, 136 NA, 133/134 RS/RA…)", "valores": "128, 129, 133-136", "obligatorio": true, "nota": "Integra NDP (RFC 4861)"},
+        {"nombre": "Code", "offset_bits": 8, "longitud_bits": 8, "tipo": "uint8", "semantica": "Código", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Checksum", "offset_bits": 16, "longitud_bits": 16, "tipo": "checksum", "semantica": "Checksum con pseudoheader IPv6 (obligatorio)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Message Body", "offset_bits": 32, "longitud_bits": null, "tipo": "datos", "semantica": "Depende del tipo (id/secuencia, target address, options…) ", "valores": null, "obligatorio": false, "nota": "Variable"}
+      ]
+    },
+    {
+      "id": "PR-016",
+      "acronimo": "DHCP",
+      "pdu": "mensaje",
+      "endianness": "network order",
+      "fuente": "RFC 2131",
+      "campos": [
+        {"nombre": "op", "offset_bits": 0, "longitud_bits": 8, "tipo": "uint8", "semantica": "Operación (1 BOOTREQUEST, 2 BOOTREPLY)", "valores": "1-2", "obligatorio": true, "nota": "Formato BOOTP"},
+        {"nombre": "htype", "offset_bits": 8, "longitud_bits": 8, "tipo": "uint8", "semantica": "Tipo de hardware (1 Ethernet)", "valores": "1", "obligatorio": true, "nota": ""},
+        {"nombre": "hlen", "offset_bits": 16, "longitud_bits": 8, "tipo": "uint8", "semantica": "Longitud de la dirección de hardware", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "hops", "offset_bits": 24, "longitud_bits": 8, "tipo": "uint8", "semantica": "Saltos por relay agents", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "xid", "offset_bits": 32, "longitud_bits": 32, "tipo": "uint32", "semantica": "Identificador de transacción", "valores": null, "obligatorio": true, "nota": "Correlación DORA"},
+        {"nombre": "secs", "offset_bits": 64, "longitud_bits": 16, "tipo": "uint16", "semantica": "Segundos desde inicio", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "flags", "offset_bits": 80, "longitud_bits": 16, "tipo": "bitset", "semantica": "Broadcast flag (bit 15)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "ciaddr", "offset_bits": 96, "longitud_bits": 32, "tipo": "address", "semantica": "Dirección IP del cliente", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "yiaddr", "offset_bits": 128, "longitud_bits": 32, "tipo": "address", "semantica": "Dirección IP ofrecida por el servidor", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "siaddr", "offset_bits": 160, "longitud_bits": 32, "tipo": "address", "semantica": "Dirección del servidor (boot)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "giaddr", "offset_bits": 192, "longitud_bits": 32, "tipo": "address", "semantica": "Relay agent address", "valores": null, "obligatorio": true, "nota": "Opción 82"},
+        {"nombre": "chaddr", "offset_bits": 224, "longitud_bits": 128, "tipo": "address", "semantica": "Dirección MAC del cliente", "valores": null, "obligatorio": true, "nota": "16 bytes"},
+        {"nombre": "Options", "offset_bits": 352, "longitud_bits": null, "tipo": "opciones", "semantica": "Magic cookie 0x63825363 + opciones TLV (53 message type, 1 mask, 3 router…)", "valores": "53=DHCP message type", "obligatorio": true, "nota": "Variable, al menos 312 bytes de opciones"}
+      ]
+    },
+    {
+      "id": "PR-073",
+      "acronimo": "TLS",
+      "pdu": "record",
+      "endianness": "network order",
+      "fuente": "RFC 8446",
+      "campos": [
+        {"nombre": "Content Type", "offset_bits": 0, "longitud_bits": 8, "tipo": "uint8", "semantica": "Tipo del record (20 change_cipher_spec, 21 alert, 22 handshake, 23 application_data)", "valores": "20-23", "obligatorio": true, "nota": ""},
+        {"nombre": "Legacy Version", "offset_bits": 8, "longitud_bits": 16, "tipo": "uint16", "semantica": "Versión legacy (TLS 1.3 usa 0x0303 en el record)", "valores": "0x0303", "obligatorio": true, "nota": "RFC 8446 §5.1"},
+        {"nombre": "Length", "offset_bits": 24, "longitud_bits": 16, "tipo": "uint16", "semantica": "Longitud del payload cifrado", "valores": null, "obligatorio": true, "nota": "Máx 2^14+1"},
+        {"nombre": "Encrypted Data", "offset_bits": 40, "longitud_bits": null, "tipo": "datos", "semantica": "Payload (cifrado AEAD en TLS 1.3)", "valores": null, "obligatorio": true, "nota": "Incluye content type cifrado"}
+      ]
+    },
+    {
+      "id": "PR-065",
+      "acronimo": "NTP",
+      "pdu": "paquete",
+      "endianness": "network order",
+      "fuente": "RFC 5905",
+      "campos": [
+        {"nombre": "LI/VN/Mode", "offset_bits": 0, "longitud_bits": 8, "tipo": "bitset", "semantica": "Leap Indicator (2), Version (3), Mode (3)", "valores": "Mode 4=client, 2=symmetric", "obligatorio": true, "nota": ""},
+        {"nombre": "Stratum", "offset_bits": 8, "longitud_bits": 8, "tipo": "uint8", "semantica": "Estrato (0 kiss-o'-death, 1 primario, 2-15 secundarios)", "valores": "0-15", "obligatorio": true, "nota": ""},
+        {"nombre": "Poll", "offset_bits": 16, "longitud_bits": 8, "tipo": "int8", "semantica": "Intervalo de polling (log2)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Precision", "offset_bits": 24, "longitud_bits": 8, "tipo": "int8", "semantica": "Precisión del reloj (log2)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Root Delay", "offset_bits": 32, "longitud_bits": 32, "tipo": "uint32", "semantica": "Retardo total a la referencia (NTP short format)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Root Dispersion", "offset_bits": 64, "longitud_bits": 32, "tipo": "uint32", "semantica": "Dispersión total a la referencia", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Reference ID", "offset_bits": 96, "longitud_bits": 32, "tipo": "uint32", "semantica": "Identificador de la referencia (estrato 1: código ASCII; mayor: IP)", "valores": null, "obligatorio": true, "nota": "kiss codes en estrato 0"},
+        {"nombre": "Reference Timestamp", "offset_bits": 128, "longitud_bits": 64, "tipo": "timestamp", "semantica": "Última sincronización", "valores": null, "obligatorio": true, "nota": "NTP era"},
+        {"nombre": "Originate Timestamp", "offset_bits": 192, "longitud_bits": 64, "tipo": "timestamp", "semantica": "Timestamp del cliente en el request", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Receive Timestamp", "offset_bits": 256, "longitud_bits": 64, "tipo": "timestamp", "semantica": "Recepción en el servidor", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Transmit Timestamp", "offset_bits": 320, "longitud_bits": 64, "tipo": "timestamp", "semantica": "Envío de la respuesta", "valores": null, "obligatorio": true, "nota": "48 bytes totales"}
+      ]
+    },
+    {
+      "id": "PR-025",
+      "acronimo": "BGP",
+      "pdu": "mensaje",
+      "endianness": "network order",
+      "fuente": "RFC 4271",
+      "campos": [
+        {"nombre": "Marker", "offset_bits": 0, "longitud_bits": 128, "tipo": "uint8", "semantica": "Marcador (todo 0xFF sin auth) ", "valores": null, "obligatorio": true, "nota": "16 bytes"},
+        {"nombre": "Length", "offset_bits": 128, "longitud_bits": 16, "tipo": "uint16", "semantica": "Longitud total del mensaje (19 mínimo)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Type", "offset_bits": 144, "longitud_bits": 8, "tipo": "uint8", "semantica": "1 OPEN, 2 UPDATE, 3 NOTIFICATION, 4 KEEPALIVE", "valores": "1-4", "obligatorio": true, "nota": ""},
+        {"nombre": "Body", "offset_bits": 152, "longitud_bits": null, "tipo": "datos", "semantica": "Depende del tipo (UPDATE: withdrawn, path attributes, NLRI)", "valores": null, "obligatorio": false, "nota": "OPEN: versión, AS, hold time, BGP id"}
+      ]
+    },
+    {
+      "id": "PR-020",
+      "acronimo": "RIP",
+      "pdu": "mensaje",
+      "endianness": "network order",
+      "fuente": "RFC 2453",
+      "campos": [
+        {"nombre": "Command", "offset_bits": 0, "longitud_bits": 8, "tipo": "uint8", "semantica": "1 request, 2 response", "valores": "1-2", "obligatorio": true, "nota": ""},
+        {"nombre": "Version", "offset_bits": 8, "longitud_bits": 8, "tipo": "uint8", "semantica": "Versión de RIP", "valores": "1-2", "obligatorio": true, "nota": ""},
+        {"nombre": "Must Be Zero", "offset_bits": 16, "longitud_bits": 16, "tipo": "uint16", "semantica": "Reservado", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Entry: AFI", "offset_bits": 32, "longitud_bits": 16, "tipo": "uint16", "semantica": "Address Family Identifier (2 = IP)", "valores": "2", "obligatorio": true, "nota": "Entradas de 20 bytes"},
+        {"nombre": "Entry: Route Tag", "offset_bits": 48, "longitud_bits": 16, "tipo": "uint16", "semantica": "Route tag", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Entry: IP Address", "offset_bits": 64, "longitud_bits": 32, "tipo": "address", "semantica": "Prefijo de la ruta", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Entry: Subnet Mask", "offset_bits": 96, "longitud_bits": 32, "tipo": "address", "semantica": "Máscara", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Entry: Next Hop", "offset_bits": 128, "longitud_bits": 32, "tipo": "address", "semantica": "Siguiente salto", "valores": null, "obligatorio": false, "nota": ""},
+        {"nombre": "Entry: Metric", "offset_bits": 160, "longitud_bits": 32, "tipo": "uint32", "semantica": "Métrica (1-15; 16 = inalcanzable)", "valores": "1-15", "obligatorio": true, "nota": "Hasta 25 entradas por mensaje"}
+      ]
+    },
+    {
+      "id": "PR-038",
+      "acronimo": "SCTP",
+      "pdu": "paquete",
+      "endianness": "network order",
+      "fuente": "RFC 9260",
+      "campos": [
+        {"nombre": "Source Port", "offset_bits": 0, "longitud_bits": 16, "tipo": "uint16", "semantica": "Puerto SCTP origen", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Destination Port", "offset_bits": 16, "longitud_bits": 16, "tipo": "uint16", "semantica": "Puerto SCTP destino", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Verification Tag", "offset_bits": 32, "longitud_bits": 32, "tipo": "uint32", "semantica": "Etiqueta de verificación", "valores": null, "obligatorio": true, "nota": "Anti-confusión de asociación"},
+        {"nombre": "Checksum", "offset_bits": 64, "longitud_bits": 32, "tipo": "checksum", "semantica": "CRC32c", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Chunk Type", "offset_bits": 96, "longitud_bits": 8, "tipo": "uint8", "semantica": "DATA=0, INIT=1, INIT-ACK=2, SACK=3, HEARTBEAT=4…", "valores": "0-7", "obligatorio": true, "nota": "Cabecera común de 12 bytes + chunks"},
+        {"nombre": "Chunk Flags", "offset_bits": 104, "longitud_bits": 8, "tipo": "flags", "semantica": "Banderas del chunk", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Chunk Length", "offset_bits": 112, "longitud_bits": 16, "tipo": "uint16", "semantica": "Longitud del chunk", "valores": null, "obligatorio": true, "nota": ""}
+      ]
+    },
+    {
+      "id": "PR-044",
+      "acronimo": "HTTP/2",
+      "pdu": "frame",
+      "endianness": "network order",
+      "fuente": "RFC 9113",
+      "campos": [
+        {"nombre": "Length", "offset_bits": 0, "longitud_bits": 24, "tipo": "uint24", "semantica": "Longitud del payload del frame", "valores": null, "obligatorio": true, "nota": "Cabecera de frame de 9 bytes"},
+        {"nombre": "Type", "offset_bits": 24, "longitud_bits": 8, "tipo": "uint8", "semantica": "0 DATA, 1 HEADERS, 2 PRIORITY, 3 RST_STREAM, 4 SETTINGS, 6 PUSH_PROMISE…", "valores": "0-9", "obligatorio": true, "nota": ""},
+        {"nombre": "Flags", "offset_bits": 32, "longitud_bits": 8, "tipo": "flags", "semantica": "END_STREAM (0x1), ACK (0x1 en SETTINGS), PADDED, END_HEADERS…", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "R / Stream ID", "offset_bits": 40, "longitud_bits": 32, "tipo": "uint32", "semantica": "Bit reservado (0) + identificador de stream", "valores": null, "obligatorio": true, "nota": "Impar iniciados por cliente"}
+      ]
+    },
+    {
+      "id": "PR-082",
+      "acronimo": "MQTT",
+      "pdu": "paquete",
+      "endianness": "network order",
+      "fuente": "OASIS MQTT 5.0",
+      "campos": [
+        {"nombre": "Control Type + Flags", "offset_bits": 0, "longitud_bits": 8, "tipo": "bitset", "semantica": "Tipo de paquete (alto 4 bits: 1 CONNECT, 3 PUBLISH, 8 SUBSCRIBE…) + flags", "valores": "1-14", "obligatorio": true, "nota": "Cabecera fija 2-5 bytes"},
+        {"nombre": "Remaining Length", "offset_bits": 8, "longitud_bits": null, "tipo": "varint", "semantica": "Longitud restante (varint de 1-4 bytes)", "valores": null, "obligatorio": true, "nota": "Variable"},
+        {"nombre": "Variable Header", "offset_bits": null, "longitud_bits": null, "tipo": "opciones", "semantica": "Depende del tipo: protocol name/level, connect flags, keepalive, topic name…", "valores": null, "obligatorio": false, "nota": "Sección variable"}
+      ]
+    },
+    {
+      "id": "PR-083",
+      "acronimo": "CoAP",
+      "pdu": "mensaje",
+      "endianness": "network order",
+      "fuente": "RFC 7252",
+      "campos": [
+        {"nombre": "Ver", "offset_bits": 0, "longitud_bits": 2, "tipo": "uint2", "semantica": "Versión (1)", "valores": "1", "obligatorio": true, "nota": "Cabecera de 4 bytes"},
+        {"nombre": "Type", "offset_bits": 2, "longitud_bits": 2, "tipo": "uint2", "semantica": "0 CON, 1 NON, 2 ACK, 3 RST", "valores": "0-3", "obligatorio": true, "nota": ""},
+        {"nombre": "TKL", "offset_bits": 4, "longitud_bits": 4, "tipo": "uint4", "semantica": "Longitud del token (0-8)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Code", "offset_bits": 8, "longitud_bits": 8, "tipo": "uint8", "semantica": "Código de clase y detalle (0.01 GET, 0.02 POST, 2.05 Content, 4.04 Not Found…)", "valores": "0.01/0.02/2.05…", "obligatorio": true, "nota": "Método o respuesta"},
+        {"nombre": "Message ID", "offset_bits": 16, "longitud_bits": 16, "tipo": "uint16", "semantica": "Identificador del mensaje", "valores": null, "obligatorio": true, "nota": "Detecta duplicados"},
+        {"nombre": "Token", "offset_bits": 32, "longitud_bits": null, "tipo": "bytes", "semantica": "Token de correlación (TKL bytes)", "valores": null, "obligatorio": true, "nota": "0-8 bytes"},
+        {"nombre": "Options", "offset_bits": null, "longitud_bits": null, "tipo": "opciones", "semantica": "Opciones TLV (URI-Path, Content-Format, Observe…)", "valores": null, "obligatorio": false, "nota": "0xFF = payload marker"}
+      ]
+    },
+    {
+      "id": "PR-040",
+      "acronimo": "QUIC",
+      "pdu": "paquete",
+      "endianness": "network order",
+      "fuente": "RFC 9000",
+      "campos": [
+        {"nombre": "Header Form + Fixed Bit", "offset_bits": 0, "longitud_bits": 8, "tipo": "bitset", "semantica": "1 bit header form (1=longo, 0=short), 1 bit fixed, resto tipo", "valores": null, "obligatorio": true, "nota": "Variable según paquete"},
+        {"nombre": "Version", "offset_bits": 8, "longitud_bits": 32, "tipo": "uint32", "semantica": "Versión QUIC (0x00000001 = v1)", "valores": "0x00000001", "obligatorio": true, "nota": "Solo paquetes largos (handshake)"},
+        {"nombre": "DCID Length / DCID", "offset_bits": 40, "longitud_bits": null, "tipo": "bytes", "semantica": "Destination Connection ID (longitud + valor)", "valores": null, "obligatorio": true, "nota": "Variable"},
+        {"nombre": "SCID Length / SCID", "offset_bits": null, "longitud_bits": null, "tipo": "bytes", "semantica": "Source Connection ID", "valores": null, "obligatorio": true, "nota": "Solo paquetes largos"},
+        {"nombre": "Packet Number", "offset_bits": null, "longitud_bits": null, "tipo": "bytes", "semantica": "Número de paquete (1-4 bytes)", "valores": null, "obligatorio": true, "nota": "Con protección de cabecera"},
+        {"nombre": "Frames", "offset_bits": null, "longitud_bits": null, "tipo": "datos", "semantica": "Frames QUIC: STREAM, ACK, CRYPTO, NEW_CONNECTION_ID…", "valores": null, "obligatorio": true, "nota": "Payload del paquete"}
+      ]
+    },
+    {
+      "id": "PR-041",
+      "acronimo": "RTP",
+      "pdu": "paquete",
+      "endianness": "network order",
+      "fuente": "RFC 3550",
+      "campos": [
+        {"nombre": "V + P + X + CC", "offset_bits": 0, "longitud_bits": 8, "tipo": "bitset", "semantica": "Version (2), padding, extension, CSRC count", "valores": "V=2", "obligatorio": true, "nota": "Cabecera fija de 12 bytes"},
+        {"nombre": "M + PT", "offset_bits": 8, "longitud_bits": 8, "tipo": "bitset", "semantica": "Marker + payload type (perfil)", "valores": "PT 0=G.711 µ-law, 96-127 dinámico", "obligatorio": true, "nota": ""},
+        {"nombre": "Sequence Number", "offset_bits": 16, "longitud_bits": 16, "tipo": "uint16", "semantica": "Número de secuencia", "valores": null, "obligatorio": true, "nota": "Detección de pérdidas"},
+        {"nombre": "Timestamp", "offset_bits": 32, "longitud_bits": 32, "tipo": "uint32", "semantica": "Timestamp de muestreo", "valores": null, "obligatorio": true, "nota": "Clock de la media"},
+        {"nombre": "SSRC", "offset_bits": 64, "longitud_bits": 32, "tipo": "uint32", "semantica": "Synchronization source", "valores": null, "obligatorio": true, "nota": "Identifica el flujo"},
+        {"nombre": "CSRC", "offset_bits": 96, "longitud_bits": null, "tipo": "uint32", "semantica": "Contributing sources (CC×32)", "valores": null, "obligatorio": false, "nota": "Solo si X/CC"}
+      ]
+    },
+    {
+      "id": "PR-029",
+      "acronimo": "MPLS",
+      "pdu": "paquete",
+      "endianness": "network order",
+      "fuente": "RFC 3032",
+      "campos": [
+        {"nombre": "Label", "offset_bits": 0, "longitud_bits": 20, "tipo": "uint20", "semantica": "Etiqueta (0-15 reservadas)", "valores": null, "obligatorio": true, "nota": "Shim de 32 bits por etiqueta"},
+        {"nombre": "TC", "offset_bits": 20, "longitud_bits": 3, "tipo": "uint3", "semantica": "Traffic Class", "valores": null, "obligatorio": true, "nota": "QoS"},
+        {"nombre": "S", "offset_bits": 23, "longitud_bits": 1, "tipo": "bitset", "semantica": "Bottom of stack (1 = última etiqueta)", "valores": "0-1", "obligatorio": true, "nota": ""},
+        {"nombre": "TTL", "offset_bits": 24, "longitud_bits": 8, "tipo": "uint8", "semantica": "Time to live", "valores": null, "obligatorio": true, "nota": "Decrementa por salto"}
+      ]
+    },
+    {
+      "id": "PR-080",
+      "acronimo": "VXLAN",
+      "pdu": "trama",
+      "endianness": "network order",
+      "fuente": "RFC 7348",
+      "campos": [
+        {"nombre": "Flags + Reserved", "offset_bits": 0, "longitud_bits": 8, "tipo": "bitset", "semantica": "I flag = 1 (VNI presente), resto reservado", "valores": null, "obligatorio": true, "nota": "Cabecera VXLAN de 8 bytes"},
+        {"nombre": "Reserved", "offset_bits": 8, "longitud_bits": 24, "tipo": "bytes", "semantica": "Reservado", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "VNI", "offset_bits": 32, "longitud_bits": 24, "tipo": "uint24", "semantica": "VXLAN Network Identifier", "valores": null, "obligatorio": true, "nota": "Segmentación L2"},
+        {"nombre": "Reserved", "offset_bits": 56, "longitud_bits": 8, "tipo": "uint8", "semantica": "Reservado", "valores": null, "obligatorio": true, "nota": ""}
+      ]
+    },
+    {
+      "id": "PR-079",
+      "acronimo": "GRE",
+      "pdu": "paquete",
+      "endianness": "network order",
+      "fuente": "RFC 2784",
+      "campos": [
+        {"nombre": "C + R + K + S", "offset_bits": 0, "longitud_bits": 8, "tipo": "bitset", "semantica": "Checksum, Routing, Key, Sequence presentes", "valores": null, "obligatorio": true, "nota": "Cabecera fija de 4 bytes + opciones"},
+        {"nombre": "Flags + Version", "offset_bits": 8, "longitud_bits": 8, "tipo": "bitset", "semantica": "Reservado (5) + version (3 = 0)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Protocol Type", "offset_bits": 16, "longitud_bits": 16, "tipo": "uint16", "semantica": "Protocolo encapsulado (0x0800 IPv4, 0x86DD IPv6)", "valores": "0x0800, 0x86DD", "obligatorio": true, "nota": ""},
+        {"nombre": "Optional Fields", "offset_bits": 32, "longitud_bits": null, "tipo": "opciones", "semantica": "Checksum, Key, Sequence Number (según flags)", "valores": null, "obligatorio": false, "nota": "Variable"}
+      ]
+    },
+    {
+      "id": "PR-032",
+      "acronimo": "GTP",
+      "pdu": "mensaje",
+      "endianness": "network order",
+      "fuente": "3GPP TS 29.281",
+      "campos": [
+        {"nombre": "Flags", "offset_bits": 0, "longitud_bits": 8, "tipo": "bitset", "semantica": "Version (3), PT (1), E/S/PN (1 c/u), reservado", "valores": "V=1, PT=1", "obligatorio": true, "nota": "Cabecera GTP-U: 8 bytes mínima"},
+        {"nombre": "Message Type", "offset_bits": 8, "longitud_bits": 8, "tipo": "uint8", "semantica": "255 G-PDU (datos), 1 Echo Request, 2 Echo Response…", "valores": "255, 1, 2", "obligatorio": true, "nota": "GTP-U vs GTP-C"},
+        {"nombre": "Length", "offset_bits": 16, "longitud_bits": 16, "tipo": "uint16", "semantica": "Longitud del mensaje (sin cabecera)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "TEID", "offset_bits": 32, "longitud_bits": 32, "tipo": "uint32", "semantica": "Tunnel Endpoint Identifier", "valores": null, "obligatorio": true, "nota": "Identifica el túnel"},
+        {"nombre": "Sequence + N-PDU + ext", "offset_bits": 64, "longitud_bits": null, "tipo": "opciones", "semantica": "Sequence number, N-PDU, next extension (si flags)", "valores": null, "obligatorio": false, "nota": "Opcional"}
+      ]
+    },
+    {
+      "id": "PR-027",
+      "acronimo": "IGMP",
+      "pdu": "mensaje",
+      "endianness": "network order",
+      "fuente": "RFC 3376",
+      "campos": [
+        {"nombre": "Type", "offset_bits": 0, "longitud_bits": 8, "tipo": "uint8", "semantica": "0x11 Query (v1/v2/v3), 0x12 v1 Report, 0x16 v2 Report, 0x17 Leave, 0x22 v3 Report", "valores": "0x11, 0x12, 0x16, 0x17, 0x22", "obligatorio": true, "nota": ""},
+        {"nombre": "Max Resp Time", "offset_bits": 8, "longitud_bits": 8, "tipo": "uint8", "semantica": "Tiempo máximo de respuesta (Query) en decisegundos", "valores": null, "obligatorio": true, "nota": "0x00 en Reports"},
+        {"nombre": "Checksum", "offset_bits": 16, "longitud_bits": 16, "tipo": "checksum", "semantica": "Checksum", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Group Address", "offset_bits": 32, "longitud_bits": 32, "tipo": "address", "semantica": "Grupo multicast", "valores": null, "obligatorio": true, "nota": "v3: seguido de records con aux data"}
+      ]
+    },
+    {
+      "id": "PR-031",
+      "acronimo": "VRRP",
+      "pdu": "mensaje",
+      "endianness": "network order",
+      "fuente": "RFC 5798",
+      "campos": [
+        {"nombre": "Version + Type", "offset_bits": 0, "longitud_bits": 8, "tipo": "bitset", "semantica": "VRRPv3 versión 3 (alto 4), tipo 1 advertisement (bajo 4)", "valores": null, "obligatorio": true, "nota": "Cabecera de 8 bytes"},
+        {"nombre": "VRID", "offset_bits": 8, "longitud_bits": 8, "tipo": "uint8", "semantica": "Identificador virtual del router (1-255)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Priority", "offset_bits": 16, "longitud_bits": 8, "tipo": "uint8", "semantica": "Prioridad (255 maestro; 0 reservado)", "valores": "0-255", "obligatorio": true, "nota": ""},
+        {"nombre": "Count IPs", "offset_bits": 24, "longitud_bits": 8, "tipo": "uint8", "semantica": "Número de direcciones VIP", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Reserved + Checksum", "offset_bits": 32, "longitud_bits": 16, "tipo": "checksum", "semantica": "Reservado (12) + checksum", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "VIPs", "offset_bits": 48, "longitud_bits": null, "tipo": "address", "semantica": "Direcciones virtuales (count IPs × 32 o 128)", "valores": null, "obligatorio": true, "nota": "Una por IP"}
+      ]
+    },
+    {
+      "id": "PR-006",
+      "acronimo": "STP",
+      "pdu": "BPDU",
+      "endianness": "network order",
+      "fuente": "IEEE 802.1D",
+      "campos": [
+        {"nombre": "Protocol ID", "offset_bits": 0, "longitud_bits": 16, "tipo": "uint16", "semantica": "0 (Spanning Tree)", "valores": "0", "obligatorio": true, "nota": "BPDU de 35 bytes +"},
+        {"nombre": "Version", "offset_bits": 16, "longitud_bits": 8, "tipo": "uint8", "semantica": "0 (STP), 2 (RSTP), 3 (MSTP)", "valores": "0-3", "obligatorio": true, "nota": ""},
+        {"nombre": "BPDU Type", "offset_bits": 24, "longitud_bits": 8, "tipo": "uint8", "semantica": "0x00 Config, 0x80 TCN", "valores": "0x00, 0x80", "obligatorio": true, "nota": ""},
+        {"nombre": "Flags", "offset_bits": 32, "longitud_bits": 8, "tipo": "bitset", "semantica": "TC (0x01), TCA (0x80)", "valores": null, "obligatorio": true, "nota": "TCN solo TC"},
+        {"nombre": "Root ID", "offset_bits": 40, "longitud_bits": 64, "tipo": "bytes", "semantica": "Prioridad(16) + MAC(48) del root bridge", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Root Path Cost", "offset_bits": 104, "longitud_bits": 32, "tipo": "uint32", "semantica": "Coste a la raíz", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Bridge ID", "offset_bits": 136, "longitud_bits": 64, "tipo": "bytes", "semantica": "Prioridad + MAC del emisor", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Port ID", "offset_bits": 200, "longitud_bits": 16, "tipo": "uint16", "semantica": "Prioridad de puerto + número", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Message Age", "offset_bits": 216, "longitud_bits": 16, "tipo": "uint16", "semantica": "Edad del mensaje (en 1/256 s)", "valores": null, "obligatorio": true, "nota": ""},
+        {"nombre": "Max Age / Hello / Forward Delay", "offset_bits": 232, "longitud_bits": 48, "tipo": "uint16", "semantica": "Tres timers de 16 bits cada uno", "valores": null, "obligatorio": true, "nota": ""}
+      ]
+    },
+    {
+      "id": "PR-060",
+      "acronimo": "Syslog",
+      "pdu": "mensaje",
+      "endianness": "network order",
+      "fuente": "RFC 5424",
+      "campos": [
+        {"nombre": "PRI", "offset_bits": 0, "longitud_bits": 8, "tipo": "bitset", "semantica": "<PRIVAL>: facility(5)+severity(3)", "valores": "fac 0-23; sev 0-7", "obligatorio": true, "nota": "Formato textual; no binario"},
+        {"nombre": "Version + Timestamp", "offset_bits": null, "longitud_bits": null, "tipo": "texto", "semantica": "1 + ISO8601 timestamp", "valores": null, "obligatorio": true, "nota": "RFC 3339"},
+        {"nombre": "Hostname / App-Name / ProcID / MsgID", "offset_bits": null, "longitud_bits": null, "tipo": "texto", "semantica": "Campos textuales separados por espacio", "valores": null, "obligatorio": true, "nota": "NILVALUE = '-'"},
+        {"nombre": "Structured Data", "offset_bits": null, "longitud_bits": null, "tipo": "texto", "semantica": "[id@org params] pares clave=valor", "valores": null, "obligatorio": false, "nota": "- si no hay"},
+        {"nombre": "MSG", "offset_bits": null, "longitud_bits": null, "tipo": "texto", "semantica": "Mensaje (UTF-8)", "valores": null, "obligatorio": true, "nota": ""}
+      ]
+    },
+    {
+      "id": "PR-053",
+      "acronimo": "Telnet",
+      "pdu": "flujo",
+      "endianness": "network order",
+      "fuente": "RFC 854",
+      "campos": [
+        {"nombre": "IAC", "offset_bits": 0, "longitud_bits": 8, "tipo": "uint8", "semantica": "0xFF interpretar como comando", "valores": "0xFF", "obligatorio": true, "nota": "Secuencia NVT; no packetized"},
+        {"nombre": "Command", "offset_bits": 8, "longitud_bits": 8, "tipo": "uint8", "semantica": "0xFB WILL, 0xFC WONT, 0xFD DO, 0xFE DONT, 0xF0 SE, 0xFB…", "valores": "0xFB-0xFE", "obligatorio": true, "nota": "Solo si IAC"},
+        {"nombre": "Option", "offset_bits": 16, "longitud_bits": 8, "tipo": "uint8", "semantica": "1 echo, 3 suppress-go-ahead, 24 terminal type, 27 NAWS…", "valores": null, "obligatorio": false, "nota": "Según comando"},
+        {"nombre": "Data", "offset_bits": null, "longitud_bits": null, "tipo": "datos", "semantica": "Bytes de datos NVT (texto)", "valores": null, "obligatorio": true, "nota": "0xFF duplicado como dato"}
+      ]
+    }
+  ]
+}
