@@ -593,17 +593,15 @@ public partial class MainWindow : Window
     private static string Normalizar(string s)
         => string.Concat(s.Where(char.IsLetterOrDigit)).ToLowerInvariant();
 
-    /// <summary>Ítem de lista con ajuste de línea: muestra el acrónimo en negrita y el
-    /// nombre completo envuelto (nunca se recorta; se ajusta al ancho de la sidebar).</summary>
+    /// <summary>Ítem de lista con ajuste de línea: acrónimo · nombre completo envuelto
+    /// (sin límite de líneas ni trimming: el texto se ajusta, nunca se recorta).</summary>
     private static Control ItemProtocolo(Protocol p)
     {
         var panel = new StackPanel { Spacing = 1 };
         panel.Children.Add(new TextBlock
         {
             Text = $"{p.Acronimo} · {p.Nombre}",
-            TextWrapping = TextWrapping.Wrap,
-            TextTrimming = TextTrimming.None,
-            MaxLines = 2
+            TextWrapping = TextWrapping.Wrap
         });
         panel.Children.Add(new TextBlock
         {

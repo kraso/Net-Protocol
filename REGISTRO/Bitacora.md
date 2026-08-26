@@ -468,3 +468,14 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 2. **Ítems de la sidebar con ajuste de línea**: nuevo `ItemProtocolo` (acrónimo · nombre completo con `TextWrapping=Wrap`, `MaxLines=2`, sin trimming + familia · estado) → nombres largos (ITS-G5, C-V2X…) se **envuelven**; aplicado a navegación y resultados de búsqueda.
 3. **Placeholder del filtro** acortado a "Filtrar familias…" para que no se trunque.
 4. Ficha (18 campos), leyenda y comparador ya usan línea envolvente (`DetailText` con `TextWrapping="Wrap"`); barra de estado igual: **o la línea cabe entera o se ajusta**.
+## 26-08-2026 — Causa raíz del texto cortado: scroll horizontal del contenido
+
+**Feedback del responsable:** "No se ha realizado correctamente el cambio, no es un texto puntual es un conjunto bastante notable de líneas que se cortan y no se ajustan. Revísalo."
+
+**Causa raíz (estructural):** el `ScrollViewer` de la ficha tenía `HorizontalScrollBarVisibility="Auto"` → **un ScrollViewer con scroll horizontal mide el contenido con ancho infinito**, así que `TextWrapping="Wrap"` **nunca activaba**: TODAS las líneas largas (finalidad de TCP = 209 chars, encapsulación, fuentes, leyenda, comparador) se extendían y se cortaban — no era un texto puntual, era el mecanismo en sí.
+
+**Corrección (build 0/0 · tests 61/61 ✅):**
+1. `ScrollViewer` de la ficha → **`HorizontalScrollBarVisibility="Disabled"`**: el contenido tiene ancho finito y el texto **envuelve de verdad** (antes: ancho infinito → sin ajuste). La sidebar ya estaba en `Disabled`.
+2. Se calculó la capacidad real: área de ficha ≈ 1012 px → ~130 chars/línea a 13 px JetBrainsMono; la línea más larga (230 chars) ahora se envuelve en ~2 líneas completas.
+3. `ItemProtocolo` en la sidebar: se retiró `MaxLines=2` + `TextTrimming` que **recortaban** el nombre en 2 líneas; ahora el nombre se envuelve sin límite.
+4. El `WrapPanel` de la barra superior (paso anterior) sigue activo: si no cabe, los controles bajan de línea.

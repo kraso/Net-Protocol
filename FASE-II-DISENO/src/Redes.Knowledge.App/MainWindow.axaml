@@ -93,8 +93,11 @@
       </DockPanel>
     </Border>
 
-    <!-- Ficha de protocolo + diagramas de arquitectura (pila F4, grafo vecinos, wire format F5) -->
-    <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto">
+    <!-- Ficha de protocolo + diagramas de arquitectura (pila F4, grafo vecinos, wire format F5).
+         IMPORTANTE: sin scroll horizontal (Disabled) para que el contenido tenga ancho finito
+         y el texto ENVUELVA (TextWrapping real). Los diagramas anchos tienen su propio
+         ScrollViewer horizontal (ver RenderDiagramas). -->
+    <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled">
       <StackPanel Margin="14" Spacing="10">
         <SelectableTextBlock x:Name="DetailText" TextWrapping="Wrap" />
         <SelectableTextBlock x:Name="DiagramTitle" Text="Diagramas de arquitectura:" FontWeight="Bold" IsVisible="False" />
