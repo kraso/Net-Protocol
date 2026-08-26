@@ -604,3 +604,20 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - Verificación previa local: instalador Windows compilado con Inno Setup 6 local (51,5 MB) ✅.
 - **Pendiente** (backlog): firma de código/instaladores (requiere certificados) — el release es **sin firmar** (Gatekeeper/SmartScreen mostrarán aviso).
 - Commit del flujo `v1.0.0`=última versión del workflow; `REGISTRO/Estado-de-Fases.md` actualizado (61/61 tests, CI activo, release publicado).
+## 26-08-2026 — v1.0.1: instalador Windows no arrancaba (datasets no embebidos + raíz de datos de desarrollo)
+
+**Síntoma reportado:** el instalador Windows instala los ficheros correctamente, pero la app **no arranca** — ni desde el menú Inicio ni con "Ejecutar al terminar" del instalador.
+
+**Causa raíz (reproducida localmente en "modo instalado" → crash exit 0xE0434352):**
+1. `RaizDelRepositorio()` subía desde `AppContext.BaseDirectory` buscando `PLANREDES.md`. En desarrollo el exe vive dentro del repo y lo encontraba; **en una máquina instalada no existe** → `InvalidOperationException` en el constructor → proceso muere antes de abrir ventana.
+2. El instalador **no incluía los datasets** (F3/F4/F5/F6) que la app lee en arranque.
+3. La base de datos se creaba bajo la raíz del repo (`FASE-II-DISENO/run`) — no escribible en Program Files para usuario normal.
+
+**Fix (build 0/0 · tests 61/61 ✅ · verificado con el instalador real):**
+- Los 5 catálogos de la Fase I se **embeben junto al ejecutable** (`datos/FASE-XX-...` vía `<None Link + CopyToOutputDirectory>` en el csproj).
+- Nueva `RaizDatos()`: si existe `datos/FASE-03-INVENTARIO` junto al exe → raíz de datos **modo instalado**; si no, sube buscando `PLANREDES.md` (modo desarrollo).
+- Base de datos movida a **`%LOCALAPPDATA%\NetProtocol\knowledge.db`** (escribible), con fallback a la raíz de datos.
+- "Acerca de" muestra la **versión del ensamblado** (ya no hardcodeada): 1.0.1.
+- Bump a **v1.0.1** (csproj + `.iss`). Release v1.0.0 (roto) **eliminado**; publicado **v1.0.1** en https://github.com/kraso/redes-knowledge/releases/tag/v1.0.1 con los 4 instaladores (`.exe`, `.deb`, `.rpm`, `.dmg`).
+- Verificación: instalación silenciosa en carpeta temporal → `datos/` presente → la app **arranca** desde el directorio instalado con CWD de Inicio ✅.
+- Extra: `FASE-II-DISENO/data/NetProtocol.rar` (181,6 MB, fuera de límite GitHub) excluido del repo (`.gitignore` corregido; el `Add-Content` se había pegado a la línea `.git/` sin salto final).
