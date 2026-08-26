@@ -103,3 +103,6 @@ protocolos/
 2. **No inventar:** lo no documentado públicamente se marca explícitamente (Política de Incertidumbre).
 3. **Datos regenerables:** los catálogos y diagramas se generan desde datos estructurados; nunca a mano en cientos de fichas.
 4. **Versionado:** cada documento registra versión, fecha y estado; los registros vivos (IANA, RFC, MIL-STD) son datos versionables.
+---
+
+Estado repo: publicado en GitHub (CI activo). 26-08-2026.
