@@ -168,13 +168,15 @@ public partial class MainWindow : Window
                      .OrderBy(p => p.Acronimo, StringComparer.OrdinalIgnoreCase))
             CompareTarget.Items.Add(p);
         // Muestra "ACR · Nombre" en el desplegable (ancho suficiente para los 113).
-        // Muestra "ACR · Nombre" en el desplegable con ancho fijo y efecto carrusel:
-        // si el texto no cabe, se desplaza (marquee) dentro del área visible.
-        // IMPORTANTE: el data template se invoca con null al reciclar contenedores
-        // del popup al abrir; sin la guarda, p.Acronimo lanza NullReferenceException.
+        // Muestra "ACR · Nombre" en el desplegable con ancho FIJO (300 px): la ventanita de la
+// lista no crece con el texto; el texto de cada ítem solo se desplaza (carrusel) cuando
+// el puntero está sobre ese ítem (el recuadro del selector queda estático, con elipsis).
+// IMPORTANTE: el data template se invoca con null al reciclar contenedores
+// del popup al abrir; sin la guarda, p.Acronimo lanza NullReferenceException.
         CompareTarget.ItemTemplate = new FuncDataTemplate<Protocol>((p, _) =>
             p is null ? null : new Border
             {
+                Width = 300,
                 ClipToBounds = true,
                 Child = new MarqueeTextBlock
                 {

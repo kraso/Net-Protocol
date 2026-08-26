@@ -502,3 +502,10 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Implementación (build 0/0 · tests 61/61 ✅):**
 1. Nuevo control **`MarqueeTextBlock`**: mide el texto real (`FormattedText`); si desborda el ancho disponible, **se desplaza en bucle** (entra por la derecha → sale por la izquierda → reinicia, con pausa inicial para poder leer el principio); si cabe, queda estático. Usa `DispatcherTimer` (16 ms, ~90 px/s) + `TranslateTransform`; se detiene al salir del árbol visual.
 2. `CompareTarget` con **ancho fijo 300 px**; su `ItemTemplate` envuelve el texto en un **`Border` con `ClipToBounds`** (recorte del carrusel) y `MarqueeTextBlock` (se conserva la guarda null contra el reciclaje del popup). Al abrir el desplegable, los ítems del popup disponen de más ancho → el texto completo se muestra; en el área cerrada del selector, el texto largo se mueve como carrusel.
+## 26-08-2026 — Marquee corregido: solo en el popup bajo el puntero; ancho de lista fijo
+
+**Aclaración del responsable:** el carrusel NO debía estar en el recuadro del selector (superfluo); se refería a los valores seleccionables: la ventanita de la lista se ajustaba al ancho del texto (quería que quedara fija) y el texto del elemento bajo el puntero debía moverse hasta el clic.
+
+**Corrección (build 0/0 · tests 61/61 ✅):**
+- `MarqueeTextBlock` detecta el contexto: si su `VisualRoot` **no** es un `Window` (es decir, vive dentro del `PopupRoot` del desplegable) → **carrusel solo cuando `IsPointerOver`** sobre ese ítem (entra por la derecha con pausa breve; al salir el puntero o al cerrar, se detiene y vuelve a elipsis estática). Si `VisualRoot` es el `Window` (recuadro del selector) → **siempre estático con elipsis**.
+- `Border` del template con **`Width = 300` fijo** → la ventanita de la lista **deja de crecer** con el ancho del texto; todos los ítems comparten el mismo ancho y el texto largo se recorta/desplaza dentro de él.
