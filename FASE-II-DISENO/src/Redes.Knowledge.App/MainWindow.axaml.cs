@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using Avalonia;
 using Avalonia.Controls;
@@ -59,8 +60,13 @@ public partial class MainWindow : Window
             Icon = null; // si no se pudiera decodificar, se usa el del ejecutable
         }
 
-        var raiz = RaizDelRepositorio();
-        var dirDb = Path.Combine(raiz, "FASE-II-DISENO", "run");
+        var raiz = RaizDatos();
+        // Base de datos local en un directorio con permiso de escritura (%LOCALAPPDATA%):
+        // junto al ejecutable (Program Files) NO se puede escribir como usuario normal.
+        var localApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var dirDb = string.IsNullOrEmpty(localApp)
+            ? Path.Combine(raiz, "FASE-II-DISENO", "run")
+            : Path.Combine(localApp, "NetProtocol");
         Directory.CreateDirectory(dirDb);
         var store = new SqliteKnowledgeStore($"Data Source={Path.Combine(dirDb, "knowledge.db")};Pooling=False");
 
@@ -649,7 +655,7 @@ public partial class MainWindow : Window
         sb.AppendLine();
         sb.AppendLine("Nombre de la aplicación: Net Protocol");
         sb.AppendLine();
-        sb.AppendLine("Versión: 1.0.0");
+        sb.AppendLine("Versión: " + (Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0"));
         sb.AppendLine();
         sb.AppendLine("Autor: Marcos Calabrés Ibáñez");
         sb.AppendLine();
@@ -714,11 +720,20 @@ public partial class MainWindow : Window
         _ => "documenta"
     };
 
-    private static string RaizDelRepositorio()
+    /// <summary>
+    /// Raíz de datos. En el modo instalado (release) los catálogos viajan junto al
+    /// ejecutable en "datos/..." (el csproj los copia al publicar) y esa carpeta es la
+    /// raíz; en desarrollo se sube desde el directorio del exe hasta la raíz del repo.
+    /// </summary>
+    private static string RaizDatos()
     {
+        var bundled = Path.Combine(AppContext.BaseDirectory, "datos");
+        if (Directory.Exists(Path.Combine(bundled, "FASE-03-INVENTARIO")))
+            return bundled;
         var d = new DirectoryInfo(AppContext.BaseDirectory);
         while (d is not null && !File.Exists(Path.Combine(d.FullName, "PLANREDES.md")))
             d = d.Parent;
-        return d?.FullName ?? throw new InvalidOperationException("No se encontró la raíz del repositorio.");
+        return d?.FullName
+            ?? throw new InvalidOperationException("No se encontró la raíz del repositorio.");
     }
 }

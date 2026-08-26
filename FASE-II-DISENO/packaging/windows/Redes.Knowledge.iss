@@ -3,12 +3,12 @@
 
 [Setup]
 AppName=Net Protocol
-AppVersion=1.0.0
+AppVersion=1.0.1
 AppPublisher=Proyecto Redes
 DefaultDirName={autopf}\NetProtocol
 DefaultGroupName=Net Protocol
 OutputDir=..\..\dist
-OutputBaseFilename=NetProtocol-Setup-1.0.0
+OutputBaseFilename=NetProtocol-Setup-1.0.1
 SetupIconFile=NetProtocol.ico
 Compression=lzma2
 SolidCompression=yes

@@ -11,6 +11,7 @@
     <Product>Net Protocol</Product>
     <Description>Net Protocol — Plataforma de referencia, exploración y simulación de redes</Description>
     <ApplicationIcon>Assets\NetProtocol.ico</ApplicationIcon>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,6 +33,27 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Datasets de la Fase I que viajan junto al ejecutable (modo instalado):
+         la app los resuelve desde "datos/..." (RaizDatos en MainWindow).
+         Se copian al output y, por tanto, al publicar e instalar. -->
+    <None Include="..\..\..\FASE-03-INVENTARIO\F3-Protocolos.json"
+          Link="datos\FASE-03-INVENTARIO\F3-Protocolos.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\FASE-04-PROFUNDIZACION\F4-Fichas-Prioritarias.json"
+          Link="datos\FASE-04-PROFUNDIZACION\F4-Fichas-Prioritarias.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\FASE-04-PROFUNDIZACION\F4-Matriz-Encapsulacion.json"
+          Link="datos\FASE-04-PROFUNDIZACION\F4-Matriz-Encapsulacion.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\FASE-05-MENSAJERIA\F5-Campos-PDU.json"
+          Link="datos\FASE-05-MENSAJERIA\F5-Campos-PDU.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\FASE-06-SEGURIDAD\F6-Seguridad-Protocolos.json"
+          Link="datos\FASE-06-SEGURIDAD\F6-Seguridad-Protocolos.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
