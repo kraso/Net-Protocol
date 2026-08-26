@@ -5,7 +5,7 @@
     <!-- Tipografía global embebida: JetBrainsMono Nerd Font Mono (SemiBold).
          Se referencia por recurso avares:// para uso en XAML y por nombre de familia en código.
          La herencia se aplica desde el Window (MainWindow.axaml FontFamily="{DynamicResource FuenteUi}"). -->
-    <FontFamily x:Key="FuenteUi">avares://Redes.Knowledge.App/Assets/Fonts/JetBrainsMonoNerdFontMono-SemiBold.ttf#JetBrainsMono NFM</FontFamily>
+    <FontFamily x:Key="FuenteUi">avares://NetProtocol/Assets/Fonts/JetBrainsMonoNerdFontMono-SemiBold.ttf#JetBrainsMono NFM</FontFamily>
   </Application.Resources>
   <Application.Styles>
     <FluentTheme />

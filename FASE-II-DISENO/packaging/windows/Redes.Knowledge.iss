@@ -1,14 +1,15 @@
-; Redes Knowledge — script de instalación (Inno Setup)
+; Net Protocol — script de instalación (Inno Setup)
 ; Uso: compilar tras dotnet publish -c Release -r win-x64 --self-contained true -o dist\win-x64
 
 [Setup]
-AppName=Redes Knowledge
+AppName=Net Protocol
 AppVersion=1.0.0
 AppPublisher=Proyecto Redes
-DefaultDirName={autopf}\RedesKnowledge
-DefaultGroupName=Redes Knowledge
+DefaultDirName={autopf}\NetProtocol
+DefaultGroupName=Net Protocol
 OutputDir=..\..\dist
-OutputBaseFilename=RedesKnowledge-Setup-1.0.0
+OutputBaseFilename=NetProtocol-Setup-1.0.0
+SetupIconFile=NetProtocol.ico
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=lowest
@@ -19,8 +20,8 @@ ArchitecturesInstallIn64BitMode=x64compatible
 Source: "..\..\dist\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\Redes Knowledge"; Filename: "{app}\Redes.Knowledge.App.exe"
+Name: "{group}\Net Protocol"; Filename: "{app}\NetProtocol.exe"
 Name: "{group}\Desinstalar"; Filename: "{uninstallexe}"
 
 [Run]
-Filename: "{app}\Redes.Knowledge.App.exe"; Description: "Ejecutar Redes Knowledge"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\NetProtocol.exe"; Description: "Ejecutar Net Protocol"; Flags: nowait postinstall skipifsilent

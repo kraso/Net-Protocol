@@ -17,7 +17,7 @@ public sealed class DiagramView : Control
     // La misma tipografía global de la app (embebida, portátil). El nombre de familia
     // real del TTF es "JetBrainsMono NFM" (Nerd Font Mono).
     private static readonly FontFamily Fuente =
-        FontFamily.Parse("avares://Redes.Knowledge.App/Assets/Fonts/JetBrainsMonoNerdFontMono-SemiBold.ttf#JetBrainsMono NFM");
+        FontFamily.Parse("avares://NetProtocol/Assets/Fonts/JetBrainsMonoNerdFontMono-SemiBold.ttf#JetBrainsMono NFM");
 
     private static readonly Typeface TypefaceUi =
         new(Fuente, FontStyle.Normal, FontWeight.Normal);

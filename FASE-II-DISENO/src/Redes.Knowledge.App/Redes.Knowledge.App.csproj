@@ -7,7 +7,10 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <RootNamespace>Redes.Knowledge.App</RootNamespace>
-    <AssemblyName>Redes.Knowledge.App</AssemblyName>
+    <AssemblyName>NetProtocol</AssemblyName>
+    <Product>Net Protocol</Product>
+    <Description>Net Protocol — Plataforma de referencia, exploración y simulación de redes</Description>
+    <ApplicationIcon>Assets\NetProtocol.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

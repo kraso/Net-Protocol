@@ -430,3 +430,20 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Feedback del responsable:** las casillas "Todas las familias" / "Todos los estados" (menús desplegables) eran demasiado estrechas y no se veía el texto completo con la nueva fuente monospaciada.
 
 **Corrección (build 0/0):** `FilterFamilia` y `FilterEstado` pasaron de **150 → 210 px**; se rebalanceó la barra superior para que todo siga cabiendo (búsqueda 300 → 170 px); se mantienen las etiquetas "Familia:"/"Estado:".
+## 26-08-2026 — Renombrado a "Net Protocol", barra de título gradiente, logo y desplegables colapsados
+
+**Peticiones del responsable:**
+1. Iniciar con **todos los desplegables colapsados** (antes el primero se abría).
+2. Ajuste de línea / ventana suficiente para que ningún texto quede oculto.
+3. **Renombrar la app a "Net Protocol"**.
+4. **Barra de título con gradiente negro→blanco horizontal, cristalizado** (transparencia parcial), predominio del negro, **permanente** entre temas claro/oscuro.
+5. **Logo** `data/Logo_NetProtocol.png` como icono de aplicación.
+
+**Implementación (build 0/0 · tests 61/61 ✅):**
+1. `MainWindow.axaml.cs`: `IsExpanded = false` en la navegación → todos los grupos de familias inician colapsados.
+2. Ventana **1400×820** (anterior 1200×760) y sidebar 360 px → el texto de la barra superior y los filtros quedan completos; `StatusText` y ficha ya usan `TextWrapping`.
+3. Renombrado completo: `AssemblyName=NetProtocol` → exe **NetProtocol.exe**; `app.manifest` → `NetProtocol`; `Title="Net Protocol"`; instalador Inno → AppName/DefaultDirName/grupo/`OutputBaseFilename=NetProtocol-Setup-1.0.0` + `SetupIconFile=NetProtocol.ico`; `avares://NetProtocol/…` en App.axaml y DiagramView.
+4. **Barra de título propia** (44 px) con `LinearGradientBrush` horizontal negro→blanco (offsets 0,0.55,0.80 negro; 0.97/1.0 blanco; alphas F2/E6/D9/B3 → **cristalizado**, colores fijos → **no cambia con el tema**). Ventana con `ExtendClientAreaToDecorationsHint="True"` + `ExtendClientAreaTitleBarHeightHint="44"` (API de Avalonia 12; `ExtendClientAreaChromeHints` ya no existe). Logo en la barra (26×26) + título "Net Protocol".
+5. **Logo**: PNG original 1254×1254 (2 MB) derivado a **256×256** (`Assets/Logo_NetProtocol.png`) + `.ico` (41 KB) para el ejecutable (`ApplicationIcon`); icono de ventana/taskbar cargado vía `AssetLoader` (Avalonia 12 no acepta `avares://` directo en `Bitmap`).
+
+**Relanzar:** `dotnet run --project FASE-II-DISENO\src\Redes.Knowledge.App` (ahora produce y lanza **NetProtocol.exe**).

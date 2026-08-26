@@ -4,6 +4,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Styling;
 using Redes.Knowledge.Domain;
 using Redes.Knowledge.Infrastructure;
@@ -43,6 +45,18 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        // Logo de la aplicación (embebido): icono de ventana/taskbar.
+        try
+        {
+            using var stream = AssetLoader.Open(
+                new Uri("avares://NetProtocol/Assets/Logo_NetProtocol.png"));
+            Icon = new WindowIcon(new Bitmap(stream));
+        }
+        catch
+        {
+            Icon = null; // si no se pudiera decodificar, se usa el del ejecutable
+        }
 
         var raiz = RaizDelRepositorio();
         var dirDb = Path.Combine(raiz, "FASE-II-DISENO", "run");
@@ -193,7 +207,7 @@ public partial class MainWindow : Window
             {
                 Header = $"{g.Key} ({g.Count()})",
                 Content = lista,
-                IsExpanded = expanders.Count == 0, // acordeón: solo el primero abierto
+                IsExpanded = false, // inicio con todos los desplegables colapsados
                 HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
                 Margin = new Thickness(0, 0, 0, 6),
                 Padding = new Thickness(4)
