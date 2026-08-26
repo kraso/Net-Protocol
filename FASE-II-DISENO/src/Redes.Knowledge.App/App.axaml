@@ -6,6 +6,16 @@
          Se referencia por recurso avares:// para uso en XAML y por nombre de familia en código.
          La herencia se aplica desde el Window (MainWindow.axaml FontFamily="{DynamicResource FuenteUi}"). -->
     <FontFamily x:Key="FuenteUi">avares://NetProtocol/Assets/Fonts/JetBrainsMonoNerdFontMono-SemiBold.ttf#JetBrainsMono NFM</FontFamily>
+    <!-- Pincel de la barra de título: gradiente negro→blanco horizontal, cristalizado
+         (alphas), predominio del negro, PERMANENTE (colores fijos → no cambia con el tema). -->
+    <LinearGradientBrush x:Key="PincelBarraTitulo"
+                         StartPoint="0%,50%" EndPoint="100%,50%" SpreadMethod="Pad">
+      <GradientStop Offset="0.0" Color="#F2000000" />
+      <GradientStop Offset="0.55" Color="#E6000000" />
+      <GradientStop Offset="0.80" Color="#D9000000" />
+      <GradientStop Offset="0.97" Color="#B3FFFFFF" />
+      <GradientStop Offset="1.0" Color="#FFFFFFFF" />
+    </LinearGradientBrush>
   </Application.Resources>
   <Application.Styles>
     <FluentTheme />

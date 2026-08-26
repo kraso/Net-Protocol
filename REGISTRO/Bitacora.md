@@ -447,3 +447,15 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 5. **Logo**: PNG original 1254×1254 (2 MB) derivado a **256×256** (`Assets/Logo_NetProtocol.png`) + `.ico` (41 KB) para el ejecutable (`ApplicationIcon`); icono de ventana/taskbar cargado vía `AssetLoader` (Avalonia 12 no acepta `avares://` directo en `Bitmap`).
 
 **Relanzar:** `dotnet run --project FASE-II-DISENO\src\Redes.Knowledge.App` (ahora produce y lanza **NetProtocol.exe**).
+## 26-08-2026 — Barra de título: eliminado el doble "Net Protocol"
+
+**Feedback del responsable:** "El nombre de la aplicación en la barra de título sale dos veces: una normal y otra encima del icono de la aplicación."
+
+**Causa:** en Avalonia 12 el tema Fluent dibuja **su propia barra de título** (con `Title` e icono del sistema) por encima de la barra personalizada con gradiente que ya contenía el logo + texto "Net Protocol" → el nombre aparecía dos veces.
+
+**Corrección (build 0/0 · tests 61/61 ✅):**
+- `WindowDecorations="None"` (API de Avalonia 12; `SystemDecorations` está obsoleto) → el tema ya no dibuja ningún título/icono del sistema sobre la barra.
+- La **barra personalizada es la única**: gradiente (recurso `PincelBarraTitulo` en App.axaml), logo 26×26 + "Net Protocol" **una sola vez**, arrastre de la ventana con `BeginMoveDrag(PointerPressed)`.
+- **Botones de ventana propios** (— □ ✕) con estilo `WinBtn`: hover translúcido, el de cerrar en rojo `#E81123`; handlers `Minimize_Click`/`Maximize_Click`/`Close_Click`.
+
+**Relanzar:** `dotnet run --project FASE-II-DISENO\src\Redes.Knowledge.App`.
