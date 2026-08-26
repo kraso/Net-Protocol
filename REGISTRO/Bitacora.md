@@ -459,3 +459,12 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - **Botones de ventana propios** (— □ ✕) con estilo `WinBtn`: hover translúcido, el de cerrar en rojo `#E81123`; handlers `Minimize_Click`/`Maximize_Click`/`Close_Click`.
 
 **Relanzar:** `dotnet run --project FASE-II-DISENO\src\Redes.Knowledge.App`.
+## 26-08-2026 — Ajuste de línea integral: nada de texto recortado
+
+**Feedback del responsable:** "La anchura sigue sin cumplir el requisito de que o se muestra entera la línea o se ajusta el interlineado para que quepa en la ventana."
+
+**Corrección (build 0/0 · tests 61/61 ✅):**
+1. **Barra superior → `WrapPanel`** (`ItemSpacing`/`LineSpacing`, API de Avalonia 12): si la ventana es estrecha, los controles (búsqueda, filtros, botones) **bajan de línea** en vez de recortarse a la derecha.
+2. **Ítems de la sidebar con ajuste de línea**: nuevo `ItemProtocolo` (acrónimo · nombre completo con `TextWrapping=Wrap`, `MaxLines=2`, sin trimming + familia · estado) → nombres largos (ITS-G5, C-V2X…) se **envuelven**; aplicado a navegación y resultados de búsqueda.
+3. **Placeholder del filtro** acortado a "Filtrar familias…" para que no se trunque.
+4. Ficha (18 campos), leyenda y comparador ya usan línea envolvente (`DetailText` con `TextWrapping="Wrap"`); barra de estado igual: **o la línea cabe entera o se ajusta**.

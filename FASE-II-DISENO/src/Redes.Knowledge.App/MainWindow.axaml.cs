@@ -195,7 +195,7 @@ public partial class MainWindow : Window
             var lista = new ListBox { Height = ListaAltura, Width = ListaAnchura }; // anchura idéntica en todos
             foreach (var p in g.OrderBy(p => p.Acronimo, StringComparer.OrdinalIgnoreCase))
             {
-                var item = new ListBoxItem { Content = $"{p.Acronimo} · {p.Nombre}", Tag = p };
+                var item = new ListBoxItem { Tag = p, Content = ItemProtocolo(p) };
                 lista.Items.Add(item);
             }
             lista.SelectionChanged += (_, _) =>
@@ -251,7 +251,7 @@ public partial class MainWindow : Window
         NavPanel.Children.Clear();
         var lista = new ListBox { Height = ListaAltura, Width = ListaAnchura };
         foreach (var p in encontrados.OrderBy(p => p.Acronimo, StringComparer.OrdinalIgnoreCase))
-            lista.Items.Add(new ListBoxItem { Content = $"{p.Acronimo} · {p.Nombre} [{p.Familia}]", Tag = p });
+            lista.Items.Add(new ListBoxItem { Content = ItemProtocolo(p), Tag = p });
         lista.SelectionChanged += (_, _) =>
         {
             if (lista.SelectedItem is ListBoxItem sel && sel.Tag is Protocol proto) RenderFicha(proto);
@@ -592,6 +592,27 @@ public partial class MainWindow : Window
 
     private static string Normalizar(string s)
         => string.Concat(s.Where(char.IsLetterOrDigit)).ToLowerInvariant();
+
+    /// <summary>Ítem de lista con ajuste de línea: muestra el acrónimo en negrita y el
+    /// nombre completo envuelto (nunca se recorta; se ajusta al ancho de la sidebar).</summary>
+    private static Control ItemProtocolo(Protocol p)
+    {
+        var panel = new StackPanel { Spacing = 1 };
+        panel.Children.Add(new TextBlock
+        {
+            Text = $"{p.Acronimo} · {p.Nombre}",
+            TextWrapping = TextWrapping.Wrap,
+            TextTrimming = TextTrimming.None,
+            MaxLines = 2
+        });
+        panel.Children.Add(new TextBlock
+        {
+            Text = $"{p.Familia} · {p.Estado}",
+            FontSize = 11,
+            Opacity = 0.65
+        });
+        return panel;
+    }
 
     /// <summary>Acorta un valor largo para las líneas de comparación (los campos
     /// largos se muestran por protocolo, envueltos, sin desbordar la pantalla).</summary>
