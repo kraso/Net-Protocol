@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   quality:
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +21,7 @@ jobs:
         run: dotnet test FASE-II-DISENO/tests/Redes.Knowledge.Tests/Redes.Knowledge.Tests.csproj --configuration Release
 
   build:
+    if: github.event_name != 'workflow_dispatch'
     strategy:
       matrix:
         include:
@@ -270,3 +272,40 @@ jobs:
           gh release create "$GITHUB_REF_NAME" dist/setup-*/* \
             --title "Net Protocol ${VER}" \
             --notes-file RELEASE_NOTES.md
+
+  # Job de diagnostico (solo manual): inspecciona la frase almacenada en el secreto
+  # (longitud, sha256, espacios, ASCII) y prueba 3 vias de firma, sin revelar el valor.
+  diagnostico-gpg:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Diagnosticar secreto GPG
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          set +e
+          echo "== importar =="
+          echo "${GPG_PRIVATE_KEY}" | gpg --batch --import 2>&1 | tail -3
+          echo "== claves importadas =="
+          gpg --list-secret-keys --with-colons 2>/dev/null | awk -F: '/^sec:/{print $5}'
+          RAW="${GPG_PASSPHRASE}"
+          PASS=$(printf '%s' "$RAW" | tr -d '\r\n')
+          echo "== frase almacenada =="
+          echo "len_RAW=${#RAW}"
+          echo "len_PASS=${#PASS}"
+          echo "sha256(PASS)=$(printf '%s' "$PASS" | sha256sum | cut -d' ' -f1)"
+          case "$PASS" in " "*|*" ") echo "TIPO=espacios_extremos";; *) echo "TIPO=sin_espacios_extremos";; esac
+          if printf '%s' "$PASS" | LC_ALL=C grep -q '[^ -~]'; then echo "CONTENIDO=No-ASCII"; else echo "CONTENIDO=ASCII"; fi
+          printf 'x' > /tmp/t.txt
+          echo "== firma fd0 =="
+          printf '%s\n' "$PASS" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --detach-sign -u "${GPG_KEY_ID}" /tmp/t.txt 2>&1 | tail -1
+          echo "exit_fd0=$?"
+          echo "== firma passphrase-file =="
+          printf '%s' "$PASS" > /tmp/pf.txt
+          gpg --batch --yes --pinentry-mode loopback --passphrase-file /tmp/pf.txt --detach-sign -u "${GPG_KEY_ID}" /tmp/t.txt 2>&1 | tail -1
+          echo "exit_file=$?"
+          echo "== firma passphrase-arg =="
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$PASS" --detach-sign -u "${GPG_KEY_ID}" /tmp/t.txt 2>&1 | tail -1
+          echo "exit_arg=$?"
