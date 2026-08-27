@@ -168,7 +168,10 @@ jobs:
           else
             rpmsign --addsign --define "_gpg_name ${GPG_KEY_ID}" dist/NetProtocol-*.rpm
           fi
-          # Verificacion obligatoria del .rpm: si la firma fallo, el job falla.
+          # Verificacion obligatoria del .rpm: importar la clave publica en rpm
+          # (sin ella rpm no puede verificar) y comprobar; si fallo, el job falla.
+          gpg --armor --export "${GPG_KEY_ID}" > dist/NetProtocol-gpg-pubkey.asc
+          rpm --import dist/NetProtocol-gpg-pubkey.asc
           rpm --checksig dist/NetProtocol-*.rpm
           # Firmar el .deb con firma adjunta .asc estandar (dpkg-sig fue retirado de
           # los repos de Ubuntu/Debian); verificar con gpg --verify.
@@ -179,8 +182,6 @@ jobs:
             gpg --batch --yes --detach-sign --armor -u "${GPG_KEY_ID}" dist/NetProtocol-*.deb
           fi
           gpg --verify dist/NetProtocol-*.deb.asc dist/NetProtocol-*.deb
-          # Clave publica para que los usuarios verifiquen (se sube como asset del release)
-          gpg --armor --export "${GPG_KEY_ID}" > dist/NetProtocol-gpg-pubkey.asc
       - uses: actions/upload-artifact@v4
         with:
           name: setup-linux
