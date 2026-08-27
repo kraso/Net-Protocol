@@ -12,6 +12,7 @@ using Avalonia.Platform;
 using Avalonia.Styling;
 using Redes.Knowledge.Domain;
 using Redes.Knowledge.Infrastructure;
+using Redes.Knowledge.Infrastructure.Capturas;
 using Redes.Knowledge.Visualization;
 
 namespace Redes.Knowledge.App;
@@ -47,6 +48,10 @@ public partial class MainWindow : Window
 
     /// <summary>Diagramas de la ficha actual (cache para la exportación D4-3).</summary>
     private List<(string Titulo, DiagramDocument Doc, IReadOnlyList<NodoGrafo>? Nodos, IReadOnlyDictionary<string, string?>? Abrir)> _docsActuales = new();
+
+    /// <summary>Paquetes de la captura abierta (vista D6).</summary>
+    private List<PcapPacket> _paquetesCaptura = new();
+    private string _rutaCaptura = "";
 
     public MainWindow()
     {
@@ -140,6 +145,15 @@ public partial class MainWindow : Window
         ExportFormat.ItemsSource = new[] { "SVG", "PNG", "PDF" };
         ExportFormat.SelectedIndex = 0;
         ExportButton.Click += async (_, _) => await ExportarDiagramasAsync();
+        AbrirCapturaButton.Click += async (_, _) => await AbrirCapturaAsync();
+        MuestraButton.Click += (_, _) => GenerarMuestra();
+        CerrarCapturaButton.Click += (_, _) => CerrarCaptura();
+        ListaPaquetes.SelectionChanged += (_, _) =>
+        {
+            if (ListaPaquetes.SelectedItem is ListBoxItem { Tag: int idx } &&
+                idx >= 0 && idx < _paquetesCaptura.Count)
+                DetalleCaptura.Text = DetalleDe(_paquetesCaptura[idx]);
+        };
 
         // Zoom global del tamaño de letra: Ctrl + rueda del ratón en toda la interfaz.
         AddHandler(InputElement.PointerWheelChangedEvent,
@@ -395,6 +409,7 @@ public partial class MainWindow : Window
     /// grafo de vecinos (F4) y wire format de la cabecera (F5).</summary>
     private void RenderDiagramas(Protocol p, IReadOnlyList<Vecino> vecinos)
     {
+        DiagramPanel.IsVisible = true; // la vista de captura lo oculta; al volver se restaura
         DiagramPanel.Children.Clear();
         var docs = new List<(string Titulo, DiagramDocument Doc, IReadOnlyList<NodoGrafo>? Nodos, IReadOnlyDictionary<string, string?>? Abrir)>();
 
@@ -572,6 +587,162 @@ public partial class MainWindow : Window
     /// <summary>Nombre de archivo seguro (solo letras, dígitos, '-', '_' y '.').</summary>
     private static string SanearNombre(string s)
         => string.Concat(s.Select(c => char.IsLetterOrDigit(c) || c is '-' or '_' or '.' ? c : '_'));
+
+    // ── Vista de captura (D6-1/D6-2) ──────────────────────────────────────────────────
+
+    private async Task AbrirCapturaAsync()
+    {
+        var opciones = new FilePickerOpenOptions
+        {
+            Title = "Abrir captura (PCAP / PCAPNG)",
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("Capturas PCAP/PCAPNG") { Patterns = new[] { "*.pcap", "*.pcapng" } }
+            }
+        };
+        var archivos = await StorageProvider.OpenFilePickerAsync(opciones);
+        if (archivos.Count == 0 || archivos[0].Path is not { } uri) return;
+        try { MostrarCaptura(PcapCaptureReader.Abrir(uri.LocalPath), uri.LocalPath); }
+        catch (Exception ex) { if (IsLoaded) StatusText.Text = $"No se pudo abrir la captura: {ex.Message}"; }
+    }
+
+    /// <summary>Genera una muestra sintética determinista (F5) y la vuelca a un .pcap (D6).</summary>
+    private void GenerarMuestra()
+    {
+        var captura = PcapSintetico.Generar();
+        var capturas = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "NetProtocol", "capturas");
+        var ruta = Path.Combine(capturas, $"NetProtocol-muestra-{DateTime.Now:yyyyMMdd-HHmmss}.pcap");
+        try
+        {
+            PcapWriter.EscribirAArchivo(ruta, captura);
+            MostrarCaptura(captura, ruta);
+            if (IsLoaded)
+                StatusText.Text = $"Muestra sintética (ETH/IPv4/IPv6/TCP/UDP/DNS/ICMP) volcada en {ruta} · click en un paquete para su detalle F5";
+        }
+        catch (Exception ex)
+        {
+            if (IsLoaded) StatusText.Text = $"No se pudo volcar la muestra: {ex.Message}";
+        }
+    }
+
+    private void MostrarCaptura(PcapCapture captura, string ruta)
+    {
+        _paquetesCaptura = captura.Paquetes.ToList();
+        _rutaCaptura = ruta;
+        DetailText.IsVisible = false;
+        DiagramTitle.IsVisible = false;
+        DiagramPanel.IsVisible = false;
+        PanelCaptura.IsVisible = true;
+
+        ResumenCaptura.Text =
+            $"{Path.GetFileName(ruta)} · linktype {captura.LinkType} ({(captura.EsEthernet ? "Ethernet" : "otro")}) · {_paquetesCaptura.Count} paquetes";
+        ListaPaquetes.Items.Clear();
+        for (var i = 0; i < _paquetesCaptura.Count; i++)
+            ListaPaquetes.Items.Add(new ListBoxItem { Content = ResumenPaquete(i), Tag = i });
+        ListaPaquetes.SelectedIndex = 0;
+    }
+
+    private void CerrarCaptura()
+    {
+        PanelCaptura.IsVisible = false;
+        DetailText.IsVisible = true;
+        DiagramPanel.IsVisible = true;
+        if (_seleccionado is not null) RenderFicha(_seleccionado);
+        if (IsLoaded) StatusText.Text = $"Captura cerrada · {_protocolos.Count} protocolos · zoom {_zoom * 100:0}%";
+    }
+
+    private string ResumenPaquete(int i)
+    {
+        var p = _paquetesCaptura[i];
+        var d = PcapDissector.Disectar(p.Data);
+        var proto = d.EsTcp ? "TCP"
+            : d.ProtocoloIp == 17 ? "UDP"
+            : d.ProtocoloIp == 1 ? "ICMP"
+            : d.EtherType == 0x86DD ? "IPv6"
+            : d.EsIpv4 ? "IPv4"
+            : d.ProtocoloIp is { } pp ? $"IP proto {pp}" : "otro";
+        var dir = d.IpOrigen is null
+            ? ""
+            : $"{d.IpOrigen}{(d.PuertoOrigen is { } po ? $":{po}" : "")} → {d.IpDestino}{(d.PuertoDestino is { } pd ? $":{pd}" : "")}";
+        return $"#{i + 1} · {dir} · {proto} · {p.Data.Length} B";
+    }
+
+    private string DetalleDe(PcapPacket p)
+    {
+        var f = p.Data;
+        var d = PcapDissector.Disectar(f);
+        var sb = new StringBuilder();
+        sb.AppendLine($"=== Paquete de {f.Length} bytes ===");
+        sb.AppendLine();
+
+        // Ethernet (el layout F5 ETH incluye preámbulo/SFD físicos: base 64).
+        sb.AppendLine($"Ethernet II: {Mac(f, 0)} → {Mac(f, 6)} · EtherType 0x{(d.EtherType ?? 0):X4}");
+        sb.AppendLine(ValidarCapaTexto("ETH", f, 64));
+
+        if (d.EtherType == 0x0800 && d.EsIpv4)
+        {
+            var ihl = (f[14] & 0x0F) * 4;
+            sb.AppendLine($"IPv4: {d.IpOrigen} → {d.IpDestino} · TTL {f[22]} · proto {d.ProtocoloIp}");
+            sb.AppendLine(ValidarCapaTexto("IPv4", f.AsSpan(14, ihl).ToArray(), 0));
+            var capa = 14 + ihl;
+            if (d.EsTcp && capa + 13 < f.Length)
+            {
+                var dataOffset = (f[capa + 12] >> 4) * 4;
+                sb.AppendLine($"TCP: {d.PuertoOrigen} → {d.PuertoDestino} · flags 0x{f[capa + 13]:X2} · cabecera {dataOffset} B");
+                sb.AppendLine(ValidarCapaTexto("TCP", f.AsSpan(capa, Math.Min(dataOffset, f.Length - capa)).ToArray(), 0));
+            }
+            else if (d.ProtocoloIp == 17 && capa + 7 < f.Length)
+            {
+                sb.AppendLine($"UDP: {d.PuertoOrigen} → {d.PuertoDestino} · longitud {(f[capa + 4] << 8) | f[capa + 5]}");
+                sb.AppendLine(ValidarCapaTexto("UDP", f.AsSpan(capa, Math.Min(8, f.Length - capa)).ToArray(), 0));
+                if (d.PuertoOrigen == 53 || d.PuertoDestino == 53)
+                    sb.AppendLine(ValidarCapaTexto("DNS", f.AsSpan(capa + 8).ToArray(), 0));
+            }
+            else if (d.ProtocoloIp == 1 && capa < f.Length)
+            {
+                sb.AppendLine($"ICMP: tipo {f[capa]} · code {f[capa + 1]}");
+                sb.AppendLine(ValidarCapaTexto("ICMP", f.AsSpan(capa).ToArray(), 0));
+            }
+        }
+        else if (d.EtherType == 0x86DD && f.Length >= 54)
+        {
+            sb.AppendLine("IPv6: (dissection básica; layout F5 validado)");
+            sb.AppendLine(ValidarCapaTexto("IPv6", f.AsSpan(14, 40).ToArray(), 0));
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>Valida el buffer contra el layout F5 de un protocolo (D6-2/L-004).</summary>
+    private string ValidarCapaTexto(string acronimoF5, byte[] bufer, int baseBits)
+    {
+        var campos = CamposF5De(acronimoF5);
+        if (campos is null || campos.Count == 0)
+            return $"   {acronimoF5}: sin layout F5 en el catálogo";
+        var definidos = campos
+            .Where(f => f.OffsetBits.HasValue)
+            .Select(f => new CampoDefinido(f.OffsetBits!.Value, f.LongitudBits, f.Nombre))
+            .ToList();
+        var resultado = PcapDissector.Validar(bufer, definidos, baseBits);
+        var resumen = PcapDissector.Resumen(acronimoF5, resultado);
+        var detalles = string.Join(", ", resultado.Select(c => $"{c.Nombre}={c.ValorHex}"));
+        return $"   {acronimoF5} [{resumen}] · {detalles}";
+    }
+
+    private IReadOnlyList<Field>? CamposF5De(string acronimoF5)
+    {
+        if (_camposPorAcronimo.TryGetValue(acronimoF5, out var campos)) return campos;
+        var clave = _camposPorAcronimo.Keys.FirstOrDefault(k =>
+            string.Equals(k, acronimoF5, StringComparison.OrdinalIgnoreCase) ||
+            (acronimoF5 == "IPv4" && k.Equals("IP", StringComparison.OrdinalIgnoreCase)));
+        return clave is null ? null : _camposPorAcronimo[clave];
+    }
+
+    private static string Mac(byte[] b, int off)
+        => string.Join(":", Enumerable.Range(off, 6).Select(i => b[i].ToString("X2")));
 
     /// <summary>Cadena "X corre sobre Y corre sobre Z…" desde el protocolo hacia el medio
     /// (usando las relaciones F4), invertida para dibujar de abajo (medio) hacia arriba.</summary>

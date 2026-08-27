@@ -98,6 +98,8 @@
       <SelectableTextBlock Text="Exportar:" VerticalAlignment="Center" />
       <ComboBox x:Name="ExportFormat" Width="90" />
       <Button x:Name="ExportButton" Content="Exportar" />
+      <Button x:Name="AbrirCapturaButton" Content="Abrir captura…" />
+      <Button x:Name="MuestraButton" Content="Muestra de prueba" />
     </WrapPanel>
 
     <!-- Barra de estado -->
@@ -170,6 +172,16 @@
         <SelectableTextBlock x:Name="DetailText" TextWrapping="Wrap" />
         <SelectableTextBlock x:Name="DiagramTitle" Text="Diagramas de arquitectura:" FontWeight="Bold" IsVisible="False" />
         <StackPanel x:Name="DiagramPanel" Spacing="14" />
+        <!-- Vista de captura (D6-1): se muestra en lugar de la ficha mientras hay una captura.
+             Lista de paquetes + detalle por capas con validación de layouts F5 (D6-2/L-004). -->
+        <StackPanel x:Name="PanelCaptura" Spacing="8" IsVisible="False">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <SelectableTextBlock x:Name="ResumenCaptura" VerticalAlignment="Center" FontWeight="SemiBold" TextWrapping="Wrap" />
+            <Button x:Name="CerrarCapturaButton" Content="✕ Cerrar captura" VerticalAlignment="Center" />
+          </StackPanel>
+          <ListBox x:Name="ListaPaquetes" Height="240" />
+          <SelectableTextBlock x:Name="DetalleCaptura" TextWrapping="Wrap" />
+        </StackPanel>
       </StackPanel>
     </ScrollViewer>
   </DockPanel>

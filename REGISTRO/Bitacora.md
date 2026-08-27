@@ -684,3 +684,15 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 1. **PDF**: los operadores de color iban con **coma decimal** (`0,2 0,255 0,333 rg`) porque `C(hex)` formateaba con la cultura del sistema (es-ES); PDF exige `.` → visor degradaba todo al mismo tono. Fix: `InvariantCulture` en los componentes RGB. Verificado: el PDF regenerado emite `0.933 0.949 1 rg`, `0.086 0.639 0.29 rg`… con tonos distintos por elemento.
 2. **SVG**: `<text y>` es la **línea base**, no la esquina superior como el renderer de 13 px de la app (además iba a 10 px). Fix: `font-size="13"`, `y = p.Y + 13` y truncación de etiquetas con ancho máximo (7,8 px/carácter, equivalente a pantalla).
 - Tests de regresión nuevos: `Pdf_Colores_Independientes_De_Cultura` (reproduce es-ES → exige puntos) y `Svg_Texto_En_La_Misma_Posicion_Que_La_Pantalla` (13 px + compensación de línea base).
+## 26-08-2026 — D6: interfaz de capturas PCAP + muestra sintética determinista
+
+**Decisión del responsable:** abrir capturas reales + **muestra rápida sintética** (opción recomendada); el sniffing en vivo queda pendiente por la barrera de privilegios/dependencias nativas (Npcap/libpcap+admin) — decisión de producto aparte.
+
+**Implementación (build 0/0 · tests 68/68 ✅ · smoke 8 s sin crash):**
+- **Infraestructura** (`Capturas/`):
+  - `PcapWriter`: volcado a PCAP clásico (little-endian, linktype Ethernet) — complementa al lector existente.
+  - `PcapSintetico`: **muestra determinista** con 4 tramas estándar (Ethernet/IPv4/TCP SYN · Ethernet/IPv4/UDP/DNS consulta · Ethernet/IPv6/TCP · Ethernet/IPv4/ICMP echo), checksums reales, timestamps fijos.
+- **UI**: botones en la barra superior **"Abrir captura…"** (selector .pcap/.pcapng) y **"Muestra de prueba"** (genera y vuelca el volcado a `%LOCALAPPDATA%\NetProtocol\capturas\NetProtocol-muestra-<fecha>.pcap`); panel central de captura (resumen + lista de paquetes + detalle por capas) que sustituye a la ficha mientras está abierta; "✕ Cerrar captura" restaura la ficha.
+- **Detalle por capas (D6-2/L-004)**: cada paquete muestra Ethernet/IPv4(TCP|UDP|DNS|ICMP)/IPv6 con **validación de layouts F5** (`PcapDissector.Validar` + `Resumen`): "proto [X/Y campos en límites OK/FUERA]".
+- **Tests (4 nuevos)**: determinismo de la muestra, round-trip lector↔escritor, dissection por capas esperada, y **bucle cerrado generador↔validador** (todos los layouts F5 de las tramas validan dentro de límites; ETH con base 64 — preámbulo/SFD/FCS físicos no capturados).
+- Los campos F5 sin offset fijo (FCS/PDU variable) se excluyen de la validación.
