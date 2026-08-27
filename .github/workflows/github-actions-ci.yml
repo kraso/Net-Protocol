@@ -111,13 +111,15 @@ jobs:
         run: |
           set -euo pipefail
           VER="${GITHUB_REF_NAME#v}"
+          # rpm no admite guiones en Version (separador version-release); se sustituyen.
+          RPM_VER="${VER//-/_}"
           sudo apt-get update -qq
           sudo apt-get install -y -qq rpm
           mkdir -p rpmbuild
           DISTDIR="${PWD}/dist/linux-x64"
           cat > netprotocol.spec <<EOF
           Name: netprotocol
-          Version: ${VER}
+          Version: ${RPM_VER}
           Release: 1%{?dist}
           Summary: Net Protocol - base de conocimiento de protocolos de red
           License: Proprietary
@@ -137,7 +139,7 @@ jobs:
           /usr/lib/netprotocol/*
           EOF
           rpmbuild --define "_topdir ${PWD}/rpmbuild" -bb netprotocol.spec
-          cp rpmbuild/RPMS/x86_64/*.rpm "dist/NetProtocol-${VER}-x86_64.rpm"
+          cp rpmbuild/RPMS/x86_64/*.rpm "dist/NetProtocol-${RPM_VER}-x86_64.rpm"
       - name: Firmar .deb/.rpm con GPG (si la clave esta configurada en secretos)
         working-directory: FASE-II-DISENO
         shell: bash
