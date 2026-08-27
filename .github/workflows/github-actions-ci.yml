@@ -166,10 +166,15 @@ jobs:
           # (determinista, sin agente/pinentry); si no, firma directa en batch.
           if [ -n "${GPG_PASSPHRASE:-}" ]; then
             PASS=$(printf '%s' "${GPG_PASSPHRASE}" | tr -d '\r\n')
-            printf '%s\n' "$PASS" | rpmsign --addsign \
+            # rpmsign NO reenvia el stdin de la tuberia a gpg (--passphrase-fd 0 recibe
+            # vacio -> "Bad passphrase"): pasar la frase por --passphrase-file.
+            printf '%s' "$PASS" > /tmp/netprotocol-pass.txt
+            chmod 600 /tmp/netprotocol-pass.txt
+            rpmsign --addsign \
               --define "_gpg_name ${GPG_KEY_ID}" \
-              --define "__gpg_sign_cmd %{__gpg} gpg --batch --no-tty --pinentry-mode loopback --passphrase-fd 0 --detach-sign -o %{__signature_filename} %{__plaintext_filename}" \
+              --define "__gpg_sign_cmd %{__gpg} gpg --batch --no-tty --pinentry-mode loopback --passphrase-file /tmp/netprotocol-pass.txt --detach-sign -o %{__signature_filename} %{__plaintext_filename}" \
               dist/NetProtocol-*.rpm
+            rm -f /tmp/netprotocol-pass.txt
           else
             rpmsign --addsign --define "_gpg_name ${GPG_KEY_ID}" dist/NetProtocol-*.rpm
           fi
