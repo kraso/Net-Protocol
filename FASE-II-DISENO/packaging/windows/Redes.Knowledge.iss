@@ -1,14 +1,20 @@
 ; Net Protocol — script de instalación (Inno Setup)
 ; Uso: compilar tras dotnet publish -c Release -r win-x64 --self-contained true -o dist\win-x64
+; La versión se pasa con iscc /DMyAppVersion=<ver> (p. ej. -DMyAppVersion=1.0.2);
+; por defecto usa la última publicada.
+
+#ifndef MyAppVersion
+  #define MyAppVersion "1.0.1"
+#endif
 
 [Setup]
 AppName=Net Protocol
-AppVersion=1.0.1
+AppVersion={#MyAppVersion}
 AppPublisher=Proyecto Redes
 DefaultDirName={autopf}\NetProtocol
 DefaultGroupName=Net Protocol
 OutputDir=..\..\dist
-OutputBaseFilename=NetProtocol-Setup-1.0.1
+OutputBaseFilename=NetProtocol-Setup-{#MyAppVersion}
 SetupIconFile=NetProtocol.ico
 Compression=lzma2
 SolidCompression=yes

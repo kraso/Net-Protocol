@@ -58,7 +58,10 @@ jobs:
       - name: Instalar Inno Setup
         run: choco install innosetup --yes --no-progress
       - name: Compilar instalador (Inno Setup)
-        run: iscc FASE-II-DISENO/packaging/windows/Redes.Knowledge.iss
+        shell: bash
+        run: |
+          VER="${GITHUB_REF_NAME#v}"
+          iscc "-DMyAppVersion=${VER}" FASE-II-DISENO/packaging/windows/Redes.Knowledge.iss
       - uses: actions/upload-artifact@v4
         with:
           name: setup-win-x64

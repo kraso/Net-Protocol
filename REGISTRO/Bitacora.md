@@ -630,3 +630,15 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - Nuevo paso **"Firmar .deb/.rpm con GPG"** en `package-linux`: se activa **solo si existen los secretos** `GPG_PRIVATE_KEY`/`GPG_KEY_ID` (+ `GPG_PASSPHRASE` opcional); sin ellos avisa y publica sin firmar. Firma `.deb` con `dpkg-sig --sign builder` y `.rpm` con `rpmsign --addsign` (variante `--pinentry-mode loopback` si hay pasphrase); **verificación obligatoria** (`rpm --checksig` / `dpkg-sig --verify`). Exporta la clave pública como asset `NetProtocol-gpg-pubkey.asc`.
 - `packaging/README.md`: sección completa de firma (generación de clave, secretos, verificación por parte del usuario) + tabla de dependencias.
 - Pendiente del responsable: generar la clave GPG y añadir los 3 secretos para que la firma se active en el próximo tag.
+## 26-08-2026 — Firma GPG operativa: clave dedicada sin frase + validación rc
+
+**Historial de la puesta en marcha (fallos resueltos en CI):**
+1. `dpkg-sig` **retirado de repos Ubuntu/Debian** → el `.deb` se firma con **firma adjunta `.asc` estándar** (`gpg --detach-sign --armor`), verificable con `gpg --verify`. El repo apt con `Release` firmado queda como vía canónica futura.
+2. La clave personal RSA (`84A27DF8CF75FE62`) tenía frase protegida y daba `Bad passphrase` en CI de forma inconsistente (bytes alterados entre PowerShell → `gh secret set` → gpg de Ubuntu; se normalizaron CR/LF sin éxito) → se adoptó la **clave dedicada de CI "Net Protocol Releases" (`FFB1C378AD2E3628`, RSA 4096, SIN frase)** generada en local; secretos del repo actualizados: `GPG_PRIVATE_KEY` + `GPG_KEY_ID` (se eliminaron `GPG_PASSPHRASE` y el secreto residual `OSRPJ53...`).
+3. `rpmsign` con `--armor` producía `Unsupported PGP signature` (rpm espera firma **binaria**) → se quita `--armor` del `__gpg_sign_cmd`.
+4. `rpm --checksig` daba `SIGNATURES NOT OK` sin la clave pública → se **importa la pubkey en rpm** antes de verificar.
+5. La frase es **opcional** en CI: con clave sin protección firma directa en batch; con `GPG_PASSPHRASE` usa loopback + `passphrase-fd 0`.
+
+**Validación (tag `v1.0.2rc1`, CI ✅):** release con `.deb` + `.deb.asc` (verificado localmente con gpg → `Firma correcta de "Net Protocol Releases"`), `.rpm` firmado (`rpm --checksig` OK en CI), `NetProtocol-gpg-pubkey.asc` adjunto, `.dmg` y Windows. Las dependencias Linux (`liblttng-ust0`, `liburcu6`) quedaron declaradas en `.deb`/`.rpm`.
+
+**Extra:** la versión del instalador Windows salía hardcodeada (`NetProtocol-Setup-1.0.1.exe`) → ahora el `.iss` usa `#define MyAppVersion` y CI pasa `/DMyAppVersion=<tag>` (verificado localmente: genera `NetProtocol-Setup-1.0.2.exe`).
