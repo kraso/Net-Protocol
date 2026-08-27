@@ -82,7 +82,10 @@ public static class PdfExporter
         var r = int.Parse(hex.Substring(1, 2), NumberStyles.HexNumber) / 255.0;
         var g = int.Parse(hex.Substring(3, 2), NumberStyles.HexNumber) / 255.0;
         var b = int.Parse(hex.Substring(5, 2), NumberStyles.HexNumber) / 255.0;
-        return $"{r:0.###} {g:0.###} {b:0.###}";
+        // Importante: INVARIANTE. PDF exige '.' como separador decimal; con la cultura
+        // es-ES (coma) los operadores de color quedan inválidos y el visor degrada.
+        return string.Join(" ",
+            new[] { r, g, b }.Select(v => v.ToString("0.###", CultureInfo.InvariantCulture)));
     }
 
     private static string San(string label)

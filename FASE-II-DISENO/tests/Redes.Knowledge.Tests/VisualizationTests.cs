@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using Redes.Knowledge.Infrastructure;
 using Redes.Knowledge.Visualization;
@@ -132,5 +133,37 @@ public class VisualizationTests
         {
             if (File.Exists(tmp)) File.Delete(tmp);
         }
+    }
+
+    // Regresión (D4-3): los colores del PDF usan '.' aunque la cultura use coma decimal.
+    [Fact]
+    public void Pdf_Colores_Independientes_De_Cultura()
+    {
+        var doc = Layouts.Pila("Cultura", new[] { "CapaA", "CapaB" });
+        var culturaOriginal = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("es-ES");
+            var texto = Encoding.ASCII.GetString(PdfExporter.Export(doc));
+            // Sin comas: '0,933 0,949 1 rg' invalidaría el operador de color en PDF.
+            Assert.DoesNotContain("0,9", texto);
+            Assert.Contains("0.933 0.949 1 rg", texto);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = culturaOriginal;
+        }
+    }
+
+    // Regresión (D4-3): el texto SVG queda en la misma posición que el renderer de
+    // pantalla (13 px; SVG deposita en la línea base -> y + 13).
+    [Fact]
+    public void Svg_Texto_En_La_Misma_Posicion_Que_La_Pantalla()
+    {
+        var doc = Layouts.Pila("Título", new[] { "CapaA" });
+        var svg = SvgRenderer.Render(doc);
+        Assert.Contains("font-size=\"13\"", svg);
+        var titulo = doc.Items.First(p => p.Kind == PrimitiveKind.Text && p.X == 10 && p.Y == 14);
+        Assert.Contains($"y=\"{titulo.Y + 13}\"", svg);
     }
 }

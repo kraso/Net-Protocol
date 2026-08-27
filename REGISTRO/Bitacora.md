@@ -676,3 +676,11 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - Cache `_docsActuales` de los diagramas de la ficha (se limpia en Comparador/Leyenda/Acerca de).
 - **Validación real**: puerta temporal de autoexportado (retirada tras la prueba) generó los 3 diagramas TCP en los 3 formatos; comprobadas las firmas: PNG `89 50 4E 47`, PDF `%PDF-`, SVG `<svg`.
 - Lección técnica anotada: `RenderTargetBitmap`/pinceles exigen el **hilo de UI** (AvaloniaObject.VerifyAccess) — el botón real corre en el hilo UI; los exportadores vectoriales (SVG/PDF) son puros y siguen siendo deterministas (probado en la suite).
+## 26-08-2026 — D4-3 (corrección): PDF monocromo y SVG descuadrado
+
+**Revisión del responsable** (exportados en carpeta PRUEBA): PNG correcto (referencia); **SVG con cabeceras descuadradas**; **PDF con tonos rojos monótonos e idénticos**.
+
+**Causas raíz (inspección de los ficheros reales) y fix (build 0/0 · tests 64/64 ✅):**
+1. **PDF**: los operadores de color iban con **coma decimal** (`0,2 0,255 0,333 rg`) porque `C(hex)` formateaba con la cultura del sistema (es-ES); PDF exige `.` → visor degradaba todo al mismo tono. Fix: `InvariantCulture` en los componentes RGB. Verificado: el PDF regenerado emite `0.933 0.949 1 rg`, `0.086 0.639 0.29 rg`… con tonos distintos por elemento.
+2. **SVG**: `<text y>` es la **línea base**, no la esquina superior como el renderer de 13 px de la app (además iba a 10 px). Fix: `font-size="13"`, `y = p.Y + 13` y truncación de etiquetas con ancho máximo (7,8 px/carácter, equivalente a pantalla).
+- Tests de regresión nuevos: `Pdf_Colores_Independientes_De_Cultura` (reproduce es-ES → exige puntos) y `Svg_Texto_En_La_Misma_Posicion_Que_La_Pantalla` (13 px + compensación de línea base).
