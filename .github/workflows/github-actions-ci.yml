@@ -160,16 +160,18 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq gnupg
           echo "${GPG_PRIVATE_KEY}" | gpg --batch --import
-          # Pre-cargar la frase de contrasena en el agente GPG (vale para gpg y rpmsign).
-          for grip in $(gpg --with-keygrip --list-secret-keys "${GPG_KEY_ID}" 2>/dev/null | awk '/Keygrip/{print $2}'); do
-            printf 'PRESET_PASSPHRASE %s -1 %s\n' "$grip" "${GPG_PASSPHRASE}" | gpg-connect-agent /bye || true
-          done
-          # Firmar el .rpm (firma integrada; verificar con rpm --checksig)
-          rpmsign --addsign --define "_gpg_name ${GPG_KEY_ID}" dist/NetProtocol-*.rpm
+          # Firma con loopback + passphrase-fd 0 (determinista en CI, sin agente/pinentry):
+          # vale para gpg directo (.deb) y para rpmsign (.rpm).
+          printf '%s\n' "${GPG_PASSPHRASE}" | rpmsign --addsign \
+            --define "_gpg_name ${GPG_KEY_ID}" \
+            --define "__gpg_sign_cmd %{__gpg} gpg --batch --no-tty --pinentry-mode loopback --passphrase-fd 0 --detach-sign --armor -o %{__signature_filename} %{__plaintext_filename}" \
+            dist/NetProtocol-*.rpm
+          # Verificacion obligatoria del .rpm: si la firma fallo, el job falla.
           rpm --checksig dist/NetProtocol-*.rpm
           # Firmar el .deb con firma adjunta .asc estandar (dpkg-sig fue retirado de
           # los repos de Ubuntu/Debian); verificar con gpg --verify.
-          gpg --batch --yes --detach-sign --armor -u "${GPG_KEY_ID}" dist/NetProtocol-*.deb
+          printf '%s\n' "${GPG_PASSPHRASE}" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
+            --detach-sign --armor -u "${GPG_KEY_ID}" dist/NetProtocol-*.deb
           gpg --verify dist/NetProtocol-*.deb.asc dist/NetProtocol-*.deb
           # Clave publica para que los usuarios verifiquen (se sube como asset del release)
           gpg --armor --export "${GPG_KEY_ID}" > dist/NetProtocol-gpg-pubkey.asc
