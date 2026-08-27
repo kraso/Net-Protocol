@@ -95,6 +95,9 @@
       <SelectableTextBlock Text="Comparar con:" VerticalAlignment="Center" />
       <ComboBox x:Name="CompareTarget" Width="300" />
       <Button x:Name="CompareButton" Content="Comparar" />
+      <SelectableTextBlock Text="Exportar:" VerticalAlignment="Center" />
+      <ComboBox x:Name="ExportFormat" Width="90" />
+      <Button x:Name="ExportButton" Content="Exportar" />
     </WrapPanel>
 
     <!-- Barra de estado -->

@@ -668,3 +668,11 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - `RenderFicha`/`RenderDiagramas`: el grafo de vecinos se construye con `GrafoConNodos` y un mapa `clave → acrónimo` (la semilla por su acrónimo, cada vecino resuelto vía `_normalizados`; vecinos fuera del catálogo quedan visibles pero no navegables). El título del panel avisa: *"clic en un nodo para navegar"*.
 - Navegación (D5-1): clic en un nodo → `RenderFicha(protocolo)` → el grafo se recompone alrededor del protocolo pulsado; la barra de estado muestra el nuevo centro.
 - Test nuevo `GrafoConNodos_Determinista_Y_Semilla_Centrada` (geometría determinista, semilla centrada 150×30 en (225,170), vecinos sobre el círculo de radio 155, misma salida visual que `Grafo`).
+## 26-08-2026 — D4-3: exportación SVG/PNG/PDF desde la app
+
+**Implementación (build 0/0 · tests 62/62 ✅ · exportación real verificada):**
+- `DiagramExporter` (nuevo, en la app): `Svg()` (reutiliza `SvgRenderer`), `Pdf()` (reutiliza `PdfExporter`, PDF vectorial mínimo sin dependencias) y `Png()`: **rasterización offscreen del MISMO `DiagramView`** con `RenderTargetBitmap` (96 DPI, `PngBitmapEncoderOptions.Default`) → PNG idéntico a lo que se ve en pantalla. Autocomprobación `EsPngValido` (firma 89 50 4E 47).
+- UI (barra superior, mismo patrón que Comparar): `Exportar:` + `ComboBox` (SVG/PNG/PDF) + botón **Exportar** → `FolderPicker` → guarda cada diagrama de la ficha como `NetProtocol-<acrónimo>-<tipo>.<ext>` (nombres saneados); estado en la barra inferior + tratamiento de errores.
+- Cache `_docsActuales` de los diagramas de la ficha (se limpia en Comparador/Leyenda/Acerca de).
+- **Validación real**: puerta temporal de autoexportado (retirada tras la prueba) generó los 3 diagramas TCP en los 3 formatos; comprobadas las firmas: PNG `89 50 4E 47`, PDF `%PDF-`, SVG `<svg`.
+- Lección técnica anotada: `RenderTargetBitmap`/pinceles exigen el **hilo de UI** (AvaloniaObject.VerifyAccess) — el botón real corre en el hilo UI; los exportadores vectoriales (SVG/PDF) son puros y siguen siendo deterministas (probado en la suite).

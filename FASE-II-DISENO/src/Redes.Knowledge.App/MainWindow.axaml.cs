@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text;
+using Avalonia.Platform.Storage;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
@@ -43,6 +44,9 @@ public partial class MainWindow : Window
     private bool _cargando;
     private Protocol? _seleccionado;
     private double _zoom = 1.0;
+
+    /// <summary>Diagramas de la ficha actual (cache para la exportación D4-3).</summary>
+    private List<(string Titulo, DiagramDocument Doc, IReadOnlyList<NodoGrafo>? Nodos, IReadOnlyDictionary<string, string?>? Abrir)> _docsActuales = new();
 
     public MainWindow()
     {
@@ -133,6 +137,9 @@ public partial class MainWindow : Window
         FilterFamilia.SelectionChanged += (_, _) => { if (!_cargando) ReconstruirNavegacion(); };
         FilterEstado.SelectionChanged += (_, _) => { if (!_cargando) ReconstruirNavegacion(); };
         NavFilter.TextChanged += (_, _) => { if (!_cargando) ReconstruirNavegacion(); };
+        ExportFormat.ItemsSource = new[] { "SVG", "PNG", "PDF" };
+        ExportFormat.SelectedIndex = 0;
+        ExportButton.Click += async (_, _) => await ExportarDiagramasAsync();
 
         // Zoom global del tamaño de letra: Ctrl + rueda del ratón en toda la interfaz.
         AddHandler(InputElement.PointerWheelChangedEvent,
@@ -463,6 +470,8 @@ public partial class MainWindow : Window
                     $"Cabecera {p.Acronimo} — campos F5", wire), null, null));
         }
 
+        // Cache para la exportación D4-3 (se exportan exactamente estos diagramas).
+        _docsActuales = docs;
         if (docs.Count == 0)
         {
             DiagramTitle.IsVisible = false;
@@ -499,6 +508,70 @@ public partial class MainWindow : Window
         if (IsLoaded)
             StatusText.Text = $"Grafo: {proto.Acronimo} · {_relaciones.Count} relaciones F4 · zoom {_zoom * 100:0}%";
     }
+
+    /// <summary>Exporta los diagramas de la ficha actual al formato elegido (D4-3):
+    /// SVG (vectorial), PNG (raster del mismo renderer) o PDF (vectorial mínimo).
+    /// Nombres: NetProtocol-&lt;acrónimo&gt;-&lt;tipo&gt;.&lt;ext&gt;.</summary>
+    private async Task ExportarDiagramasAsync()
+    {
+        if (_seleccionado is null || _docsActuales.Count == 0)
+        {
+            if (IsLoaded) StatusText.Text = "Nada que exportar: abre la ficha de un protocolo con diagramas.";
+            return;
+        }
+
+        var opciones = new FolderPickerOpenOptions
+        {
+            Title = "Carpeta de destino para exportar los diagramas",
+            AllowMultiple = false
+        };
+        var carpetas = await StorageProvider.OpenFolderPickerAsync(opciones);
+        if (carpetas.Count == 0 || carpetas[0].Path is not { } uri) return;
+        var carpeta = uri.LocalPath;
+
+        var formato = (ExportFormat.SelectedItem as string) ?? "SVG";
+        var ext = formato switch { "PNG" => ".png", "PDF" => ".pdf", _ => ".svg" };
+        var acronimo = _seleccionado.Acronimo;
+        var ok = 0;
+        foreach (var (_, doc, _, _) in _docsActuales)
+        {
+            var nombre = SanearNombre($"{acronimo}-{doc.Tipo}") + ext;
+            var ruta = Path.Combine(carpeta, nombre);
+            try
+            {
+                switch (formato)
+                {
+                    case "PNG":
+                        var png = DiagramExporter.Png(doc);
+                        if (!DiagramExporter.EsPngValido(png))
+                        {
+                            if (IsLoaded) StatusText.Text = $"Exportación PNG inválida para {nombre}.";
+                            return;
+                        }
+                        await File.WriteAllBytesAsync(ruta, png);
+                        break;
+                    case "PDF":
+                        await File.WriteAllBytesAsync(ruta, DiagramExporter.Pdf(doc));
+                        break;
+                    default:
+                        await File.WriteAllTextAsync(ruta, DiagramExporter.Svg(doc));
+                        break;
+                }
+                ok++;
+            }
+            catch (Exception ex)
+            {
+                if (IsLoaded) StatusText.Text = $"Error exportando {nombre}: {ex.Message}";
+                return;
+            }
+        }
+        if (IsLoaded)
+            StatusText.Text = $"Exportados {ok} diagrama(s) de {acronimo} como {formato} en {carpeta}";
+    }
+
+    /// <summary>Nombre de archivo seguro (solo letras, dígitos, '-', '_' y '.').</summary>
+    private static string SanearNombre(string s)
+        => string.Concat(s.Select(c => char.IsLetterOrDigit(c) || c is '-' or '_' or '.' ? c : '_'));
 
     /// <summary>Cadena "X corre sobre Y corre sobre Z…" desde el protocolo hacia el medio
     /// (usando las relaciones F4), invertida para dibujar de abajo (medio) hacia arriba.</summary>
@@ -559,6 +632,7 @@ public partial class MainWindow : Window
 
         // La comparación es textual: oculta los diagramas individuales del protocolo.
         DiagramPanel.Children.Clear();
+        _docsActuales.Clear();
         DiagramTitle.IsVisible = false;
 
         var filas = ProtocoloComparador.Comparar(
@@ -647,6 +721,7 @@ public partial class MainWindow : Window
         DetailText.TextAlignment = TextAlignment.Left;
         // Visto textual: oculta los diagramas del protocolo previamente seleccionado.
         DiagramPanel.Children.Clear();
+        _docsActuales.Clear();
         DiagramTitle.IsVisible = false;
 
         var sb = new StringBuilder();
@@ -683,6 +758,7 @@ public partial class MainWindow : Window
     {
         // Visto textual: oculta los diagramas del protocolo previamente seleccionado.
         DiagramPanel.Children.Clear();
+        _docsActuales.Clear();
         DiagramTitle.IsVisible = false;
 
         var sb = new StringBuilder();
