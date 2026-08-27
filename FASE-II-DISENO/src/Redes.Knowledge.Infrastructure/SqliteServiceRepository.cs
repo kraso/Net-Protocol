@@ -64,6 +64,19 @@ public sealed class SqliteServiceRepository
         return Convert.ToInt32(cmd.ExecuteScalar());
     }
 
+    /// <summary>Todas las entradas (para deduplicación fina en memoria, D2-2).</summary>
+    public IReadOnlyList<IanaServiceEntry> Todos()
+    {
+        using var connection = _store.Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "SELECT nombre, puerto, transporte, descripcion, referencia, fecha_registro FROM Services ORDER BY nombre;";
+        using var reader = cmd.ExecuteReader();
+        var lista = new List<IanaServiceEntry>();
+        while (reader.Read())
+            lista.Add(new IanaServiceEntry(reader.GetString(0), reader.IsDBNull(1) ? null : reader.GetInt32(1), reader.GetString(2), reader.GetString(3), reader.GetString(4), reader.IsDBNull(5) ? "" : reader.GetString(5)));
+        return lista;
+    }
+
     public IanaServiceEntry? Buscar(string nombre, string transporte, int puerto)
     {
         using var connection = _store.Open();

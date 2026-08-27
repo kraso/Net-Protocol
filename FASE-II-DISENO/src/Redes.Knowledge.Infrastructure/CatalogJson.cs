@@ -31,18 +31,26 @@ public static class CatalogJson
     /// <summary>Campos de PDU de un protocolo concreto desde F5-Campos-PDU.json.</summary>
     public static IReadOnlyList<Field> CargarCamposF5(string jsonPath, string acronimoObjetivo)
     {
+        return CargarCatalogosF5(jsonPath)
+            .FirstOrDefault(c => string.Equals(c.Acronimo, acronimoObjetivo, StringComparison.OrdinalIgnoreCase))
+            ?.Campos ?? Array.Empty<Field>();
+    }
+
+    /// <summary>Todos los catálogos F5 (acrónimo + campos) para validaciones globales (L-004).</summary>
+    public static IReadOnlyList<CatalogoF5> CargarCatalogosF5(string jsonPath)
+    {
         using var doc = JsonDocument.Parse(File.ReadAllText(jsonPath));
-        var lista = new List<Field>();
+        var lista = new List<CatalogoF5>();
         foreach (var p in doc.RootElement.GetProperty("protocolos").EnumerateArray())
         {
-            if (!string.Equals(p.GetProperty("acronimo").GetString(), acronimoObjetivo, StringComparison.OrdinalIgnoreCase))
-                continue;
             var baseUrn = p.GetProperty("id").GetString()!;
+            var acronimo = p.GetProperty("acronimo").GetString()!;
+            var campos = new List<Field>();
             foreach (var c in p.GetProperty("campos").EnumerateArray())
             {
                 int? offset = NuloInt(c, "offset_bits");
                 int? longitud = NuloInt(c, "longitud_bits");
-                lista.Add(new Field
+                campos.Add(new Field
                 {
                     Id = Urn.Parse($"{baseUrn}:campo:{NormalizarId(c.GetProperty("nombre").GetString()!)}"),
                     Nombre = c.GetProperty("nombre").GetString()!,
@@ -53,9 +61,13 @@ public static class CatalogJson
                     Obligatorio = c.GetProperty("obligatorio").GetBoolean()
                 });
             }
+            lista.Add(new CatalogoF5(acronimo, campos));
         }
         return lista;
     }
+
+    /// <summary>Un catálogo F5: acrónimo y sus campos de PDU.</summary>
+    public sealed record CatalogoF5(string Acronimo, IReadOnlyList<Field> Campos);
 
     /// <summary>Round-trip JSON canónico: Serialize → Deserialize → Serialize produce el mismo JSON.</summary>
     public static string RoundTripJson<T>(T valor)

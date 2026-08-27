@@ -705,3 +705,17 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - `PcapSintetico.GenerarTodas()`: **25 tramas deterministas, una por protocolo** (las 4 originales + TLS/HTTP2/BGP/MQTT/Telnet/DHCP/NTP/RTP/CoAP/Syslog/RIP/VXLAN/GTP/QUIC/IGMP/VRRP/GRE/SCTP/ICMPv6/MPLS/STP), con checksums reales (IPv4/ICMP/VRRP y pseudo-cabecera IPv6 para ICMPv6).
 - UI: el botón **"Muestra de prueba"** genera la muestra completa (25 paquetes); el detalle por capas usa `DisectarCapas` → valida el layout F5 de **cada** capa de la cadena.
 - **Test bucle cerrado total (golden-master del disector)**: TODOS los protocolos del F5 (28) tienen su muestra y sus campos fijos validan dentro de límites (ETH con base 64: preámbulo/SFD físicos no capturados).
+## 26-08-2026 — D2-2, D4-3 (PNG 2×) y L-004 (corpus real): iteración pendiente cerrada
+
+**D2-2 — Deduplicación fina + entity-linking IANA (build 0/0 · tests 77/77 ✅):**
+- `ServiciosDedup`: normalización laxa (minúsculas + alfanuméricos), agrupación de sinónimos con nombre canónico (más corto, minúsculas preferidas) y unión de puertos duplicados; `VinculoServicios`: mapa CURADO y documentado IANA→F3 (HTTP/HTTPS/FTP/SMTP/POP3/IMAP/DNS/DHCP/DHCPv6/NTP/SSH/Telnet/SNMP/Syslog/BGP/RIP/SIP/RTP/RTSP/TFTP/LDAP/MQTT/CoAP/QUIC), sin inventar relaciones.
+- App: los **puertos de la ficha** salen limpios (unión de servicios exactos + vinculados, p. ej. HTTP = 80/tcp + 8080/tcp de http-alt); la **búsqueda** que no encuentra protocolo muestra el **servicio IANA** (sinónimo + puertos) y, si hay vínculo, abre su protocolo ("domain" → DNS).
+- Tests: agrupación/canónico, puertos duplicados, vínculos curados, y **datos IANA reales** (CSV importado → dedup → http con 80/tcp, domain con 53/tcp enlazado a DNS).
+
+**D4-3 — PNG a alta resolución:** `DiagramExporter.Png(doc, factor)` escala el contexto de dibujo (`PushTransform`, geometría y texto nítidos); la exportación PNG usa **2×** (verificado: pila de TCP 480×366 → **960×732**, exacto).
+
+**L-004 — Corpus real y cierre de la laguna:**
+- Corpus descargado del repositorio de Wireshark (`FASE-08-VALIDACION/corpus`, 11 capturas reales, con `LEEME-corpus.md` de procedencia).
+- `CorpusL004` (Infrastructure) + modo CLI `NetProtocol.exe --l004 <carpeta> [salida]`: cruza cada paquete real con los layouts F5 y genera el informe.
+- **Evidencia `L004-informe-2026-08-27.md`**: 10 protocolos F5 detectados en tráfico real con **100 % de campos en límites** (DHCP, DNS, ETH, ICMP, IPv4, IPv6, NTP, TCP, TLS, UDP); 18/28 sin muestras en el corpus (cubiertos por las muestras sintéticas deterministas). Ajustes honestos: ETH excluye preámbulo/SFD físicos; DNS sobre TCP usa el prefijo de longitud de 2 B y no cuenta controles sin mensaje; DNS sobre puertos no estándar (`dns_port.pcap`) documentado como limitación.
+- `F8-Lagunas.json` **L-004 → cerrado** con evidencia.

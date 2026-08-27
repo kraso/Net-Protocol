@@ -53,6 +53,9 @@ public partial class MainWindow : Window
     private List<PcapPacket> _paquetesCaptura = new();
     private string _rutaCaptura = "";
 
+    /// <summary>Deduplicación fina IANA (D2-2): sinónimos agrupados + vínculos al catálogo.</summary>
+    private ResultadoDedup _dedup = new(new Dictionary<string, string>(), Array.Empty<ServicioCanonico>(), 0, 0);
+
     public MainWindow()
     {
         InitializeComponent();
@@ -85,6 +88,8 @@ public partial class MainWindow : Window
 
         var importados = DatasetBootstrap.EnsureProtocolos(store,
             Path.Combine(raiz, "FASE-03-INVENTARIO", "F3-Protocolos.json"));
+        // D2-2: deduplicación fina IANA en memoria (sinónimos agrupados + vínculos al catálogo).
+        _dedup = ServiciosDedup.Agrupar(_servicios.Todos());
         foreach (var p in _repo.GetAll()) _protocolos[p.Id.Value] = p;
         foreach (var p in _protocolos.Values)
         {
@@ -308,6 +313,8 @@ public partial class MainWindow : Window
 
         if (encontrados.Count == 0)
         {
+            // D2-2: el término puede ser un nombre de servicio IANA (con sinónimos agrupados).
+            if (MostrarServicioIana(q)) return;
             DetailText.Text = "Sin resultados para la búsqueda.";
             StatusText.Text = $"Búsqueda \"{q}\": 0 resultados.";
             return;
@@ -557,7 +564,8 @@ public partial class MainWindow : Window
                 switch (formato)
                 {
                     case "PNG":
-                        var png = DiagramExporter.Png(doc);
+                        // PNG a 2× (alta resolución, nítido para impresión/documentos).
+                        var png = DiagramExporter.Png(doc, 2.0);
                         if (!DiagramExporter.EsPngValido(png))
                         {
                             if (IsLoaded) StatusText.Text = $"Exportación PNG inválida para {nombre}.";
@@ -717,6 +725,34 @@ public partial class MainWindow : Window
         return clave is null ? null : _camposPorAcronimo[clave];
     }
 
+    /// <summary>Servicio IANA agrupado: nombre canónico + sus puertos distintos (puerto, transporte).</summary>
+    /// <summary>Entity-linking visible (D2-2): si el término es un servicio IANA agrupado,
+    /// muestra sus puertos y, si tiene vínculo curado, abre el protocolo del catálogo.</summary>
+    private bool MostrarServicioIana(string q)
+    {
+        var qn = ServiciosDedup.Normalizar(q);
+        var svc = _dedup.Servicios.FirstOrDefault(s => ServiciosDedup.Normalizar(s.Nombre) == qn);
+        if (svc is null) return false;
+
+        var acronimo = VinculoServicios.AcronimoDe(svc.Nombre);
+        _normalizados.TryGetValue(ServiciosDedup.Normalizar(acronimo ?? svc.Nombre), out var proto);
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"=== Servicio IANA: {svc.Nombre} ===");
+        sb.AppendLine($"Puertos registrados: {string.Join(", ", svc.Puertos.Select(p => $"{p.Puerto}/{p.Transporte}"))}");
+        if (proto is not null)
+            sb.AppendLine($"Protocolo vinculado del catálogo: {proto.Nombre} ({proto.Acronimo}) [vínculo curado IANA→F3]");
+        DetailText.TextAlignment = TextAlignment.Left;
+        DetailText.Text = sb.ToString();
+        DiagramTitle.IsVisible = false;
+        DiagramPanel.IsVisible = true;
+        DiagramPanel.Children.Clear();
+        if (proto is not null) RenderFicha(proto);
+        if (IsLoaded)
+            StatusText.Text = $"Servicio IANA \"{q}\" → {svc.Nombre} · {svc.Puertos.Count} puerto(s)";
+        return true;
+    }
+
     private static string Mac(byte[] b, int off)
         => string.Join(":", Enumerable.Range(off, 6).Select(i => b[i].ToString("X2")));
 
@@ -758,12 +794,25 @@ public partial class MainWindow : Window
             ? $"{proto.Acronimo}"
             : v.Nombre;
 
+    /// <summary>Puertos IANA deduplicados y enlazados al protocolo (D2-2): unión de
+    /// (a) servicios cuyo nombre normalizado coincide con el acrónimo y (b) servicios cuyo
+    /// vínculo curado IANA→F3 apunta al protocolo (p. ej. HTTP recoge http, www-http, http-alt).</summary>
     private string PuertosDe(string acronimo)
     {
-        var servicios = _servicios.PorNombre(acronimo.ToLowerInvariant(), 5);
-        return servicios.Count == 0
+        var vistos = new SortedSet<(int Puerto, string Transporte)>();
+        var acrNorm = ServiciosDedup.Normalizar(acronimo);
+        foreach (var s in _dedup.Servicios)
+        {
+            var coincideExacto = ServiciosDedup.Normalizar(s.Nombre) == acrNorm;
+            var vinculado = VinculoServicios.AcronimoDe(s.Nombre);
+            var coincideVinculo = vinculado is not null &&
+                string.Equals(vinculado, acronimo, StringComparison.OrdinalIgnoreCase);
+            if (coincideExacto || coincideVinculo)
+                foreach (var p in s.Puertos) vistos.Add(p);
+        }
+        return vistos.Count == 0
             ? "—"
-            : string.Join(", ", servicios.Where(s => s.Port.HasValue).Select(s => $"{s.Port}/{s.Transport}"));
+            : string.Join(", ", vistos.Select(v => $"{v.Puerto}/{v.Transporte}"));
     }
 
     private void CompararConReferencia()

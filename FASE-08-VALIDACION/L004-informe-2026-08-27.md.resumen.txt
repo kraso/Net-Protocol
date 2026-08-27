@@ -1,0 +1,1 @@
+L-004: 11 captura(s) · 10 protocolos F5 con paquetes · 18 sin paquetes en el corpus · informe: C:\Users\markb\Dev\Proyectos\Marcos\Sec\Redes\protocolos\FASE-08-VALIDACION\L004-informe-2026-08-27.md

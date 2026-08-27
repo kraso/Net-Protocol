@@ -199,6 +199,16 @@ public static class PcapDissector
         if (puerto == 179 || puertoOrigen == 179) capas.Add(new CapaDisectada("BGP", payload, f.Length - payload, 0));
         else if (puerto == 1883 || puertoOrigen == 1883) capas.Add(new CapaDisectada("MQTT", payload, f.Length - payload, 0));
         else if (puerto == 23 || puertoOrigen == 23) capas.Add(new CapaDisectada("Telnet", payload, f.Length - payload, 0));
+        else if (puerto == 53 || puertoOrigen == 53)
+        {
+            // DNS: solo se valida si hay mensaje real (>= 12 B); en TCP, posible prefijo de
+            // longitud de 2 bytes delante del mensaje.
+            if (payload + 12 <= f.Length && payload + 2 + 12 <= f.Length &&
+                ((f[payload] << 8) | f[payload + 1]) == f.Length - (payload + 2))
+                capas.Add(new CapaDisectada("DNS", payload + 2, f.Length - (payload + 2), 0));
+            else if (payload + 12 <= f.Length)
+                capas.Add(new CapaDisectada("DNS", payload, f.Length - payload, 0));
+        }
         else if (puerto == 443 || puertoOrigen == 443)
         {
             if (payload < f.Length && f[payload] == 0x16)

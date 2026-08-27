@@ -17,21 +17,31 @@ public static class DiagramExporter
 
     public static byte[] Pdf(DiagramDocument doc) => PdfExporter.Export(doc);
 
-    /// <summary>Rasteriza el documento a tamaño 1:1 en píxeles (96 DPI) y devuelve PNG.</summary>
-    public static byte[] Png(DiagramDocument doc)
+    /// <summary>Rasteriza el documento a factor ×1/×2/… (p. ej. 2× para PNG nítidos en
+    /// impresión). La transformación se aplica al contexto de dibujo, de modo que texto y
+    /// geometría se escalan de verdad (no un simple estiramiento de píxeles).</summary>
+    public static byte[] Png(DiagramDocument doc, double factor = 1.0)
     {
         var w = Math.Max(1, doc.Width);
         var h = Math.Max(1, doc.Height);
+        var escala = factor <= 0 ? 1.0 : factor;
+        var pxW = Math.Max(1, (int)Math.Ceiling(w * escala));
+        var pxH = Math.Max(1, (int)Math.Ceiling(h * escala));
 
         var view = new DiagramView { Document = doc };
         view.Measure(new Size(w, h));
         view.Arrange(new Rect(0, 0, w, h));
 
-        var rtb = new RenderTargetBitmap(new PixelSize(w, h), new Vector(96, 96));
-        using (var ctx = rtb.CreateDrawingContext())
+        var rtb = new RenderTargetBitmap(new PixelSize(pxW, pxH), new Vector(96 * escala, 96 * escala));
+        using var ctx = rtb.CreateDrawingContext();
+        if (escala != 1.0)
         {
-            // CreateDrawingContext() devuelve directamente un DrawingContext válido
-            // para renderizar el control (mismo código que pinta en pantalla).
+            // La transformación se aplica al contexto: geometría y texto se escalan de verdad.
+            using (ctx.PushTransform(Matrix.CreateScale(escala, escala)))
+                view.Render(ctx);
+        }
+        else
+        {
             view.Render(ctx);
         }
 
