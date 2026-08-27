@@ -99,6 +99,7 @@ jobs:
           Section: net
           Priority: optional
           Architecture: amd64
+          Depends: liblttng-ust0 (>= 2.12.0), liburcu6 (>= 0.12.1)
           Maintainer: Proyecto Redes
           Description: Net Protocol - base de conocimiento de protocolos de red
            Catálogo, fichas, PDU y seguridad de protocolos de red (Fase I/II).
@@ -122,6 +123,8 @@ jobs:
           License: Proprietary
           URL: https://github.com/kraso/redes-knowledge
           BuildArch: x86_64
+          Requires: liblttng-ust0 >= 2.12.0
+          Requires: liburcu6 >= 0.12.1
 
           %description
           Base de conocimiento/consulta de protocolos de red (catálogo F3, fichas F4, PDU F5, seguridad F6).
@@ -135,6 +138,38 @@ jobs:
           EOF
           rpmbuild --define "_topdir ${PWD}/rpmbuild" -bb netprotocol.spec
           cp rpmbuild/RPMS/x86_64/*.rpm "dist/NetProtocol-${VER}-x86_64.rpm"
+      - name: Firmar .deb/.rpm con GPG (si la clave esta configurada en secretos)
+        working-directory: FASE-II-DISENO
+        shell: bash
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GPG_PRIVATE_KEY:-}" ] || [ -z "${GPG_KEY_ID:-}" ]; then
+            echo "::warning::Clave GPG no configurada (secretos GPG_PRIVATE_KEY / GPG_KEY_ID): instaladores SIN firmar."
+            exit 0
+          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq gnupg dpkg-sig
+          echo "${GPG_PRIVATE_KEY}" | gpg --batch --import
+          # Firmar el .deb individual (firma "builder"; verificar con dpkg-sig --verify)
+          dpkg-sig --sign builder dist/NetProtocol-*.deb
+          # Firmar el .rpm (verificar con rpm --checksig)
+          if [ -n "${GPG_PASSPHRASE:-}" ]; then
+            printf '%s' "${GPG_PASSPHRASE}" | rpmsign --addsign \
+              --define "_gpg_name ${GPG_KEY_ID}" \
+              --define "__gpg_sign_cmd %{__gpg} gpg --batch --no-tty --pinentry-mode loopback --passphrase-fd 0 --detach-sign --armor -o %{__signature_filename} %{__plaintext_filename}" \
+              dist/NetProtocol-*.rpm
+          else
+            rpmsign --addsign --define "_gpg_name ${GPG_KEY_ID}" dist/NetProtocol-*.rpm
+          fi
+          # Verificacion obligatoria: si la firma fallo, el job falla.
+          rpm --checksig dist/NetProtocol-*.rpm
+          dpkg-sig --verify dist/NetProtocol-*.deb
+          # Clave publica para que los usuarios verifiquen (se sube como asset del release)
+          gpg --armor --export "${GPG_KEY_ID}" > dist/NetProtocol-gpg-pubkey.asc
       - uses: actions/upload-artifact@v4
         with:
           name: setup-linux
@@ -215,7 +250,7 @@ jobs:
             echo "- **Linux** (linux-x64): paquete \`.deb\` (Debian/Ubuntu) y \`.rpm\` (Fedora/RHEL/openSUSE)"
             echo "- **macOS** (osx-x64): imagen \`.dmg\`"
             echo ""
-            echo "**Notas:** builds self-contained (no requieren .NET instalado). Sin firma de código (pendiente de certificados)."
+            echo "**Notas:** builds self-contained (no requieren .NET instalado). Linux .deb/.rpm firmados con GPG cuando su clave esta configurada en CI (ver `NetProtocol-gpg-pubkey.asc` si se adjunta). Windows/macOS sin firma de codigo (pendiente de certificados)."
           } > RELEASE_NOTES.md
           gh release create "$GITHUB_REF_NAME" dist/setup-*/* \
             --title "Net Protocol ${VER}" \

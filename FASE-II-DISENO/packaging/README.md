@@ -24,3 +24,70 @@ Los tres instaladores se generan en CI al empujar un tag `v*` y se publican como
 2. `dotnet publish -c Release -r <rid> --self-contained true -o dist/<rid>`.
 3. Firma/código y firma del instalador (firmas requeridas por SO — configurar en CI).
 4. Publicar instaladores; adjuntar `dataset.json` (versión, hash golden, conteos).
+
+## Dependencias runtime de los instaladores Linux
+
+El runtime .NET self-contained necesita dos librerías nativas del sistema para
+diagnósticos/trazado (`lttng-ust`, `urcu`). Se declaran como dependencias del
+paquete para que el gestor las instale automáticamente:
+
+| Paquete | `.deb` (`Depends`) | `.rpm` (`Requires`) |
+|---|---|---|
+| LTTng userspace tracer | `liblttng-ust0 (>= 2.12.0)` | `liblttng-ust0 >= 2.12.0` |
+| Userspace RCU | `liburcu6 (>= 0.12.1)` | `liburcu6 >= 0.12.1` |
+
+> Alternativa si no quieres estas dependencias: desactivar la traza en el
+> runtime con `DOTNET_EnableDiagnostics=0` (p. ej. en `netprotocol.desktop` o un
+> wrapper). Se mantienen declaradas porque el comportamiento por defecto del
+> runtime las carga.
+
+## Firma GPG de los instaladores Linux
+
+La firma se hace en CI (job `package-linux`) **solo si existen los secretos**;
+sin ellos el job avisa (`::warning::`) y publica sin firmar. Un mismo par de
+claves GPG firma `.deb` (`dpkg-sig --sign builder`) y `.rpm` (`rpmsign --addsign`).
+
+### 1. Generar la clave (una sola vez, en tu equipo)
+
+```bash
+gpg --full-generate-key        # RSA 4096, cédula 3 años, id. "Net Protocol Releases <email>"
+gpg --list-secret-keys --keyid-format=long   # anota el KEY_ID (ej. 9E3F...)
+gpg --armor --export-secret-keys KEY_ID > netprotocol-signing.asc   # PRIVADA: no compartir
+```
+
+Para CI lo más simple es una clave **sin frase de contraseña** (el runner es
+efímero). Si quieres pasphrase, añade el secreto `GPG_PASSPHRASE` y el
+workflow usa `--pinentry-mode loopback` automáticamente.
+
+### 2. Configurar secretos del repositorio
+
+Settings → Secrets and variables → Actions (o `gh secret set`):
+
+| Secreto | Valor |
+|---|---|
+| `GPG_PRIVATE_KEY` | contenido de `netprotocol-signing.asc` (armored) |
+| `GPG_KEY_ID` | el KEY_ID largo (ej. `9E3F4A2B...`) |
+| `GPG_PASSPHRASE` | opcional; frase de la clave si la tiene |
+
+### 3. Qué produce CI cuando la clave está configurada
+
+- `.deb` firmado individualmente (`dpkg-sig`) y `.rpm` firmado (`rpmsign`), con
+  **verificación obligatoria** (`rpm --checksig` / `dpkg-sig --verify`): si la
+  firma falla, el job falla.
+- Se adjunta al release la clave pública `NetProtocol-gpg-pubkey.asc`.
+
+### 4. Verificación por parte de quien instala
+
+```bash
+# RPM (Fedora/RHEL/openSUSE)
+gpg --import NetProtocol-gpg-pubkey.asc
+rpm --import <(gpg --export)
+rpm -K NetProtocol-1.0.1-x86_64.rpm      # -> "digests signatures OK"
+
+# DEB (Debian/Ubuntu): firma individual
+dpkg-sig --verify NetProtocol-1.0.1-amd64.deb
+
+# Forma canónica completa para apt (repositorio firmado)
+# Publicar en un repo apt con Release.gpg firmado (apt-ftparchive/reprepro) e
+# instalar el .deb desde él: apt verifica la cadena de confianza automáticamente.
+```

@@ -621,3 +621,12 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - Bump a **v1.0.1** (csproj + `.iss`). Release v1.0.0 (roto) **eliminado**; publicado **v1.0.1** en https://github.com/kraso/redes-knowledge/releases/tag/v1.0.1 con los 4 instaladores (`.exe`, `.deb`, `.rpm`, `.dmg`).
 - Verificación: instalación silenciosa en carpeta temporal → `datos/` presente → la app **arranca** desde el directorio instalado con CWD de Inicio ✅.
 - Extra: `FASE-II-DISENO/data/NetProtocol.rar` (181,6 MB, fuera de límite GitHub) excluido del repo (`.gitignore` corregido; el `Add-Content` se había pegado a la línea `.git/` sin salto final).
+## 26-08-2026 — Firmas GPG para .deb/.rpm y dependencias runtime de Linux
+
+**Petición del responsable:** (1) cómo firmar correctamente los instaladores Linux (.deb/.rpm); (2) que el `.rpm` declare sus dependencias runtime: `liblttng-ust0` y `liburcu6`.
+
+**Implementación (workflow CI + docs):**
+- `.deb` → `Depends: liblttng-ust0 (>= 2.12.0), liburcu6 (>= 0.12.1)`; `.rpm` → `Requires: liblttng-ust0 >= 2.12.0` + `Requires: liburcu6 >= 0.12.1` (librerías nativas del runtime .NET para diagnóstico/trazado).
+- Nuevo paso **"Firmar .deb/.rpm con GPG"** en `package-linux`: se activa **solo si existen los secretos** `GPG_PRIVATE_KEY`/`GPG_KEY_ID` (+ `GPG_PASSPHRASE` opcional); sin ellos avisa y publica sin firmar. Firma `.deb` con `dpkg-sig --sign builder` y `.rpm` con `rpmsign --addsign` (variante `--pinentry-mode loopback` si hay pasphrase); **verificación obligatoria** (`rpm --checksig` / `dpkg-sig --verify`). Exporta la clave pública como asset `NetProtocol-gpg-pubkey.asc`.
+- `packaging/README.md`: sección completa de firma (generación de clave, secretos, verificación por parte del usuario) + tabla de dependencias.
+- Pendiente del responsable: generar la clave GPG y añadir los 3 secretos para que la firma se active en el próximo tag.
