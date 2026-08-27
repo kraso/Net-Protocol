@@ -696,3 +696,12 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - **Detalle por capas (D6-2/L-004)**: cada paquete muestra Ethernet/IPv4(TCP|UDP|DNS|ICMP)/IPv6 con **validación de layouts F5** (`PcapDissector.Validar` + `Resumen`): "proto [X/Y campos en límites OK/FUERA]".
 - **Tests (4 nuevos)**: determinismo de la muestra, round-trip lector↔escritor, dissection por capas esperada, y **bucle cerrado generador↔validador** (todos los layouts F5 de las tramas validan dentro de límites; ETH con base 64 — preámbulo/SFD/FCS físicos no capturados).
 - Los campos F5 sin offset fijo (FCS/PDU variable) se excluyen de la validación.
+## 26-08-2026 — D6 (extensión): muestras deterministas de los 28 protocolos F5 + dissector de capas genérico
+
+**Motivo del responsable:** con solo 4 muestras la captura quedaba "fuera de lugar" frente a Wireshark/tcpdump; con muestras de **la mayoría de protocolos** el valor diferencial es un **catálogo de PDUs deterministas verificables contra sus layouts F5**.
+
+**Implementación (build 0/0 · tests 70/70 ✅ · smoke OK):**
+- `PcapDissector.DisectarCapas(frame)`: recorrido de la pila que detecta los **28 protocolos con layout F5** — por EtherType (ETH, IPv4, IPv6, MPLS, STP/LLC) e IP proto (TCP/UDP/ICMP/ICMPv6/IGMP/VRRP/GRE/SCTP) y por **puerto bien conocido en cualquiera de los dos lados** (DNS/DHCP/NTP/RTP/CoAP/Syslog/RIP/QUIC/VXLAN/GTP por UDP; TLS/HTTP/2 —detección por contenido—/BGP/MQTT/Telnet por TCP). Dedupe por capa; recorre interiores (GRE, VXLAN, GTP, MPLS).
+- `PcapSintetico.GenerarTodas()`: **25 tramas deterministas, una por protocolo** (las 4 originales + TLS/HTTP2/BGP/MQTT/Telnet/DHCP/NTP/RTP/CoAP/Syslog/RIP/VXLAN/GTP/QUIC/IGMP/VRRP/GRE/SCTP/ICMPv6/MPLS/STP), con checksums reales (IPv4/ICMP/VRRP y pseudo-cabecera IPv6 para ICMPv6).
+- UI: el botón **"Muestra de prueba"** genera la muestra completa (25 paquetes); el detalle por capas usa `DisectarCapas` → valida el layout F5 de **cada** capa de la cadena.
+- **Test bucle cerrado total (golden-master del disector)**: TODOS los protocolos del F5 (28) tienen su muestra y sus campos fijos validan dentro de límites (ETH con base 64: preámbulo/SFD físicos no capturados).

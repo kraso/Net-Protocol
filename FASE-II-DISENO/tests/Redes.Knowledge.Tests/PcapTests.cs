@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Redes.Knowledge.Infrastructure;
 using Redes.Knowledge.Infrastructure.Capturas;
 
@@ -29,6 +30,10 @@ public class PcapTests
         var bytes1 = PcapWriter.Escribir(PcapSintetico.Generar());
         var bytes2 = PcapWriter.Escribir(PcapSintetico.Generar());
         Assert.Equal(bytes1, bytes2);
+        var todas1 = PcapWriter.Escribir(PcapSintetico.GenerarTodas());
+        var todas2 = PcapWriter.Escribir(PcapSintetico.GenerarTodas());
+        Assert.Equal(todas1, todas2);
+        Assert.True(todas1.Length > bytes1.Length);
     }
 
     [Fact]
@@ -103,5 +108,63 @@ public class PcapTests
         var tramaD = PcapSintetico.EthernetIpv4Icmp(3);
         var icmp = PcapDissector.Validar(tramaD.AsSpan(14 + 20).ToArray(), CamposF5("ICMP"));
         Assert.True(PcapDissector.Resumen("ICMP", icmp).Ok);
+    }
+
+    [Fact]
+    public void Muestra_Completa_RoundTrip()
+    {
+        var captura = PcapSintetico.GenerarTodas();
+        var tmp = Path.Combine(Path.GetTempPath(), $"rk_pcap_full_{Guid.NewGuid():N}.pcap");
+        try
+        {
+            PcapWriter.EscribirAArchivo(tmp, captura);
+            var leida = PcapCaptureReader.Abrir(tmp);
+            Assert.Equal(25, leida.Paquetes.Count);
+            Assert.Equal(1, leida.LinkType);
+        }
+        finally
+        {
+            if (File.Exists(tmp)) File.Delete(tmp);
+        }
+    }
+
+    // Bucle cerrado (L-004 / golden-master del disector): TODOS los protocolos con layout F5
+    // deben tener al menos una muestra y validar sus campos dentro de límites.
+    [Fact]
+    public void Muestra_Completa_Cubre_Y_Valida_Todos_Los_Layouts_F5()
+    {
+        var f5 = new List<string>();
+        using (var doc = JsonDocument.Parse(File.ReadAllText(RutaF5())))
+        {
+            foreach (var p in doc.RootElement.GetProperty("protocolos").EnumerateArray())
+                f5.Add(p.GetProperty("acronimo").GetString()!);
+        }
+        Assert.True(f5.Count >= 28, $"F5 solo tiene {f5.Count} protocolos");
+
+        var captura = PcapSintetico.GenerarTodas();
+        foreach (var proto in f5)
+        {
+            var paquete = captura.Paquetes.FirstOrDefault(pk =>
+                PcapDissector.DisectarCapas(pk.Data).Any(c =>
+                    c.AcronimoF5.Equals(proto, StringComparison.OrdinalIgnoreCase)));
+            Assert.True(paquete is not null, $"No hay ninguna muestra sintética para {proto}");
+
+            var capa = PcapDissector.DisectarCapas(paquete!.Data).First(c =>
+                c.AcronimoF5.Equals(proto, StringComparison.OrdinalIgnoreCase));
+            var buffer = paquete.Data.AsSpan(capa.InicioBytes, capa.LongitudBytes).ToArray();
+            var validados = PcapDissector.Validar(buffer, CamposF5(proto), capa.BaseBits);
+
+            if (proto == "ETH")
+            {
+                // Preámbulo/SFD son físicos y no viajan en la trama capturada.
+                Assert.All(validados.Where(v => v.Nombre is not ("Preamble" or "SFD")),
+                    v => Assert.True(v.EnLimites, $"ETH: {v.Nombre} fuera de límites"));
+            }
+            else
+            {
+                Assert.True(PcapDissector.Resumen(proto, validados).Ok,
+                    $"{proto} no valida contra su muestra: {PcapDissector.Resumen(proto, validados)}");
+            }
+        }
     }
 }

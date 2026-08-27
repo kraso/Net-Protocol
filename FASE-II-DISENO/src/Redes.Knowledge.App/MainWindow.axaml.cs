@@ -610,7 +610,8 @@ public partial class MainWindow : Window
     /// <summary>Genera una muestra sintética determinista (F5) y la vuelca a un .pcap (D6).</summary>
     private void GenerarMuestra()
     {
-        var captura = PcapSintetico.Generar();
+        // Muestra completa determinista: una trama por cada uno de los 28 protocolos F5.
+        var captura = PcapSintetico.GenerarTodas();
         var capturas = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "NetProtocol", "capturas");
@@ -676,43 +677,18 @@ public partial class MainWindow : Window
         var d = PcapDissector.Disectar(f);
         var sb = new StringBuilder();
         sb.AppendLine($"=== Paquete de {f.Length} bytes ===");
+        if (d.EsEthernet)
+        {
+            sb.AppendLine($"Ethernet II: {Mac(f, 0)} → {Mac(f, 6)} · EtherType 0x{(d.EtherType ?? 0):X4}");
+            if (d.EsIpv4) sb.AppendLine($"IPv4: {d.IpOrigen} → {d.IpDestino} · TTL {f[22]} · proto {d.ProtocoloIp}");
+            if (d.EsTcp) sb.AppendLine($"TCP: {d.PuertoOrigen} → {d.PuertoDestino}");
+            if (d.EtherType == 0x86DD) sb.AppendLine("IPv6: capas y campos en el detalle F5");
+        }
         sb.AppendLine();
-
-        // Ethernet (el layout F5 ETH incluye preámbulo/SFD físicos: base 64).
-        sb.AppendLine($"Ethernet II: {Mac(f, 0)} → {Mac(f, 6)} · EtherType 0x{(d.EtherType ?? 0):X4}");
-        sb.AppendLine(ValidarCapaTexto("ETH", f, 64));
-
-        if (d.EtherType == 0x0800 && d.EsIpv4)
-        {
-            var ihl = (f[14] & 0x0F) * 4;
-            sb.AppendLine($"IPv4: {d.IpOrigen} → {d.IpDestino} · TTL {f[22]} · proto {d.ProtocoloIp}");
-            sb.AppendLine(ValidarCapaTexto("IPv4", f.AsSpan(14, ihl).ToArray(), 0));
-            var capa = 14 + ihl;
-            if (d.EsTcp && capa + 13 < f.Length)
-            {
-                var dataOffset = (f[capa + 12] >> 4) * 4;
-                sb.AppendLine($"TCP: {d.PuertoOrigen} → {d.PuertoDestino} · flags 0x{f[capa + 13]:X2} · cabecera {dataOffset} B");
-                sb.AppendLine(ValidarCapaTexto("TCP", f.AsSpan(capa, Math.Min(dataOffset, f.Length - capa)).ToArray(), 0));
-            }
-            else if (d.ProtocoloIp == 17 && capa + 7 < f.Length)
-            {
-                sb.AppendLine($"UDP: {d.PuertoOrigen} → {d.PuertoDestino} · longitud {(f[capa + 4] << 8) | f[capa + 5]}");
-                sb.AppendLine(ValidarCapaTexto("UDP", f.AsSpan(capa, Math.Min(8, f.Length - capa)).ToArray(), 0));
-                if (d.PuertoOrigen == 53 || d.PuertoDestino == 53)
-                    sb.AppendLine(ValidarCapaTexto("DNS", f.AsSpan(capa + 8).ToArray(), 0));
-            }
-            else if (d.ProtocoloIp == 1 && capa < f.Length)
-            {
-                sb.AppendLine($"ICMP: tipo {f[capa]} · code {f[capa + 1]}");
-                sb.AppendLine(ValidarCapaTexto("ICMP", f.AsSpan(capa).ToArray(), 0));
-            }
-        }
-        else if (d.EtherType == 0x86DD && f.Length >= 54)
-        {
-            sb.AppendLine("IPv6: (dissection básica; layout F5 validado)");
-            sb.AppendLine(ValidarCapaTexto("IPv6", f.AsSpan(14, 40).ToArray(), 0));
-        }
-
+        // Cadena de capas detectada → validación del layout F5 de cada una (D6-2/L-004).
+        foreach (var c in PcapDissector.DisectarCapas(f))
+            sb.AppendLine(ValidarCapaTexto(c.AcronimoF5,
+                f.AsSpan(c.InicioBytes, c.LongitudBytes).ToArray(), c.BaseBits));
         return sb.ToString();
     }
 
