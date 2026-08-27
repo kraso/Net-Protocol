@@ -154,17 +154,17 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq gnupg dpkg-sig
           echo "${GPG_PRIVATE_KEY}" | gpg --batch --import
+          # Pre-cargar la frase de contrasena en el agente GPG: vale tanto para
+          # dpkg-sig como para rpmsign (sin frases en linea de comando).
+          if [ -n "${GPG_PASSPHRASE:-}" ]; then
+            for grip in $(gpg --with-keygrip --list-secret-keys "${GPG_KEY_ID}" 2>/dev/null | awk '/Keygrip/{print $2}'); do
+              printf 'PRESET_PASSPHRASE %s -1 %s\n' "$grip" "${GPG_PASSPHRASE}" | gpg-connect-agent /bye || true
+            done
+          fi
           # Firmar el .deb individual (firma "builder"; verificar con dpkg-sig --verify)
           dpkg-sig --sign builder dist/NetProtocol-*.deb
           # Firmar el .rpm (verificar con rpm --checksig)
-          if [ -n "${GPG_PASSPHRASE:-}" ]; then
-            printf '%s' "${GPG_PASSPHRASE}" | rpmsign --addsign \
-              --define "_gpg_name ${GPG_KEY_ID}" \
-              --define "__gpg_sign_cmd %{__gpg} gpg --batch --no-tty --pinentry-mode loopback --passphrase-fd 0 --detach-sign --armor -o %{__signature_filename} %{__plaintext_filename}" \
-              dist/NetProtocol-*.rpm
-          else
-            rpmsign --addsign --define "_gpg_name ${GPG_KEY_ID}" dist/NetProtocol-*.rpm
-          fi
+          rpmsign --addsign --define "_gpg_name ${GPG_KEY_ID}" dist/NetProtocol-*.rpm
           # Verificacion obligatoria: si la firma fallo, el job falla.
           rpm --checksig dist/NetProtocol-*.rpm
           dpkg-sig --verify dist/NetProtocol-*.deb
