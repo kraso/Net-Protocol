@@ -44,8 +44,11 @@ paquete para que el gestor las instale automáticamente:
 ## Firma GPG de los instaladores Linux
 
 La firma se hace en CI (job `package-linux`) **solo si existen los secretos**;
-sin ellos el job avisa (`::warning::`) y publica sin firmar. Un mismo par de
-claves GPG firma `.deb` (`dpkg-sig --sign builder`) y `.rpm` (`rpmsign --addsign`).
+sin ellos el job avisa (`::warning::`) y publica sin firmar. La misma clave GPG
+firma el `.rpm` (firma integrada con `rpmsign`) y el `.deb` (firma adjunta `.asc`
+estándar — `dpkg-sig`, el firmador clásico, fue **retirado de los repos de
+Ubuntu/Debian**; la forma canónica de apt sigue siendo un repositorio con
+`Release` firmado, ver abajo).
 
 ### 1. Generar la clave (una sola vez, en tu equipo)
 
@@ -56,8 +59,8 @@ gpg --armor --export-secret-keys KEY_ID > netprotocol-signing.asc   # PRIVADA: n
 ```
 
 Para CI lo más simple es una clave **sin frase de contraseña** (el runner es
-efímero). Si quieres pasphrase, añade el secreto `GPG_PASSPHRASE` y el
-workflow usa `--pinentry-mode loopback` automáticamente.
+efímero). Si la clave tiene frase, añade el secreto `GPG_PASSPHRASE` y el
+workflow la pre-carga en el agente (automático).
 
 ### 2. Configurar secretos del repositorio
 
@@ -67,13 +70,12 @@ Settings → Secrets and variables → Actions (o `gh secret set`):
 |---|---|
 | `GPG_PRIVATE_KEY` | contenido de `netprotocol-signing.asc` (armored) |
 | `GPG_KEY_ID` | el KEY_ID largo (ej. `9E3F4A2B...`) |
-| `GPG_PASSPHRASE` | opcional; frase de la clave si la tiene |
+| `GPG_PASSPHRASE` | **obligatorio** si la clave tiene frase; si falta, el job falla con error claro |
 
 ### 3. Qué produce CI cuando la clave está configurada
 
-- `.deb` firmado individualmente (`dpkg-sig`) y `.rpm` firmado (`rpmsign`), con
-  **verificación obligatoria** (`rpm --checksig` / `dpkg-sig --verify`): si la
-  firma falla, el job falla.
+- `.rpm` firmado (`rpmsign --addsign`) + **verificación obligatoria** (`rpm --checksig`); si falla, el job falla.
+- `.deb` + firma `.deb.asc` (`gpg --detach-sign --armor`) + verificación (`gpg --verify`).
 - Se adjunta al release la clave pública `NetProtocol-gpg-pubkey.asc`.
 
 ### 4. Verificación por parte de quien instala
@@ -82,12 +84,12 @@ Settings → Secrets and variables → Actions (o `gh secret set`):
 # RPM (Fedora/RHEL/openSUSE)
 gpg --import NetProtocol-gpg-pubkey.asc
 rpm --import <(gpg --export)
-rpm -K NetProtocol-1.0.1-x86_64.rpm      # -> "digests signatures OK"
+rpm -K NetProtocol-1.0.2-x86_64.rpm       # -> "digests signatures OK"
 
-# DEB (Debian/Ubuntu): firma individual
-dpkg-sig --verify NetProtocol-1.0.1-amd64.deb
+# DEB (Debian/Ubuntu): firma adjunta .asc
+gpg --verify NetProtocol-1.0.2-amd64.deb.asc NetProtocol-1.0.2-amd64.deb
 
-# Forma canónica completa para apt (repositorio firmado)
+# Forma canónica completa para apt (repositorio firmado, pendiente)
 # Publicar en un repo apt con Release.gpg firmado (apt-ftparchive/reprepro) e
 # instalar el .deb desde él: apt verifica la cadena de confianza automáticamente.
 ```
