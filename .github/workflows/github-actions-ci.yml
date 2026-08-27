@@ -160,9 +160,13 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq gnupg
           echo "${GPG_PRIVATE_KEY}" | gpg --batch --import
+          # Normalizar la frase: el pipe de gh secret set puede dejar CR/LF dentro del
+          # valor almacenado; si se los pasamos a gpg con un salto de linea extra acaba
+          # en "Bad passphrase". Se quitan y se entrega exactamente una linea.
+          PASS=$(printf '%s' "${GPG_PASSPHRASE}" | tr -d '\r\n')
           # Firma con loopback + passphrase-fd 0 (determinista en CI, sin agente/pinentry):
           # vale para gpg directo (.deb) y para rpmsign (.rpm).
-          printf '%s\n' "${GPG_PASSPHRASE}" | rpmsign --addsign \
+          printf '%s\n' "$PASS" | rpmsign --addsign \
             --define "_gpg_name ${GPG_KEY_ID}" \
             --define "__gpg_sign_cmd %{__gpg} gpg --batch --no-tty --pinentry-mode loopback --passphrase-fd 0 --detach-sign --armor -o %{__signature_filename} %{__plaintext_filename}" \
             dist/NetProtocol-*.rpm
@@ -170,7 +174,7 @@ jobs:
           rpm --checksig dist/NetProtocol-*.rpm
           # Firmar el .deb con firma adjunta .asc estandar (dpkg-sig fue retirado de
           # los repos de Ubuntu/Debian); verificar con gpg --verify.
-          printf '%s\n' "${GPG_PASSPHRASE}" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
+          printf '%s\n' "$PASS" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
             --detach-sign --armor -u "${GPG_KEY_ID}" dist/NetProtocol-*.deb
           gpg --verify dist/NetProtocol-*.deb.asc dist/NetProtocol-*.deb
           # Clave publica para que los usuarios verifiquen (se sube como asset del release)
