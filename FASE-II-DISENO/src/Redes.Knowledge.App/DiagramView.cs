@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media;
 using Redes.Knowledge.Visualization;
 
@@ -28,6 +29,53 @@ public sealed class DiagramView : Control
     {
         get => GetValue(DocumentProperty);
         set => SetValue(DocumentProperty, value);
+    }
+
+    // Nodos del grafo (D5-1): rectángulos en coordenadas de documento para hit-testing
+    // de navegación. Solo los diagramas de tipo grafo los aportan.
+    public static readonly StyledProperty<IReadOnlyList<NodoGrafo>?> NodosProperty =
+        AvaloniaProperty.Register<DiagramView, IReadOnlyList<NodoGrafo>?>(nameof(Nodos));
+
+    public IReadOnlyList<NodoGrafo>? Nodos
+    {
+        get => GetValue(NodosProperty);
+        set => SetValue(NodosProperty, value);
+    }
+
+    /// <summary>Se dispara al pulsar (botón izquierdo) sobre un nodo del grafo;
+    /// el argumento es la clave (Nodo) del rectángulo pulsado.</summary>
+    public event Action<string>? NodoPulsado;
+
+    private static readonly Cursor CursorMano = new(StandardCursorType.Hand);
+    private static readonly Cursor CursorFlecha = new(StandardCursorType.Arrow);
+
+    private NodoGrafo? NodoEn(Point p)
+    {
+        var nodos = Nodos;
+        if (nodos is null) return null;
+        foreach (var n in nodos)
+        {
+            if (p.X >= n.X && p.X <= n.X + n.W &&
+                p.Y >= n.Y && p.Y <= n.Y + n.H)
+                return n;
+        }
+        return null;
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        base.OnPointerMoved(e);
+        // Las coordenadas de GetPosition(this) ya compensan el RenderTransform del zoom:
+        // el hit-testing contra los rectángulos de documento es fiel a cualquier zoom.
+        Cursor = NodoEn(e.GetPosition(this)) is null ? CursorFlecha : CursorMano;
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        if (NodoEn(e.GetPosition(this)) is { } nodo)
+            NodoPulsado?.Invoke(nodo.Clave);
     }
 
     private static readonly IBrush FondoClaro = new SolidColorBrush(Color.Parse("#ffffff"));

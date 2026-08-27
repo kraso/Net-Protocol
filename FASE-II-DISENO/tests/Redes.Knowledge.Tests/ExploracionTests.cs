@@ -211,4 +211,39 @@ public class ExploracionTests
         Assert.Contains("HTTP/3", svg);
         Assert.Contains("QUIC", svg);
     }
+
+    [Fact]
+    public void GrafoConNodos_Determinista_Y_Semilla_Centrada()
+    {
+        var semilla = "HTTP/3";
+        var nodos = new[] { ("HTTP/3", "HTTP/3"), ("QUIC", "QUIC"), ("UDP", "UDP"), ("TCP", "TCP") };
+        var aristas = new[] { ("HTTP/3", "QUIC", "corre_sobre"), ("QUIC", "UDP", "corre_sobre") };
+
+        var (doc, nodosA) = Layouts.GrafoConNodos("Vecinos de HTTP/3", semilla, nodos, aristas);
+        var (_, nodosB) = Layouts.GrafoConNodos("Vecinos de HTTP/3", semilla, nodos, aristas);
+
+        // D5-1: la geometría de navegación es determinista (mismo input -> mismos rectángulos)
+        Assert.Equal(nodosA, nodosB);
+        Assert.Equal(nodos.Length, nodosA.Count);
+
+        // La semilla es el único nodo centrado y marcado como tal (rect 150x30 en (225,170)).
+        var semillaNodo = Assert.Single(nodosA, n => n.EsSemilla);
+        Assert.Equal("HTTP/3", semillaNodo.Clave);
+        Assert.Equal(150, semillaNodo.W);
+        Assert.Equal(30, semillaNodo.H);
+        Assert.Equal(225, semillaNodo.X);
+        Assert.Equal(170, semillaNodo.Y);
+
+        // Un vecino cae sobre el círculo de radio 155 alrededor de (300,185).
+        var quic = Assert.Single(nodosA, n => n.Clave == "QUIC");
+        var centroX = quic.X + quic.W / 2;
+        var centroY = quic.Y + quic.H / 2;
+        var dx = centroX - 300;
+        var dy = centroY - 185;
+        Assert.InRange(Math.Sqrt(dx * dx + dy * dy), 154, 156);
+
+        // El documento sigue siendo idéntico al del grafo "compat" (misma salida visual).
+        var docCompat = Layouts.Grafo("Vecinos de HTTP/3", semilla, nodos, aristas);
+        Assert.Equal(docCompat.Items, doc.Items);
+    }
 }

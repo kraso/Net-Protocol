@@ -161,8 +161,21 @@ public static class Layouts
         return new DiagramDocument(titulo, "ruta-e2e", w, h, items);
     }
 
-    // 6) Grafo simple (estrella determinista desde una semilla)
+    // 6) Grafo simple (estrella determinista desde una semilla) — solo documento (compat.)
     public static DiagramDocument Grafo(string titulo, string semilla,
+        IReadOnlyList<(string Nodo, string Etiqueta)> nodos,
+        IReadOnlyList<(string A, string B, string Etiqueta)> aristas,
+        bool mostrarEtiquetasAristas = true)
+    {
+        var (doc, _) = GrafoConNodos(titulo, semilla, nodos, aristas, mostrarEtiquetasAristas);
+        return doc;
+    }
+
+    /// <summary>Igual que <see cref="Grafo"/> pero también devuelve los rectángulos de los
+    /// nodos (D5-1): permiten hit-testing para un panel de grafo navegable. Las coordenadas
+    /// son las mismas (determinadas) que las del documento.</summary>
+    public static (DiagramDocument Doc, IReadOnlyList<NodoGrafo> Nodos) GrafoConNodos(
+        string titulo, string semilla,
         IReadOnlyList<(string Nodo, string Etiqueta)> nodos,
         IReadOnlyList<(string A, string B, string Etiqueta)> aristas,
         bool mostrarEtiquetasAristas = true)
@@ -171,6 +184,7 @@ public static class Layouts
         const double bw = 120, bh = 30;
         var pos = new Dictionary<string, (double X, double Y)>();
         var items = new List<Primitive> { new(PrimitiveKind.Text, 10, 14, 0, 0, titulo, TextColor) };
+        var mapaNodos = new List<NodoGrafo>();
 
         var vecinos = nodos.Where(n => !string.Equals(n.Nodo, semilla, StringComparison.Ordinal)).ToList();
         for (var i = 0; i < vecinos.Count; i++)
@@ -181,11 +195,14 @@ public static class Layouts
             pos[vecinos[i].Nodo] = (x - bw / 2, y - bh / 2);
             items.Add(new Primitive(PrimitiveKind.Rect, x - bw / 2, y - bh / 2, bw, bh, "", Fill, Stroke));
             items.Add(new Primitive(PrimitiveKind.Text, x - bw / 2 + 8, y - bh / 2 + 12, 0, 0, vecinos[i].Etiqueta, TextColor));
+            mapaNodos.Add(new NodoGrafo(vecinos[i].Nodo, vecinos[i].Etiqueta,
+                x - bw / 2, y - bh / 2, bw, bh, EsSemilla: false));
         }
 
         pos[semilla] = (cx - 75, cy - bh / 2);
         items.Add(new Primitive(PrimitiveKind.Rect, cx - 75, cy - bh / 2, 150, bh, "", "#fde68a", Stroke));
         items.Add(new Primitive(PrimitiveKind.Text, cx - 65, cy - bh / 2 + 12, 0, 0, semilla, TextColor));
+        mapaNodos.Add(new NodoGrafo(semilla, semilla, cx - 75, cy - bh / 2, 150, bh, EsSemilla: true));
 
         foreach (var ar in aristas)
         {
@@ -201,6 +218,11 @@ public static class Layouts
                 items.Add(new Primitive(PrimitiveKind.Text, (x1 + x2) / 2 + 6, (y1 + y2) / 2, 0, 0, ar.Etiqueta, TextColor));
         }
 
-        return new DiagramDocument(titulo, "grafo", 600, 400, items);
+        return (new DiagramDocument(titulo, "grafo", 600, 400, items), mapaNodos);
     }
 }
+
+/// <summary>Rectángulo de un nodo del grafo (semilla o vecino) en coordenadas de documento,
+/// listo para hit-testing de navegación (D5-1). La geometría es determinista: mismo input,
+/// mismos rectángulos.</summary>
+public sealed record NodoGrafo(string Clave, string Etiqueta, double X, double Y, double W, double H, bool EsSemilla);

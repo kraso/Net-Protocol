@@ -660,3 +660,11 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - Linux: `NetProtocol-1.0.2-amd64.deb` + `.asc` (verificado independiente: `Firma correcta`, confianza absoluta) y `NetProtocol-1.0.2-x86_64.rpm` firmado (`rpm --checksig` OK en CI), con dependencias `liblttng-ust0`/`liburcu6` declaradas.
 - macOS: `NetProtocol-1.0.2-macos.dmg`.
 - `NetProtocol-gpg-pubkey.asc` adjunto para verificación por quien instala.
+## 26-08-2026 — D5-1: panel de grafo navegable
+
+**Implementación (build 0/0 · tests 62/62 ✅ · smoke 7 s sin crash):**
+- Nueva API `Layouts.GrafoConNodos(...)` (Visualization) que devuelve, además del `DiagramDocument`, los **rectángulos de los nodos** (`NodoGrafo`: clave, etiqueta, X/Y/W/H, semilla) con la misma geometría determinista del grafo. `Layouts.Grafo` queda intacto (compatibilidad con tests).
+- `DiagramView` gana la propiedad `Nodos` + evento `NodoPulsado` (clic izquierdo sobre un nodo) y **hit-testing** en coordenadas de documento (compensa el `RenderTransform` del zoom global: navegación fiel a cualquier zoom); cursor de **mano** al sobrevolar nodos.
+- `RenderFicha`/`RenderDiagramas`: el grafo de vecinos se construye con `GrafoConNodos` y un mapa `clave → acrónimo` (la semilla por su acrónimo, cada vecino resuelto vía `_normalizados`; vecinos fuera del catálogo quedan visibles pero no navegables). El título del panel avisa: *"clic en un nodo para navegar"*.
+- Navegación (D5-1): clic en un nodo → `RenderFicha(protocolo)` → el grafo se recompone alrededor del protocolo pulsado; la barra de estado muestra el nuevo centro.
+- Test nuevo `GrafoConNodos_Determinista_Y_Semilla_Centrada` (geometría determinista, semilla centrada 150×30 en (225,170), vecinos sobre el círculo de radio 155, misma salida visual que `Grafo`).

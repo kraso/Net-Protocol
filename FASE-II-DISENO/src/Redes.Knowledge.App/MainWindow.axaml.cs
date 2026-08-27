@@ -389,26 +389,45 @@ public partial class MainWindow : Window
     private void RenderDiagramas(Protocol p, IReadOnlyList<Vecino> vecinos)
     {
         DiagramPanel.Children.Clear();
-        var docs = new List<(string Titulo, DiagramDocument Doc)>();
+        var docs = new List<(string Titulo, DiagramDocument Doc, IReadOnlyList<NodoGrafo>? Nodos, IReadOnlyDictionary<string, string?>? Abrir)>();
 
         // 1) Pila de encapsulación: cadena de "corre sobre" desde el medio hacia el protocolo.
         var pila = PilaDeEncapsulacion(p.Acronimo);
         if (pila is not null)
-            docs.Add(("Pila de encapsulación (F4)", pila));
+            docs.Add(( "Pila de encapsulación (F4)", pila, null, null));
 
-        // 2) Grafo de vecinos a 1 salto (sin texto en las aristas; color por tipo + leyenda).
+        // 2) Grafo de vecinos a 1 salto. NAVEGABLE (D5-1): cada nodo recuerda el acrónimo
+        //    al que lleva y un clic lo selecciona (RenderFicha), recomponiendo el grafo
+        //    alrededor del protocolo pulsado.
         if (vecinos.Count > 0)
         {
             var nodos = new List<(string Nodo, string Etiqueta)>
             {
                 (p.Acronimo, p.Acronimo)
             };
+            // Clave de nodo -> acrónimo del protocolo a abrir (null si el vecino no está
+            // en el catálogo: nodo visible pero no navegable).
+            var abrirPorClave = new Dictionary<string, string?>(StringComparer.Ordinal);
+            void RegistrarNodo(string clave, string? acronimo)
+            {
+                // Registro la clave tal cual y normalizada: la semilla usa el acrónimo
+                // crudo y los vecinos usan su clave normalizada.
+                abrirPorClave[clave] = acronimo;
+                abrirPorClave[Normalizar(clave)] = acronimo;
+            }
+
+            RegistrarNodo(p.Acronimo, p.Acronimo);
             foreach (var v in vecinos)
-                nodos.Add((Normalizar(v.Nombre), EtiquetaNodo(v)));
+            {
+                var clave = Normalizar(v.Nombre);
+                nodos.Add((clave, EtiquetaNodo(v)));
+                var abrir = _normalizados.TryGetValue(clave, out var proto) ? proto.Acronimo : null;
+                RegistrarNodo(clave, abrir);
+            }
             var aristas = new List<(string A, string B, string Etiqueta)>();
             foreach (var v in vecinos)
                 aristas.Add((p.Acronimo, Normalizar(v.Nombre), TipoRelacion(v.Tipo)));
-            var doc = Layouts.Grafo(
+            var (doc, nodosRect) = Layouts.GrafoConNodos(
                 $"Vecinos de {p.Acronimo}", p.Acronimo, nodos, aristas,
                 mostrarEtiquetasAristas: false);
 
@@ -428,7 +447,8 @@ public partial class MainWindow : Window
                 }
                 doc = doc with { Items = doc.Items.Concat(extra).ToList() };
             }
-            docs.Add(("Grafo de vecinos a 1 salto (F4)", doc));
+            docs.Add(("Grafo de vecinos a 1 salto (F4) — clic en un nodo para navegar",
+                doc, nodosRect, abrirPorClave));
         }
 
         // 3) Wire format de la cabecera desde F5 (offset/longitud conocidos).
@@ -440,7 +460,7 @@ public partial class MainWindow : Window
                 .ToList();
             if (wire.Count > 0)
                 docs.Add(("Wire format de la cabecera (F5)", Layouts.WireFormat(
-                    $"Cabecera {p.Acronimo} — campos F5", wire)));
+                    $"Cabecera {p.Acronimo} — campos F5", wire), null, null));
         }
 
         if (docs.Count == 0)
@@ -450,7 +470,7 @@ public partial class MainWindow : Window
         }
 
         DiagramTitle.IsVisible = true;
-        foreach (var (titulo, doc) in docs)
+        foreach (var (titulo, doc, nodosGrafo, abrir) in docs)
         {
             var panel = new StackPanel { Spacing = 4 };
             // Título hereda el color del tema (sin color fijo) y es seleccionable.
@@ -459,9 +479,25 @@ public partial class MainWindow : Window
                 Text = titulo,
                 FontWeight = Avalonia.Media.FontWeight.SemiBold
             });
-            panel.Children.Add(new DiagramView { Document = doc });
+            var view = new DiagramView { Document = doc, Nodos = nodosGrafo };
+            // Navegación del grafo (D5-1): un clic en un nodo abre su ficha.
+            if (abrir is not null)
+                view.NodoPulsado += clave => NavegarGrafo(clave, abrir);
+            panel.Children.Add(view);
             DiagramPanel.Children.Add(panel);
         }
+    }
+
+    /// <summary>Navegación del grafo navegable (D5-1): traduce la clave de un nodo pulsado
+    /// al acrónimo del protocolo y re-renderiza su ficha (el grafo se recompone alrededor
+    /// del protocolo pulsado). Nodos sin catálogo (clave sin acrónimo) no navegan.</summary>
+    private void NavegarGrafo(string clave, IReadOnlyDictionary<string, string?> abrirPorClave)
+    {
+        if (!abrirPorClave.TryGetValue(clave, out var acronimo) || acronimo is null) return;
+        if (!_normalizados.TryGetValue(Normalizar(acronimo), out var proto)) return;
+        RenderFicha(proto);
+        if (IsLoaded)
+            StatusText.Text = $"Grafo: {proto.Acronimo} · {_relaciones.Count} relaciones F4 · zoom {_zoom * 100:0}%";
     }
 
     /// <summary>Cadena "X corre sobre Y corre sobre Z…" desde el protocolo hacia el medio
