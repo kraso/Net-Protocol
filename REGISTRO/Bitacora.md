@@ -642,3 +642,12 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Validación (tag `v1.0.2rc1`, CI ✅):** release con `.deb` + `.deb.asc` (verificado localmente con gpg → `Firma correcta de "Net Protocol Releases"`), `.rpm` firmado (`rpm --checksig` OK en CI), `NetProtocol-gpg-pubkey.asc` adjunto, `.dmg` y Windows. Las dependencias Linux (`liblttng-ust0`, `liburcu6`) quedaron declaradas en `.deb`/`.rpm`.
 
 **Extra:** la versión del instalador Windows salía hardcodeada (`NetProtocol-Setup-1.0.1.exe`) → ahora el `.iss` usa `#define MyAppVersion` y CI pasa `/DMyAppVersion=<tag>` (verificado localmente: genera `NetProtocol-Setup-1.0.2.exe`).
+## 26-08-2026 — Causa raíz de la firma con frase y resolución definitiva (CD11)
+
+**Síntoma persistente:** frase protegida de una clave (primero `84A27DF8CF75FE62`, luego `CD11DE8033B6E164`) → `Bad passphrase` constante en CI pese a validar OK en local y a subir la frase por consola, fichero y web.
+
+**Diagnóstico (job `diagnostico-gpg`, workflow_dispatch, sin revelar el valor):** longitud 35 · ASCII · sin espacios · sha256 calculada; **las 3 firmas directas con gpg en la misma imagen (Ubuntu 24.04, gpg 2.4) daban exit 0** → la frase y la clave eran correctas. El fallo era **solo de `rpmsign`**: no reenvía el stdin de la tubería a gpg, así que `--passphrase-fd 0` entregaba **frase vacía** → `Bad passphrase` (por eso la clave sin protección funcionaba: frase vacía = correcta).
+
+**Fix (verificado, CI ✅ en `v1.0.2rc1`):** rpmsign firma con **`--passphrase-file /tmp/netprotocol-pass.txt`** (fichero con permisos 600, borrado tras firmar) en vez de fd 0. La firma directa del `.deb` (gpg con `passphrase-fd 0`) ya funcionaba.
+
+**Estado final de la firma:** clave **`CD11DE8033B6E164`** ("MARCOS CALABRES IBAÑEZ (27/08/2026 05:43:35)", RSA 4096, con frase) en los secretos `GPG_PRIVATE_KEY`/`GPG_KEY_ID`/`GPG_PASSPHRASE`. `.deb` con `.asc` (verificado: `Firma correcta de "MARCOS CALABRES IBAÑEZ…"`) y `.rpm` firmado (`rpm --checksig` OK); `NetProtocol-gpg-pubkey.asc` adjunto. Instalador Windows ya versionado por tag (`NetProtocol-Setup-1.0.2rc1.exe`). Eliminadas del llavero local: `84A27DF8CF75FE62` (revocada) y `7EC2D658F76BD4A3`.
