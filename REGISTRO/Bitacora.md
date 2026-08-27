@@ -651,3 +651,12 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Fix (verificado, CI ✅ en `v1.0.2rc1`):** rpmsign firma con **`--passphrase-file /tmp/netprotocol-pass.txt`** (fichero con permisos 600, borrado tras firmar) en vez de fd 0. La firma directa del `.deb` (gpg con `passphrase-fd 0`) ya funcionaba.
 
 **Estado final de la firma:** clave **`CD11DE8033B6E164`** ("MARCOS CALABRES IBAÑEZ (27/08/2026 05:43:35)", RSA 4096, con frase) en los secretos `GPG_PRIVATE_KEY`/`GPG_KEY_ID`/`GPG_PASSPHRASE`. `.deb` con `.asc` (verificado: `Firma correcta de "MARCOS CALABRES IBAÑEZ…"`) y `.rpm` firmado (`rpm --checksig` OK); `NetProtocol-gpg-pubkey.asc` adjunto. Instalador Windows ya versionado por tag (`NetProtocol-Setup-1.0.2rc1.exe`). Eliminadas del llavero local: `84A27DF8CF75FE62` (revocada) y `7EC2D658F76BD4A3`.
+## 26-08-2026 — Release oficial v1.0.2 firmado
+
+**Acción:** `<Version>` del csproj a **1.0.2** ("Acerca de" lo refleja vía ensamblado), eliminado el release/tag de prueba `v1.0.2rc1`, y publicado **v1.0.2** con CI verde.
+
+**Release:** https://github.com/kraso/redes-knowledge/releases/tag/v1.0.2
+- Windows: `NetProtocol-Setup-1.0.2.exe` (Inno, versión desde el tag).
+- Linux: `NetProtocol-1.0.2-amd64.deb` + `.asc` (verificado independiente: `Firma correcta`, confianza absoluta) y `NetProtocol-1.0.2-x86_64.rpm` firmado (`rpm --checksig` OK en CI), con dependencias `liblttng-ust0`/`liburcu6` declaradas.
+- macOS: `NetProtocol-1.0.2-macos.dmg`.
+- `NetProtocol-gpg-pubkey.asc` adjunto para verificación por quien instala.
