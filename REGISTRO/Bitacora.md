@@ -727,3 +727,10 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - **Linux .deb/.rpm SÍ firmados con GPG** (clave `CD11DE8033B6E164`, sin coste) — se mantiene.
 - **Windows** y **macOS** se distribuyen **sin firma de código**: SmartScreen/Gatekeeper mostrarán sus avisos (ya ocurría). Si algún día hubiera certificado, el pipeline quedó diseñado para añadir `signtool`/`notarytool` sin tocar el resto.
 - **Repo apt firmado: descartado** por recursos; alternativa ligera sin VM dedicada: instalación directa del `.deb` con verificación `.asc`.
+## 26-08-2026 — v1.0.3: reparación del release (el instalador v1.0.2 no incluía el grafo navegable)
+
+**Síntoma del responsable (v1.0.2 instalada desde GitHub):** al pulsar un nodo vecino en el grafo no se abría su ficha en pantalla, pese a que las pruebas con el binario de desarrollo sí navegaban. **Causa raíz confirmada (no era código):** el tag `v1.0.2` (commit `1e20062`, 27-08 06:47) es **anterior a la implementación del grafo navegable D5-1** (commit `7d485b9`, 27-08 07:20) — 33 minutos después. Verificado en el árbol del tag: `MainWindow.axaml.cs` no contiene `NavegarGrafo`/`NodoPulsado` ni hit-testing; el instalador publicado llevaba el grafo estático original. La feature completa (D5-1, D4-3, D6, D2-2, L-004) existía en `main` y pasaba los 77/77 tests, pero **ningún release publicado la había incluido**.
+
+**Acción:** `<Version>` del csproj a **1.0.3**, documentado este hallazgo, y publicado **v1.0.3** (CI verde) con los instaladores construidos desde `main` actual: Windows `NetProtocol-Setup-1.0.3.exe`, Linux `.deb`+`.asc` y `.rpm` firmados con GPG `CD11DE8033B6E164`, macOS `.dmg`. El instalador v1.0.2 queda **superseded**.
+
+**Lección registrada:** el pipeline construye los instaladores solo al crear un tag (`v*`); el código de `main` sin tag nunca llega a los usuarios. Los releases deben crearse después de cada iteración cerrada de features, no solo para corregir el instalador.

@@ -246,4 +246,58 @@ public class ExploracionTests
         var docCompat = Layouts.Grafo("Vecinos de HTTP/3", semilla, nodos, aristas);
         Assert.Equal(docCompat.Items, doc.Items);
     }
+
+    [Fact]
+    public void Grafo_Navegacion_Resuelve_Vecinos_Catalogados()
+    {
+        // Regresión v1.0.3: la navegación del grafo (D5-1) debe resolver TODOS los vecinos
+        // catalogados al pulsarlos (clave de nodo -> acrónimo -> protocolo). Reproduce la
+        // lógica exacta de RenderDiagramas/NavegarGrafo con los datos reales F3+F4.
+        var catalogos = CatalogJson.CargarProtocolosF3(R(F3.Split('\\')[0], string.Join('\\', F3.Split('\\').Skip(1))));
+        var rels = CatalogoExploracion.CargarRelacionesF4(R(F4.Split('\\')[0], string.Join('\\', F4.Split('\\').Skip(1))));
+
+        // Mismo índice de navegación que MainWindow: por acrónimo y nombre normalizados.
+        var norm = new Dictionary<string, Protocol>(StringComparer.OrdinalIgnoreCase);
+        foreach (var p in catalogos)
+        {
+            norm[Norm(p.Acronimo)] = p;
+            norm[Norm(p.Nombre)] = p;
+        }
+
+        int total = 0, navegables = 0, noCatalogados = 0;
+        var fallos = new List<string>();
+        foreach (var p in catalogos)
+        {
+            foreach (var v in GrafoRelaciones.Vecinos1Salto(p.Acronimo, rels))
+            {
+                total++;
+                var clave = Norm(v.Nombre);
+                // Nodo visible pero sin navegación: el vecino no está en el catálogo F3.
+                if (!norm.TryGetValue(clave, out var proto)) { noCatalogados++; continue; }
+
+                // NavegarGrafo: clave -> acrónimo -> protocolo del catálogo.
+                var acronimo = proto.Acronimo;
+                if (!norm.TryGetValue(Norm(acronimo), out var destino))
+                {
+                    fallos.Add($"vecino {v.Nombre} de {p.Acronimo}: acrónimo {acronimo} sin índice");
+                    continue;
+                }
+                if (!ReferenceEquals(proto, destino))
+                    fallos.Add($"vecino {v.Nombre} de {p.Acronimo}: abre otro protocolo ({destino.Acronimo})");
+                else
+                    navegables++;
+            }
+        }
+
+        var mensaje = $"{navegables}/{total} vecinos navegables, {noCatalogados} sin catálogo." +
+                      (fallos.Count > 0 ? " Fallos: " + string.Join("; ", fallos.Take(5)) : "");
+        Assert.Empty(fallos);
+        // La mayoría de aristas F4 son entre protocolos del catálogo; los ajenos (p. ej.
+        // "physical_layer") quedan visibles pero no navegables por diseño (D5-1).
+        Assert.True(navegables > total / 2, mensaje);
+        Assert.True(total >= 30, mensaje);
+    }
+
+    private static string Norm(string s)
+        => string.Concat(s.Where(char.IsLetterOrDigit)).ToLowerInvariant();
 }
