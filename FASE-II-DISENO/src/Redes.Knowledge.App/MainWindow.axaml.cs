@@ -61,6 +61,9 @@ public partial class MainWindow : Window
     private double _fuenteBase = 13;
     private double _tituloBase = 14;
 
+    // Evita recursión al sincronizar el selector de protocolo con RenderFicha.
+    private bool _sincronizandoSelector;
+
     /// <summary>Diagramas de la ficha actual (cache para la exportación D4-3).</summary>
     private List<(string Titulo, DiagramDocument Doc, IReadOnlyList<NodoGrafo>? Nodos, IReadOnlyDictionary<string, string?>? Abrir)> _docsActuales = new();
 
@@ -139,6 +142,7 @@ public partial class MainWindow : Window
 
         CargarFiltros();
         CargarComparador();
+        CargarSelectorProtocolo();
         ReconstruirNavegacion();
         // Ficha inicial: primer protocolo con relaciones catalogadas (TCP) para mostrar
         // el grafo F4 al abrir; si no existe, el primero del catálogo.
@@ -162,6 +166,13 @@ public partial class MainWindow : Window
         FilterFamilia.SelectionChanged += (_, _) => { if (!_cargando) ReconstruirNavegacion(); };
         FilterEstado.SelectionChanged += (_, _) => { if (!_cargando) ReconstruirNavegacion(); };
         NavFilter.TextChanged += (_, _) => { if (!_cargando) ReconstruirNavegacion(); };
+        // Selector de protocolo: seleccionar en el desplegable abre su ficha (navegación
+        // directa), y la marca de "protocolo en pantalla" se sincroniza sola en RenderFicha.
+        ProtocolSelector.SelectionChanged += (_, _) =>
+        {
+            if (_cargando || _sincronizandoSelector) return;
+            if (ProtocolSelector.SelectedItem is Protocol p) RenderFicha(p);
+        };
         ExportFormat.ItemsSource = new[] { "SVG", "PNG", "PDF" };
         ExportFormat.SelectedIndex = 0;
         ExportButton.Click += async (_, _) => await ExportarDiagramasAsync();
@@ -275,6 +286,35 @@ public partial class MainWindow : Window
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
             });
         CompareTarget.SelectedItem = _protocolos.Values.FirstOrDefault(p => p.Acronimo == "TCP");
+        _cargando = false;
+    }
+
+    /// <summary>Selector de protocolo de la barra superior (junto a la búsqueda): referencia
+    /// permanente de en qué protocolo estamos y vía de navegación directa. Mismo patrón que
+    /// la casilla "Comparar con:": ancho FIJO (300 px) y carrusel del nombre completo en el
+    /// desplegable (solo al pasar el ratón por un ítem).</summary>
+    private void CargarSelectorProtocolo()
+    {
+        _cargando = true;
+        foreach (var p in _protocolos.Values
+                     .OrderBy(p => p.Acronimo, StringComparer.OrdinalIgnoreCase))
+            ProtocolSelector.Items.Add(p);
+        // Ítems del desplegable: "ACR · Nombre" con carrusel bajo el puntero (ancho fijo).
+        ProtocolSelector.ItemTemplate = new FuncDataTemplate<Protocol>((p, _) =>
+            p is null ? null : new MarqueeTextBlock
+            {
+                Width = 300,
+                Text = $"{p.Acronimo} · {p.Nombre}",
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+            });
+        // Recuadro del selector: texto estático con elipsis (sin animación, sin duplicados).
+        ProtocolSelector.SelectionBoxItemTemplate = new FuncDataTemplate<Protocol>((p, _) =>
+            p is null ? null : new TextBlock
+            {
+                Text = $"{p.Acronimo} · {p.Nombre}",
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+            });
         _cargando = false;
     }
 
@@ -396,6 +436,14 @@ public partial class MainWindow : Window
     {
         _seleccionado = p;
         if (p is null) { DetailText.Text = "Seleccione un protocolo."; return; }
+
+        // Sincroniza el selector de la barra superior con el protocolo en pantalla (navegues
+        // como navegues: sidebar, búsqueda, grafo, comparador). El flag evita que este set
+        // dispare SelectionChanged → RenderFicha (recursión).
+        _sincronizandoSelector = true;
+        ProtocolSelector.SelectedItem = p;
+        _sincronizandoSelector = false;
+
         DetailText.TextAlignment = TextAlignment.Left; // "Acerca de" centra el texto; al volver, izquierda.
 
         _notasFuentes.TryGetValue(p.Acronimo, out var nf);

@@ -774,3 +774,12 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Revisión del responsable:** el mínimo fijo de 960 px permitía encoger la ventana hasta recortar los diagramas (al redimensionar por borde, la cabecera wire format —la más ancha de la ficha— se cortaba y aparecía su scroll horizontal). **Pedido:** el mínimo de redimensión debe garantizar que el diagrama más ancho visible quepa completo.
 
 **Implementación:** `RenderDiagramas` calcula el ancho máximo de los diagramas de la ficha (`docs.Max(d => d.Doc.Width) × zoom`) y fija `MinWidth` dinámicamente con piso 960 y tope 1400: `MinWidth = Clamp(417 + anchoMax × zoom, 960, 1400)`, donde 417 = grips (6+6) + sidebar (360) + márgenes de la ficha (28) + scrollbar vertical (~17). Verificado: TCP (cabecera 688 px) → mínimo **1105 px** a zoom 100 %; grafo solo → 1017; pila sola → 960. En Leyenda/Acerca de/Comparador/Captura (sin diagramas) se restaura el mínimo base 960. El tope 1400 evita que a zoom alto la ventana sea imposible de encoger en pantallas normales (el diagrama conserva su scroll horizontal propio). 78/78 tests · smoke OK.
+## 28-08-2026 — Selector de protocolo en la barra superior (referencia permanente)
+
+**Pedido del responsable:** una casilla de selección de protocolo **justo después de la búsqueda**, que sirva a la vez de navegación directa y de **referencia visual de en qué protocolo estoy**, con el mismo patrón que la casilla "Comparar con:" (ancho fijo y carrusel del nombre).
+
+**Implementación:** `ComboBox` `ProtocolSelector` (etiqueta "Protocolo:", ancho fijo 300 px, junto a la búsqueda) con el mismo patrón que `CompareTarget`: `MarqueeTextBlock` de 300 px en los ítems del desplegable (carrusel del nombre completo solo al pasar el ratón) y recuadro estático con elipsis. `CargarSelectorProtocolo()` rellena los 113 protocolos ordenados por acrónimo. Bidireccional:
+- Seleccionar en el desplegable → `RenderFicha(p)` (navegación directa).
+- `RenderFicha` sincroniza `ProtocolSelector.SelectedItem = p` con un flag `_sincronizandoSelector` (evita recursión) → la marca siempre refleja el protocolo en pantalla, navegues por sidebar, búsqueda, grafo o comparador.
+
+Build 0/0 · smoke OK · 78/78 tests.

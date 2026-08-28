@@ -95,6 +95,11 @@
     <WrapPanel DockPanel.Dock="Top" Orientation="Horizontal" ItemSpacing="8" LineSpacing="6" Margin="8">
       <TextBox x:Name="SearchBox" Width="170" PlaceholderText="Buscar protocolo, RFC, puerto, campo…" />
       <Button x:Name="SearchButton" Content="Buscar" />
+      <!-- Selector de protocolo: referencia permanente de en qué protocolo estamos y vía
+           de navegación directa. Mismo patrón que la casilla "Comparar con:" (ancho fijo
+           300 px y carrusel del nombre completo en el desplegable). -->
+      <SelectableTextBlock Text="Protocolo:" VerticalAlignment="Center" />
+      <ComboBox x:Name="ProtocolSelector" Width="300" />
       <SelectableTextBlock Text="Familia:" VerticalAlignment="Center" />
       <ComboBox x:Name="FilterFamilia" Width="210" />
       <SelectableTextBlock Text="Estado:" VerticalAlignment="Center" />
