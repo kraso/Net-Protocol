@@ -179,25 +179,26 @@ public partial class MainWindow : Window
         ExportButton.Click += async (_, _) => await ExportarDiagramasAsync();
         AbrirCapturaButton.Click += async (_, _) => await AbrirCapturaAsync();
         MuestraButton.Click += (_, _) => GenerarMuestra();
-        // Tooltip de "Muestra de prueba" con la carpeta de capturas REAL del sistema
-        // (%LOCALAPPDATA%\NetProtocol\capturas, la misma que usa GenerarMuestra), para que
-        // el usuario pueda localizar las capturas generadas.
-        // - Una sola línea NO PARTIDA: el indicador de unidad (C:\…) y el resto de la ruta
-        //   van juntos. El ancho máximo NUNCA corta en la práctica: 2000 px cubre la frase
-        //   completa (~1400 px con la mono de la app) más cualquier ruta real de
-        //   %LOCALAPPDATA% incluso en instalaciones profundas.
-        // - Recorte de emergencia: si una ruta fuera tan extrema que superara 2000 px, el
-        //   "…" cae SIEMPRE al FINAL del texto: el principio (C:\…) se mantiene intacto.
-        ToolTip.SetTip(MuestraButton, new TextBlock
-        {
-            Text = $"Genera una captura sintética determinista (muestras de los 28 protocolos con layout F5) y la guarda en su carpeta de capturas: " +
-                   Path.Combine(
-                       Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                       "NetProtocol", "capturas"),
-            MaxWidth = 4000,
-            TextWrapping = TextWrapping.NoWrap,
-            TextTrimming = TextTrimming.CharacterEllipsis
-        });
+        // Tooltip de "Muestra de prueba": muestra la carpeta de capturas REAL del sistema
+        // (%LOCALAPPDATA%\NetProtocol\capturas, la misma que usa GenerarMuestra).
+        // Se usa ToolTip.SetTipTemplate (forma documentada de controlar el contenido del
+        // tooltip) con un TextBlock de UNA línea y MaxWidth 4000 px: la frase introductoria
+        // + el indicador C:\ + la ruta completa salen juntos y sin recorte en cualquier
+        // instalación real. Solo con una ruta imposiblemente profunda el "…" caería al
+        // FINAL del texto (nunca parte el inicio C:\…).
+        var carpetaCapturas = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "NetProtocol", "capturas");
+        ToolTip.SetTip(MuestraButton,
+            $"Genera una captura sintética determinista (muestras de los 28 protocolos con layout F5) y la guarda en su carpeta de capturas: {carpetaCapturas}");
+        ToolTip.SetTipTemplate(MuestraButton, new FuncDataTemplate<string>((s, _) =>
+            new TextBlock
+            {
+                Text = s,
+                MaxWidth = 4000,
+                TextWrapping = TextWrapping.NoWrap,
+                TextTrimming = TextTrimming.CharacterEllipsis
+            }));
         CerrarCapturaButton.Click += (_, _) => CerrarCaptura();
         ListaPaquetes.SelectionChanged += (_, _) =>
         {
