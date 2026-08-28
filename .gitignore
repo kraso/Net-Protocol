@@ -31,3 +31,7 @@ Thumbs.db
 # Git
 .git/
 NetProtocol.rar
+
+# Inspección temporal de paquetes (descargas/extracciones de diagnóstico)
+.tmp-inspect/
+

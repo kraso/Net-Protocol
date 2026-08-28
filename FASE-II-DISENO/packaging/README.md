@@ -17,6 +17,14 @@ entrada de menú (`/usr/share/applications/netprotocol.desktop`), el icono
 comando en el PATH: **`netprotocol`** (enlace a `/usr/lib/netprotocol/NetProtocol`,
 sin duplicar binarios). El `Exec` del menú usa la ruta absoluta `/usr/bin/netprotocol`.
 
+> **Ojo con el bit de ejecución:** `actions/download-artifact@v4` pierde el modo
+> de ejecución al descargar el binario (problema conocido del action). Por eso
+> el empaquetado **fija `0755` explícitamente** en los apphosts ELF
+> (`NetProtocol`, `createdump`) en el `%install`/`debroot` — nunca dependas del
+> mode del artefacto. El `.rpm` además refresca el menú en `%post`
+> (`update-desktop-database` + `kbuildsycoca6`, best-effort) para que la entrada
+> aparezca sin re-login en KDE.
+
 **URL ascendente en la metainformación de los paquetes:** el `.rpm`
 (`URL:` del spec), el `.deb` (`Homepage:` del control) y el instalador Windows
 (`AppPublisherURL` de Inno Setup) publican la URL del repositorio actual. Se

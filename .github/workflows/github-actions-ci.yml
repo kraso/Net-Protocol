@@ -103,6 +103,9 @@ jobs:
           mkdir -p debroot/DEBIAN debroot/usr/lib/netprotocol debroot/usr/share/applications debroot/usr/share/pixmaps debroot/usr/bin
           cp -a dist/linux-x64/. debroot/usr/lib/netprotocol/
           chmod -R a+rX debroot/usr/lib/netprotocol
+          # upload/download-artifact v4 pierde el bit de ejecución al descargar:
+          # fijar 0755 explícito en los ELF del apphost (no depender del mode del artefacto).
+          chmod 755 debroot/usr/lib/netprotocol/NetProtocol debroot/usr/lib/netprotocol/createdump
           # Icono de menú (el PNG de Assets va embebido en el ejecutable, no viaja
           # en el publish: se copia desde la fuente del repo).
           cp data/Logo_NetProtocol.png debroot/usr/share/pixmaps/netprotocol.png
@@ -160,9 +163,18 @@ jobs:
           %description
           Base de conocimiento/consulta de protocolos de red (catálogo F3, fichas F4, PDU F5, seguridad F6).
 
+          %post
+          # Refresco best-effort del menú para que la entrada aparezca sin re-login (KDE/GNOME).
+          if command -v update-desktop-database >/dev/null 2>&1; then update-desktop-database -q /usr/share/applications 2>/dev/null || true; fi
+          if command -v kbuildsycoca6 >/dev/null 2>&1; then kbuildsycoca6 --noincremental >/dev/null 2>&1 || true; fi
+
           %install
           mkdir -p %{buildroot}/usr/lib/netprotocol
           cp -a ${DISTDIR}/. %{buildroot}/usr/lib/netprotocol/
+          # El artefacto descargado pierde el +x con download-artifact v4: fijar 0755
+          # explícito (mismo criterio que el .deb); sin esto, el enlace /usr/bin/netprotocol
+          # apunta a un binario no ejecutable y KDE oculta la entrada de menú.
+          chmod 755 %{buildroot}/usr/lib/netprotocol/NetProtocol %{buildroot}/usr/lib/netprotocol/createdump
           # Entrada de menú, icono y comando en el PATH (igual que el .deb).
           # Ojo: %install corre con cwd=rpmbuild/BUILD → rutas ABSOLUTAS para el icono
           # (${PWD} se expande al generar el spec, igual que ${DISTDIR}).
