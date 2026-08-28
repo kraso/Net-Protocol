@@ -804,3 +804,30 @@ Build 0/0 · smoke OK · 78/78 tests.
 **Síntoma:** tras subir `MaxWidth` (1100 → 2000 → 4000 px) el usuario seguía viendo el tooltip recortado con "…". **Causa raíz doble:** (1) el usuario probaba la **v1.0.7 instalada**, cuyo `.exe` lleva `MaxWidth=1100` (los arreglos posteriores estaban en `main` sin publicar, por eso "no cambiaba nada"); (2) pasar un `TextBlock` suelto vía `ToolTip.SetTip` no garantiza que el `ContentPresenter` del tema respete su `MaxWidth`.
 
 **Fix definitivo:** `ToolTip.SetTip` con el texto + **`ToolTip.SetTipTemplate`** (forma documentada de controlar el contenido del tooltip) construyendo un `TextBlock` de **una sola línea** (`NoWrap`), `MaxWidth=4000` y `TextTrimming=CharacterEllipsis` al final: la frase + `C:\` + ruta completa salen juntas y sin recorte en cualquier instalación real; el "…" solo aparecería al final en rutas imposiblemente profundas (nunca parte el inicio). Publicado como **v1.0.8** para que el binario instalado sí contenga el arreglo. 78/78 tests · smoke OK.
+
+**Continuación v1.0.8+ (diagnóstico con banco de pruebas):** el texto seguía cortándose en "muestras de…". El banco de pruebas headless reveló la **causa raíz definitiva**: el tema Fluente fija `MaxWidth=320` en el **propio control `ToolTip`** (`ToolTip MaxW=320 → TextBlock Wrap` en 302 px de contenido); por eso cualquier `MaxWidth` del texto era ignorado. El fix (estilo `ToolTip` con `MaxWidth` amplio) lo confirmaba: el tooltip medía 1290×41 con la frase + ruta en una línea. Este diagnóstico invalidaba el intento anterior con `SetTipTemplate` (que ni compilaba en CI) — ambos quedaron en la versión instalada en ese momento.
+
+## 28-08-2026 — Popups cristalinos en botones de acción (sustituyen a los tooltips)
+
+**Revisión del responsable:** el tooltip de Muestra de prueba salía en una línea demasiado larga (se salía de la ventana) y no permitía pulsar la ruta; pedía: convertir **todos** los tooltips de botones a popups, con **estilo oscuro, profesional y cristalino**, sin salirse de la ventana.
+
+**Implementación (un único `CrearPopupInfo` para los 4 botones: Comparar, Exportar, Abrir captura, Muestra de prueba):**
+- **Estilo cristalino**: `ExperimentalAcrylicBorder` + `ExperimentalAcrylicMaterial` (tinte `#22252A`, opacidad 0.85/0.75, `BackgroundSource=Digger`) con bordes claros translúcidos y esquinas redondeadas; texto `#F2F2F2`, enlace azul `#6CBAFF`.
+- **Sin salir de la ventana**: `MaxWidth = Bounds.Width − 48` (ancho de la ventana, no de la pantalla), calculado por el estilo/`SizeChanged`; texto largo → multilínea.
+- **Sin parpadeo**: el cierre se decide por **geometría del puntero** (posición global vía `PointerMoved` contra el rect del botón en coordenadas de ventana) + **flags de eventos del propio popup** (vive en otra capa visual; un `TranslatePoint` entre capas NO es fiable). Cierre diferido de 300–400 ms.
+- **Botones pulsables**: `IsLightDismissEnabled=false` (con él, el primer clic lo consumía el popup); al pulsar el botón se cierra el popup sin bloquear el clic.
+- **Muestra de prueba**: la carpeta/captura real como **hipervínculo** que abre el explorador con el archivo seleccionado (Windows `explorer /select`, macOS `open -R`, Linux `xdg-open`).
+
+**Lecciones API Avalonia 12 anotadas:** `StaysOpen` no existe en `Popup`; el acrílico se aplica con el **control** `ExperimentalAcrylicBorder` (no como pincel; no hereda `BorderBrush`/`BorderThickness` → se anida un `Border` exterior); `AcrylicBackgroundSource` vive en `Avalonia.Base`; las pantallas se leen con `ScreenFromWindow`/`IsPrimary` (no `Screens.Screen`).
+
+## 28-08-2026 — Captura se cierra automáticamente al navegar
+
+**Síntoma:** con la vista de captura (Muestra de prueba) abierta, al cambiar de protocolo (buscador/selector/sidebar/grafo) se mostraban los diagramas del nuevo protocolo pero el texto de la captura seguía abajo: `RenderFicha` rellenaba la ficha pero ningún camino cerraba `PanelCaptura`.
+
+**Fix:** helper `CerrarCapturaSiAbierta()` (idempotente: oculta `PanelCaptura`, restaura `DetailText`/`DiagramPanel`, limpia `_paquetesCaptura`/`_rutaCaptura`) invocado desde `RenderFicha` (toda navegación a un protocolo) y desde Comparador/Leyenda/Acerca de (escriben en `DetailText`, oculto con captura abierta). El botón "✕ Cerrar captura" reutiliza el mismo helper.
+
+## 28-08-2026 — Placeholder del filtro + filtro por familia exacta
+
+- Placeholder de la sidebar: **"Filtrar familias - Ver leyenda"** (antes "Filtrar familias…").
+- **Fallo observado:** filtrar `ROUT` añadía SEG (GRE = "Generic **Routing** Encapsulation"); `SEG` añadía ROUT (SR = "**Segment** Routing"); `SYNC` añadía HIST (ATM = "A**sync**hronous"). **Causa:** el filtro rápido consideraba familia "coincidente" si cualquier protocolo contenía el texto en nombre/acrónimo, y mostraba la familia entera.
+- **Fix:** si el texto es un **acrónimo de familia exacto** (ROUT, SEG, SYNC…) se filtra SOLO por esa familia; cualquier otro texto (buscar un protocolo: `gre`, `ssh`) sigue localizando su familia. Verificado contra los 113 protocolos reales.

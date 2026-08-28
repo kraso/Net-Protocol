@@ -53,16 +53,6 @@
     <Style Selector="Button.SidebarAction:pressed /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListMediumBrush}" />
     </Style>
-    <!-- Tooltip de UNA línea con ancho amplio: el estilo se aplica al TextBlock interno
-         que crea el ContentPresenter del ToolTip (forma documentada de controlarlo), a
-         diferencia de pasar un TextBlock suelto como contenido, que el ContentPresenter
-         del tema recorta a su propio ancho. La frase + C:\ + ruta salen completas y
-         juntas; el ellipsis solo caería al FINAL con rutas imposiblemente profundas. -->
-    <Style Selector="ToolTip TextBlock">
-      <Setter Property="MaxWidth" Value="4000" />
-      <Setter Property="TextWrapping" Value="NoWrap" />
-      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-    </Style>
   </Window.Styles>
   <!-- Redimensión por borde con WindowDecorations=None: el marco del sistema no existe,
        así que la ventana NO redimensiona por defecto. Se añaden grips invisibles (bordes
@@ -113,9 +103,7 @@
       <!-- Comparador justo a la derecha del selector de protocolo (orden solicitado). -->
       <SelectableTextBlock Text="Comparar con:" VerticalAlignment="Center" />
       <ComboBox x:Name="CompareTarget" Width="300" />
-      <Button x:Name="CompareButton" Content="Comparar"
-              ToolTip.Tip="Compara el protocolo actual con otro del catálogo (referencia seleccionable). Pulsa '✕ Volver a la ficha' para salir."
-              ToolTip.ShowDelay="600" />
+      <Button x:Name="CompareButton" Content="Comparar" />
       <!-- "Volver a la ficha": contextual, visible SOLO mientras la comparación está en
            pantalla. Restaura la ficha del protocolo previo (RenderFicha(_seleccionado)),
            que la comparación nunca modifica. Mismo patrón que "✕ Cerrar captura". -->
@@ -126,13 +114,9 @@
       <ComboBox x:Name="FilterEstado" Width="210" />
       <SelectableTextBlock Text="Exportar:" VerticalAlignment="Center" />
       <ComboBox x:Name="ExportFormat" Width="90" />
-      <Button x:Name="ExportButton" Content="Exportar"
-              ToolTip.Tip="Exporta los diagramas de la ficha actual (pila, grafo, cabecera) al formato elegido: SVG, PNG o PDF."
-              ToolTip.ShowDelay="600" />
-      <Button x:Name="AbrirCapturaButton" Content="Abrir captura"
-              ToolTip.Tip="Abre una ventana del explorador para que selecciones el archivo .cap de captura de paquetes con PCAP/PCAPNG y luego muestra sus detalles en pantalla."
-              ToolTip.ShowDelay="600" />
-      <Button x:Name="MuestraButton" Content="Muestra de prueba" ToolTip.ShowDelay="600" />
+      <Button x:Name="ExportButton" Content="Exportar" />
+      <Button x:Name="AbrirCapturaButton" Content="Abrir captura" />
+      <Button x:Name="MuestraButton" Content="Muestra de prueba" />
     </WrapPanel>
 
     <!-- Barra de estado -->
@@ -148,7 +132,7 @@
             BorderBrush="#334155" BorderThickness="0,0,1,0">
       <DockPanel Margin="8">
         <StackPanel DockPanel.Dock="Top" Spacing="6">
-          <TextBox x:Name="NavFilter" PlaceholderText="Filtrar familias…" />
+          <TextBox x:Name="NavFilter" PlaceholderText="Filtrar familias - Ver leyenda" />
           <Border Height="1" Background="#334155" />
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom" Spacing="6">

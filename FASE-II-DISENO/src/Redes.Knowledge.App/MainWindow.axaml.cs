@@ -11,6 +11,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using Redes.Knowledge.Domain;
 using Redes.Knowledge.Infrastructure;
 using Redes.Knowledge.Infrastructure.Capturas;
@@ -63,6 +64,10 @@ public partial class MainWindow : Window
 
     // Evita recursión al sincronizar el selector de protocolo con RenderFicha.
     private bool _sincronizandoSelector;
+
+    // Última posición del puntero (coordenadas de la ventana) para el cierre por geometría
+    // de los popups de información (sin parpadeo).
+    private Point _ultimaPosPuntero = new(-1, -1);
 
     /// <summary>Diagramas de la ficha actual (cache para la exportación D4-3).</summary>
     private List<(string Titulo, DiagramDocument Doc, IReadOnlyList<NodoGrafo>? Nodos, IReadOnlyDictionary<string, string?>? Abrir)> _docsActuales = new();
@@ -179,16 +184,11 @@ public partial class MainWindow : Window
         ExportButton.Click += async (_, _) => await ExportarDiagramasAsync();
         AbrirCapturaButton.Click += async (_, _) => await AbrirCapturaAsync();
         MuestraButton.Click += (_, _) => GenerarMuestra();
-        // Tooltip de "Muestra de prueba": muestra la carpeta de capturas REAL del sistema
-        // (%LOCALAPPDATA%\NetProtocol\capturas, la misma que usa GenerarMuestra). El texto
-        // se pasa como CADENA simple y el ESTILO del ToolTip (Window.Styles, Selector
-        // "ToolTip TextBlock") controla ancho/línea: pasar un TextBlock suelto como
-        // contenido no funcionaba, porque el ContentPresenter del tema lo recortaba.
-        ToolTip.SetTip(MuestraButton,
-            $"Genera una captura sintética determinista (muestras de los 28 protocolos con layout F5) y la guarda en su carpeta de capturas: " +
-            Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "NetProtocol", "capturas"));
+        // Tooltip de "Muestra de prueba": el contenido (frase + carpeta REAL de capturas) y
+        // Popups de información de los botones de acción (Comparar, Exportar, Abrir captura,
+        // Muestra de prueba), en sustitución de los tooltips nativos: estilo cristalino y
+        // permanencia por geometría (ver ConfigurarPopupsBotones).
+        ConfigurarPopupsBotones();
         CerrarCapturaButton.Click += (_, _) => CerrarCaptura();
         ListaPaquetes.SelectionChanged += (_, _) =>
         {
@@ -225,6 +225,203 @@ public partial class MainWindow : Window
             AplicarZoomContenido();
             if (IsLoaded) StatusText.Text = $"Dataset: {_protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · zoom del contenido {_zoom * 100:0}% (Ctrl+Scroll)";
         };
+
+        // Última posición del puntero (coordenadas de la ventana), compartida por todos
+        // los popups de información para decidir el cierre por geometría (sin parpadeo).
+        AddHandler(InputElement.PointerMovedEvent,
+            (_, e) => _ultimaPosPuntero = e.GetPosition(this),
+            RoutingStrategies.Bubble,
+            handledEventsToo: true);
+    }
+
+    /// <summary>Crea el popup de información "cristalino" con el que se sustituyen los
+    /// tooltips de los botones de acción (el ToolTip nativo se cierra al salir del botón y
+    /// no permite enlaces). Estilo profesional: acrílico oscuro translúcido (blur real de
+    /// Avalonia), borde claro, esquinas redondeadas y ancho limitado al de la ventana actual
+    /// (el texto largo se envuelve en multilínea y nunca se escapa por el borde).
+    /// Permanencia SIN PARPADEO: el cierre se decide por GEOMETRÍA (posición del puntero
+    /// contra los rects del botón y del popup), no por PointerEntered/Exited (que al abrir
+    /// el overlay disparan eventos espurios y provocan ciclos de abrir/cerrar). La posición
+    /// la mantiene el PointerMoved global (_ultimaPosPuntero).
+    /// Si se pasa <paramref name="alPulsar"/>, se engancha al contenido y cierra el popup.</summary>
+    private void CrearPopupInfo(Control anfitrion, Control contenido, Action? alPulsar = null)
+    {
+        // Cristal acrílico: el ExperimentalAcrylicBorder aporta el fondo translúcido con blur;
+        // un Border exterior añade borde, esquinas, padding y el límite de ancho.
+        var borde = new Border
+        {
+            // Transparente para recibir punteros en toda su área (el acrílico lo pinta).
+            Background = Brushes.Transparent,
+            BorderBrush = new SolidColorBrush(Color.Parse("#55FFFFFF")),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(8),
+            Padding = new Thickness(1),
+            MaxWidth = Math.Max(320, Bounds.Width - 48),
+            Child = new ExperimentalAcrylicBorder
+            {
+                Material = new ExperimentalAcrylicMaterial
+                {
+                    BackgroundSource = AcrylicBackgroundSource.Digger,
+                    TintColor = Color.Parse("#22252A"),
+                    TintOpacity = 0.85,
+                    MaterialOpacity = 0.75
+                },
+                CornerRadius = new CornerRadius(7),
+                Padding = new Thickness(10, 7),
+                Child = contenido
+            }
+        };
+
+        var popup = new Popup
+        {
+            PlacementTarget = anfitrion,
+            Placement = PlacementMode.Bottom,
+            VerticalOffset = 4,
+            // SIN light-dismiss: con él, el primer clic sobre el botón lo consume el propio
+            // popup y el botón no recibe la pulsación. El cierre lo gestionamos nosotros
+            // (geometría del botón + flags de entrada/salida del popup).
+            IsLightDismissEnabled = false,
+            Child = borde
+        };
+        // El Popup debe estar en el árbol visual de la ventana para poder abrirse.
+        if (Content is Panel raiz && !raiz.Children.Contains(popup))
+            raiz.Children.Add(popup);
+
+        // Permanencia SIN PARPADEO: el estado "puntero dentro" combina
+        // (a) el rect del BOTÓN en coordenadas de la ventana (misma capa, fiable) y
+        // (b) los flags sobrePopup del propio popup (sus eventos de puntero sí llegan,
+        // aunque viva en otra capa visual; un TranslatePoint entre capas NO es fiable).
+        // Al salir del botón o del popup se programa un cierre diferido que solo se
+        // ejecuta si la posición real no está sobre ninguno de los dos.
+        var sobreBoton = false;
+        var sobrePopup = false;
+
+        bool PunteroDentro()
+        {
+            var vacio = new Rect(0, 0, 0, 0);
+            var botonRect = anfitrion.TranslatePoint(new Point(0, 0), this) is { } pb
+                ? new Rect(pb, anfitrion.Bounds.Size)
+                : vacio;
+            return sobrePopup || botonRect.Contains(_ultimaPosPuntero);
+        }
+
+        void ProgramarCierre()
+        {
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
+            timer.Tick += (_, _) =>
+            {
+                timer.Stop();
+                if (!PunteroDentro()) popup.IsOpen = false;
+            };
+            timer.Start();
+        }
+
+        anfitrion.PointerEntered += (_, _) => { sobreBoton = true; popup.IsOpen = true; };
+        anfitrion.PointerExited += (_, _) => { sobreBoton = false; ProgramarCierre(); };
+        // Al pulsar el botón se cierra el popup sin consumir el clic: el botón sigue
+        // ejecutando su acción normal (Comparar, Exportar, Abrir captura, Muestra…).
+        anfitrion.PointerPressed += (_, _) => popup.IsOpen = false;
+        borde.PointerEntered += (_, _) => { sobrePopup = true; popup.IsOpen = true; };
+        borde.PointerExited += (_, _) => { sobrePopup = false; ProgramarCierre(); };
+        if (alPulsar is not null)
+            contenido.PointerPressed += (_, _) =>
+            {
+                popup.IsOpen = false;
+                alPulsar();
+            };
+    }
+
+    // Colores del texto sobre el popup cristalino oscuro (legibles en tema claro y oscuro).
+    private static readonly IBrush TextoPopup = new SolidColorBrush(Color.Parse("#F2F2F2"));
+    private static readonly IBrush EnlacePopup = new SolidColorBrush(Color.Parse("#6CBAFF"));
+
+    /// <summary>Configura los popups de información de los 4 botones de acción (Comparar,
+    /// Exportar, Abrir captura, Muestra de prueba), sustituyendo a los tooltips nativos.</summary>
+    private void ConfigurarPopupsBotones()
+    {
+        CrearPopupInfo(CompareButton, new TextBlock
+        {
+            Text = "Compara el protocolo actual con otro del catálogo (referencia seleccionable). " +
+                   "Pulsa «✕ Volver a la ficha» para salir.",
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = TextoPopup
+        });
+
+        CrearPopupInfo(ExportButton, new TextBlock
+        {
+            Text = "Exporta los diagramas de la ficha actual (pila, grafo, cabecera) al formato elegido: SVG, PNG o PDF.",
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = TextoPopup
+        });
+
+        CrearPopupInfo(AbrirCapturaButton, new TextBlock
+        {
+            Text = "Abre una ventana del explorador para que selecciones el archivo .cap de captura de paquetes con PCAP/PCAPNG y luego muestra sus detalles en pantalla.",
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = TextoPopup
+        });
+
+        // Muestra de prueba: texto + HIPERVÍNCULO a la carpeta/captura real (abre el
+        // explorador con el archivo seleccionado: explorer /select en Windows, open -R en
+        // macOS, xdg-open en Linux).
+        var carpeta = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "NetProtocol", "capturas");
+        var capturaMasReciente = Directory.Exists(carpeta)
+            ? Directory.GetFiles(carpeta, "*.pcap")
+                .OrderByDescending(f => File.GetLastWriteTimeUtc(f))
+                .FirstOrDefault()
+            : null;
+        var ruta = capturaMasReciente ?? carpeta;
+
+        var intro = new TextBlock
+        {
+            Text = "Genera una captura sintética determinista (28 protocolos F5). Para localizar la captura:",
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = TextoPopup
+        };
+        var enlace = new TextBlock
+        {
+            Text = ruta,
+            TextWrapping = TextWrapping.Wrap,
+            TextDecorations = TextDecorations.Underline,
+            Foreground = EnlacePopup,
+            Cursor = new Cursor(StandardCursorType.Hand)
+        };
+        var contenidoMuestra = new StackPanel { Spacing = 2, Children = { intro, enlace } };
+        CrearPopupInfo(MuestraButton, contenidoMuestra, () => AbrirCapturaEnExplorador(ruta));
+    }
+
+    /// <summary>Abre el explorador de archivos en la carpeta de la ruta dada y selecciona
+    /// el archivo (Windows: explorer /select; macOS: open -R; Linux: xdg-open del propio
+    /// archivo).</summary>
+    private void AbrirCapturaEnExplorador(string ruta)
+    {
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo();
+            if (OperatingSystem.IsWindows())
+            {
+                psi.FileName = "explorer.exe";
+                psi.Arguments = $"/select,\"{ruta}\"";
+            }
+            else if (OperatingSystem.IsMacOS())
+            {
+                psi.FileName = "open";
+                psi.Arguments = $"-R \"{ruta}\"";
+            }
+            else
+            {
+                psi.FileName = "xdg-open";
+                psi.Arguments = $"\"{Path.GetDirectoryName(ruta) ?? ruta}\"";
+            }
+            psi.UseShellExecute = true;
+            System.Diagnostics.Process.Start(psi);
+        }
+        catch (Exception ex)
+        {
+            if (IsLoaded) StatusText.Text = $"No se pudo abrir el explorador: {ex.Message}";
+        }
     }
 
     /// <summary>Aplica el zoom por reflow: fuente real del contenido + factor de los
@@ -355,10 +552,25 @@ public partial class MainWindow : Window
             .OrderBy(g => g.Key.ToString());
         if (texto.Length > 0)
         {
-            grupos = grupos.Where(g =>
-                g.Key.ToString().ToLowerInvariant().Contains(texto) ||
-                g.Any(p => p.Acronimo.ToLowerInvariant().Contains(texto) ||
-                           p.Nombre.ToLowerInvariant().Contains(texto)));
+            // Si el texto es un ACRÓNIMO DE FAMILIA exacto (ROUT, SEG, SYNC…), se filtra
+            // SOLO por esa familia: no se arrastran otras familias cuyo nombre de protocolo
+            // contenga el patrón (p. ej. "ROUT" ya no incluye SEG por el "Routing" de GRE,
+            // ni "SYNC" incluye HIST por el "Asynchronous" de ATM). Para cualquier otro
+            // texto se mantiene la búsqueda por protocolo (acrónimo/nombre).
+            var familiaExacta = Enum.GetValues<FamiliaProtocolo>()
+                .Cast<FamiliaProtocolo?>()
+                .FirstOrDefault(f => f.ToString() is { } nombre && nombre.Equals(texto, StringComparison.OrdinalIgnoreCase));
+            if (familiaExacta is { } fam)
+            {
+                grupos = grupos.Where(g => g.Key == fam);
+            }
+            else
+            {
+                grupos = grupos.Where(g =>
+                    g.Key.ToString().ToLowerInvariant().Contains(texto) ||
+                    g.Any(p => p.Acronimo.ToLowerInvariant().Contains(texto) ||
+                               p.Nombre.ToLowerInvariant().Contains(texto)));
+            }
         }
 
         var expanders = new List<Expander>();
@@ -446,6 +658,12 @@ public partial class MainWindow : Window
     private void RenderFicha(Protocol? p)
     {
         _seleccionado = p;
+
+        // Navegar a un protocolo (búsqueda, selector, sidebar, grafo…) cierra la captura
+        // en pantalla: la ficha vuelve a ocupar el panel central y no queda texto de
+        // captura mezclado bajo los diagramas.
+        CerrarCapturaSiAbierta();
+
         if (p is null) { DetailText.Text = "Seleccione un protocolo."; return; }
 
         // Sincroniza el selector de la barra superior con el protocolo en pantalla (navegues
@@ -805,11 +1023,24 @@ public partial class MainWindow : Window
         ListaPaquetes.SelectedIndex = 0;
     }
 
-    private void CerrarCaptura()
+    /// <summary>Cierra la captura en pantalla si está abierta (idempotente): restaura la
+    /// visibilidad de la ficha y limpia el estado de captura. Se llama desde RenderFicha
+    /// (toda navegación a un protocolo cierra la captura) y desde las vistas textuales
+    /// (Comparador/Leyenda/Acerca de), que escriben en DetailText (oculto con captura).</summary>
+    private void CerrarCapturaSiAbierta()
     {
+        if (!PanelCaptura.IsVisible) return;
         PanelCaptura.IsVisible = false;
         DetailText.IsVisible = true;
         DiagramPanel.IsVisible = true;
+        DiagramTitle.IsVisible = true;
+        _paquetesCaptura.Clear();
+        _rutaCaptura = "";
+    }
+
+    private void CerrarCaptura()
+    {
+        CerrarCapturaSiAbierta();
         if (_seleccionado is not null) RenderFicha(_seleccionado);
         if (IsLoaded) StatusText.Text = $"Captura cerrada · {_protocolos.Count} protocolos · zoom {_zoom * 100:0}%";
     }
@@ -970,6 +1201,7 @@ public partial class MainWindow : Window
     {
         // Restaura la alineación izquierda por si "Acerca de" la dejó centrada.
         DetailText.TextAlignment = TextAlignment.Left;
+        CerrarCapturaSiAbierta(); // la comparación es una vista de ficha: sale de la captura
         if (_seleccionado is null) return;
         // Referencia elegida por el usuario (ComboBox "Comparar con:"); TCP por defecto,
         // pero cualquier protocolo del catálogo es válido.
@@ -1104,6 +1336,7 @@ public partial class MainWindow : Window
     {
         // Alineación izquierda siempre: "Acerca de" centra el texto y hay que restaurarla.
         DetailText.TextAlignment = TextAlignment.Left;
+        CerrarCapturaSiAbierta(); // la leyenda es una vista de ficha: sale de la captura
         // Visto textual: oculta los diagramas del protocolo previamente seleccionado.
         DiagramPanel.Children.Clear();
         _docsActuales.Clear();
@@ -1144,6 +1377,7 @@ public partial class MainWindow : Window
     private void MostrarAcercaDe()
     {
         // Visto textual: oculta los diagramas del protocolo previamente seleccionado.
+        CerrarCapturaSiAbierta(); // "Acerca de" es una vista de ficha: sale de la captura
         DiagramPanel.Children.Clear();
         _docsActuales.Clear();
         DiagramTitle.IsVisible = false;
