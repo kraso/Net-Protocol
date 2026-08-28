@@ -790,3 +790,8 @@ Build 0/0 · smoke OK · 78/78 tests.
 **Fix:** botón contextual **"✕ Volver a la ficha"** en la barra superior (junto a "Comparar", `IsVisible=False` por defecto): aparece al pulsar "Comparar" y llama `VolverALaFicha()` → `RenderFicha(_seleccionado)` (el protocolo comparado). Se oculta en `RenderFicha` (navegar por sidebar/búsqueda/selector ya restaura la ficha), en Leyenda, Acerca de y Captura (no son comparaciones). Mismo patrón que "✕ Cerrar captura". Build 0/0 · smoke OK · 78/78 tests.
 
 **Publicación:** **v1.0.6** con CI verde (`<Version>` a 1.0.6; el pipeline construye los instaladores con el tag).
+## 28-08-2026 — Tooltips en los botones de acción (Comparar, Exportar, Abrir captura, Muestra de prueba)
+
+**Pedido del responsable:** al mantener el puntero del ratón unos instantes sobre los botones de acción debe aparecer un **popup emergente** con una breve reseña de para qué sirven; además, **quitar los puntos suspensivos** del botón "Abrir captura…".
+
+**Implementación:** `ToolTip.Tip` con `ToolTip.ShowDelay="600"` (retardo ~0,6 s, "tras un tiempo") en: **Comparar** (compara el actual con la referencia del catálogo; recuerda "✕ Volver a la ficha"), **Exportar** (exporta la pila/grafo/cabecera a SVG/PNG/PDF), **Abrir captura** (abre PCAP/PCAPNG con detalle por capas y validación F5) y **Muestra de prueba** (genera la captura sintética determinista de los 28 protocolos F5). El botón pasa a **"Abrir captura"** (sin "…"). El tooltip usa el estilo del tema (Avalonia estándar, sin customización). Build 0/0 · smoke OK · 78/78 tests.
