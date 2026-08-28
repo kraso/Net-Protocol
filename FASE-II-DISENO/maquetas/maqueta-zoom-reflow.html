@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maqueta — Zoom Net Protocol: escala vs reflow</title>
+<style>
+  :root {
+    --borde: #334155;
+    --ficha: #0f172a;
+    --fondo: #eef2f7;
+    --panel: #ffffff;
+    --acento-a: #dc2626; /* modo actual (bug) */
+    --acento-b: #16a34a; /* modo propuesto */
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: var(--fondo);
+    color: var(--ficha);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  /* ── Barra de control (parecida a la barra superior de la app) ──────────── */
+  header {
+    background: linear-gradient(90deg, #1a1a1a, #ffffff);
+    color: #fff;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--borde);
+  }
+  header h1 { font-size: 15px; margin: 0; font-weight: 600; }
+  .grupo {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.92); color: #0f172a;
+    border: 1px solid #64748b; border-radius: 4px; padding: 3px 8px;
+    font-size: 13px;
+  }
+  .grupo button {
+    border: 1px solid #94a3b8; background: #fff; border-radius: 3px;
+    min-width: 24px; height: 22px; cursor: pointer; font-size: 14px; line-height: 1;
+  }
+  .grupo button:hover { background: #e2e8f0; }
+  .zoom-label { min-width: 56px; text-align: center; font-weight: 600; }
+  .aviso {
+    font-size: 12px; color: #e2e8f0; background: rgba(0,0,0,0.35);
+    padding: 4px 10px; border-radius: 10px;
+  }
+
+  /* ── Dos paneles lado a lado ─────────────────────────────────────────────── */
+  main {
+    flex: 1; display: flex; gap: 0; min-height: 0;
+  }
+  .col {
+    flex: 1; min-width: 0; display: flex; flex-direction: column;
+    background: var(--panel);
+    border-right: 1px solid var(--borde);
+  }
+  .col-head {
+    padding: 8px 12px; font-size: 13px; font-weight: 600; color: #fff;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .col-a .col-head { background: var(--acento-a); }
+  .col-b .col-head { background: var(--acento-b); }
+  .badge {
+    background: rgba(255,255,255,0.25); border-radius: 10px;
+    padding: 1px 8px; font-size: 11px; font-weight: 400;
+  }
+
+  /* Simula el "ScrollViewer" de la app: solo barra VERTICAL.
+     overflow-x hidden en A = HorizontalScrollBarVisibility=Disabled. */
+  .viewport {
+    flex: 1; overflow-x: hidden; overflow-y: auto; min-height: 0;
+    position: relative; background: #fafbfd;
+  }
+
+  /* ── Modo A (actual): escalado por RenderTransform ────────────────────────
+     El transform escala la PINTURA, pero el layout se mide ANTES de escalar:
+     width:100% = ancho del viewport sin escala → al escalar, el texto se sale
+     por la derecha y el ScrollViewer no detecta el desbordamiento. Sin barra
+     horizontal (Disabled) → texto inaccesible. Es EXACTAMENTE el bug. */
+  .modo-a {
+    width: 100%;
+    transform-origin: top left;
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ficha);
+  }
+
+  /* ── Modo B (propuesto): reflow de texto ─────────────────────────────────
+     El zoom se aplica al FONT-SIZE real: el texto re-envuelve contra el ancho
+     disponible y solo crece en altura → la barra vertical basta. Sin barra
+     horizontal, sin texto inaccesible. */
+  .modo-b {
+    width: 100%;
+    padding: 14px;
+    font-size: 13px;              /* JS lo multiplica por el zoom (reflow) */
+    line-height: 1.55;
+    color: var(--ficha);
+    word-wrap: break-word;
+  }
+
+  /* Ficha de ejemplo: 18 campos como la app */
+  .ficha { margin: 0 0 12px; }
+  .ficha .campo { margin: 2px 0; }
+  .ficha .num { display: inline-block; width: 28px; color: #64748b; }
+  .ficha b { font-weight: 600; }
+
+  /* Diagrama (ancho fijo de documento, como DiagramView 600×400).
+     - En A: se escala como parte del transform global → se recorta.
+     - En B: cada diagrama lleva SU PROPIO factor (unidad) y su propio scroll
+       horizontal si desborda del viewport (recomendación (b)). */
+  .diagrama-wrap {
+    margin: 12px 0;
+    border: 1px dashed var(--borde);
+    background: #fff;
+  }
+  .diagrama {
+    width: 600px; height: 240px; position: relative;
+    transform-origin: top left;
+    margin: 8px;
+  }
+  .capa {
+    position: absolute; left: 80px; right: 80px; height: 44px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px; border-radius: 4px; color: #0f172a; font-size: 12px;
+    border: 1px solid #475569; font-weight: 600;
+  }
+  .capa .pdu { font-weight: 400; font-size: 11px; opacity: 0.75; }
+  .capa:nth-child(1) { top: 12px;  background: #fde68a; }
+  .capa:nth-child(2) { top: 64px;  background: #a7f3d0; }
+  .capa:nth-child(3) { top: 116px; background: #93c5fd; }
+  .capa:nth-child(4) { top: 168px; background: #c4b5fd; }
+  .rotulo { font-size: 11px; color: #64748b; margin: 8px; }
+
+  .nota-b { font-size: 11px; color: var(--acento-b); margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Net Protocol — maqueta de zoom</h1>
+  <div class="grupo">
+    Zoom:
+    <button id="menos" title="Zoom -10%">−</button>
+    <span class="zoom-label" id="label">100%</span>
+    <button id="mas" title="Zoom +10%">+</button>
+  </div>
+  <span class="aviso">Usa también <b>Ctrl + rueda</b> sobre los paneles · Maximiza esta ventana para ver el caso real</span>
+</header>
+
+<main>
+  <!-- ══ PANEL A: comportamiento ACTUAL (scale + barra solo vertical) ══ -->
+  <section class="col col-a">
+    <div class="col-head">
+      A — Actual (zoom por escala)
+      <span class="badge">RenderTransform · sin scroll horizontal</span>
+    </div>
+    <div class="viewport" id="viewport-a">
+      <div class="modo-a" id="modo-a">
+        <div class="ficha" id="ficha-a"></div>
+        <div class="diagrama-wrap">
+          <div class="rotulo">Pila de encapsulación (F4) — ancho de documento fijo 600 px</div>
+          <div class="diagrama" id="diagrama-a"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ PANEL B: comportamiento PROPUESTO (reflow + diagrama con factor propio) ══ -->
+  <section class="col col-b">
+    <div class="col-head">
+      B — Propuesto (reflow de texto)
+      <span class="badge">FontSize real · sin scroll horizontal · diagrama con factor propio</span>
+    </div>
+    <div class="viewport" id="viewport-b">
+      <div class="modo-b" id="modo-b">
+        <div class="ficha" id="ficha-b"></div>
+        <div class="diagrama-wrap">
+          <div class="rotulo">Mismo diagrama: se escala como UNIDAD (factor propio) con su scroll si desborda</div>
+          <div class="diagrama" id="diagrama-b"></div>
+        </div>
+        <div class="nota-b" id="nota-b"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // ── Datos de ejemplo: ficha de 18 campos con líneas largas (como DetailText) ──
+  const campos = [
+    ["Identidad", "Transmission Control Protocol (TCP) · TCP · familia Transporte [F3]"],
+    ["Estado", "Vigente / Experimentales (RFC 9293, actualización del RFC 793; cerrado el 2026-08-26 en el catálogo)"],
+    ["Finalidad", "Proporcionar un servicio de transmisión fiable, orientado a conexión y con control de flujo y congestión entre procesos extremo a extremo."],
+    ["Encapsulación", "corre sobre IPv4 (ipv4), IPv6 (ipv6) y SCTP en ciertos escenarios; encapsula HTTP, TLS, SSH, SMTP, BGP, MQTT, Telnet…"],
+    ["Capas", "Transporte (4); segmento; puertos de origen y destino de 16 bits; número de secuencia y de acuse de 32 bits."],
+    ["Transp./dir", "Puertos IANA 7, 9, 13, 20-21, 22, 23, 25, 53, 80, 110, 143, 443, 993, 995, 1080, 1433, 3306, 5432, 8080…"],
+    ["PDU", "Segmento (segment); cabecera base de 20 bytes más opciones variables (MSS, SACK, timestamps…)."],
+    ["Mensajes", "SYN, SYN+ACK, ACK, FIN, FIN+ACK, RST, datos (PSH/URG). Sin mensajes de control separados: banderas en la cabecera."],
+    ["Campos", "Puerto origen, puerto destino, número de secuencia, número de acuse, offset de datos, reservado, CWR, ECE, URG, ACK, PSH, RST, SYN, FIN, ventana, checksum, puntero urgente, opciones."],
+    ["Secuencia", "Three-way handshake (SYN → SYN+ACK → ACK), datos con acuse acumulativo, cierre con FIN de doble dirección, TIME_WAIT 2MSL."],
+    ["Addressing", "Direccionamiento por puertos de 16 bits (0-65535), multiplexa múltiples conexiones sobre una misma dirección IP."],
+    ["Routing", "No participa en el encaminamiento; entrega extremo a extremo sobre el protocolo de red subyacente."],
+    ["Seguridad", "Cifrado: lo aportan TLS/SSL por encima [F6]; TCP por sí mismo no cifra (texto plano)."],
+    ["QoS/rendim.", "Ventana deslizante, cierre lento, evitación de congestión (Reno/CUBIC), SACK; latencia y pérdida como métricas típicas."],
+    ["Observabilidad", "tcpdump/Wireshark, netstat, ss, tcp_trace, métricas de retransmisión y RTT en kernels y middleboxes."],
+    ["Interoperabilidad", "Implementaciones: Linux, Windows, macOS, BSD, routers Cisco/Juniper, stacks embebidos (lwIP, uIP) — compatibilidad general amplia."],
+    ["Implementaciones", "Kernel Linux (tcp_v4.c/tcp_v6.c), librerías de usuario; soporte nativo en todos los SO modernos."],
+    ["Fuentes", "RFC 9293 (STD 7), RFC 793 (histórico), IANA service names; verificado el 2026-08-26 [F4 ficha prioritaria]."]
+  ];
+  function renderFicha(el) {
+    el.innerHTML = campos.map(([k, v], i) => {
+      const n = String(i + 1).padStart(2, " ");
+      return `<div class="campo"><span class="num">${n}.</span> <b>${k}:</b> ${v}</div>`;
+    }).join("");
+  }
+
+  // ── Diagrama de ejemplo (pila de encapsulación) ──
+  const capas = [
+    { nombre: "HTTP",          pdu: "request/response" },
+    { nombre: "TCP",           pdu: "segmento"          },
+    { nombre: "IPv4 / IPv6",   pdu: "paquete"           },
+    { nombre: "Ethernet 802.3",pdu: "trama"             }
+  ];
+  function renderDiagrama(el) {
+    el.innerHTML = capas.map(c => `<div class="capa"><span>${c.nombre}</span><span class="pdu">${c.pdu}</span></div>`).join("");
+  }
+
+  // ── Estado compartido ──
+  let zoom = 1.0;
+  const MIN = 0.7, MAX = 3.0;
+
+  const modoA = document.getElementById("modo-a");
+  const modoB = document.getElementById("modo-b");
+  const diagramaA = document.getElementById("diagrama-a");
+  const diagramaB = document.getElementById("diagrama-b");
+  const label = document.getElementById("label");
+  const notaB = document.getElementById("nota-b");
+
+  renderFicha(document.getElementById("ficha-a"));
+  renderFicha(document.getElementById("ficha-b"));
+  renderDiagrama(diagramaA);
+  renderDiagrama(diagramaB);
+
+  // ── Aplicar zoom: A escala (pintura), B reflow (fuente) + factor de diagrama ──
+  function aplicar() {
+    const pct = Math.round(zoom * 100);
+    label.textContent = pct + "%";
+
+    // A: RenderTransform puro. El width sigue siendo 100% (sin escala) → el
+    // contenido se dibuja mayor y se recorta a la derecha; el viewport con
+    // overflow-x:hidden no ofrece scroll horizontal (como el ScrollViewer).
+    modoA.style.transform = `scale(${zoom})`;
+    modoA.style.transformOrigin = "top left";
+
+    // B: reflow — font-size real; el texto re-envuelve contra el ancho del
+    // panel (solo crece en altura, nunca en ancho).
+    modoB.style.fontSize = (13 * zoom) + "px";
+
+    // Diagrama en B: factor propio como unidad (no reflow), con scroll X propio.
+    diagramaB.style.transform = `scale(${zoom})`;
+    diagramaB.style.transformOrigin = "top left";
+
+    // El diagrama en A ya escaló con el transform global (se recorta igual que el texto).
+    notaB.textContent = `A este zoom, el diagrama (600 px) ocupa ${Math.round(600 * zoom)} px de ancho: se escala como unidad y, si desborda el panel, aparece scroll horizontal propio.`;
+  }
+
+  function clampa() {
+    zoom = Math.min(MAX, Math.max(MIN, zoom));
+    aplicar();
+  }
+  document.getElementById("menos").onclick = () => { zoom -= 0.1; clampa(); };
+  document.getElementById("mas").onclick   = () => { zoom += 0.1; clampa(); };
+
+  // Ctrl + rueda sobre los paneles (como la app: AddHandler PointerWheelChanged)
+  document.querySelectorAll(".viewport").forEach(vp => {
+    vp.addEventListener("wheel", e => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      zoom += (e.deltaY < 0 ? 0.1 : -0.1);
+      clampa();
+    }, { passive: false });
+  });
+
+  aplicar();
+</script>
+</body>
+</html>

@@ -6,6 +6,7 @@
         x:Class="Redes.Knowledge.App.MainWindow"
         Title="Net Protocol"
         Width="1400" Height="820"
+        MinWidth="960" MinHeight="600"
         FontFamily="{DynamicResource FuenteUi}"
         WindowDecorations="None">
   <Window.Styles>
@@ -53,7 +54,13 @@
       <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListMediumBrush}" />
     </Style>
   </Window.Styles>
-  <DockPanel>
+  <!-- Redimensión por borde con WindowDecorations=None: el marco del sistema no existe,
+       así que la ventana NO redimensiona por defecto. Se añaden grips invisibles (bordes
+       finos + esquinas) sobre el contenido que llaman a BeginResizeDrag; el zoom es una
+       cosa distinta (Ctrl+Scroll → reflow de fuente). MinWidth/MinHeight (960×600) fija
+       el límite inferior: la ventana nunca baja de ese tamaño. -->
+  <Grid RowDefinitions="6,*,6" ColumnDefinitions="6,*,6">
+    <DockPanel Grid.Row="1" Grid.Column="1">
     <!-- Barra de título Net Protocol: gradiente negro→blanco horizontal, cristalizado
          (transparencia parcial), predominio del negro y PERMANENTE (colores fijos,
          no dependen del tema claro/oscuro). El nombre y el logo aparecen UNA sola vez;
@@ -184,5 +191,27 @@
         </StackPanel>
       </StackPanel>
     </ScrollViewer>
-  </DockPanel>
+    </DockPanel>
+
+    <!-- Grips de redimensión (WindowDecorations=None): sin marco del sistema, el borde
+         no redimensiona por defecto. Bordes finos (6 px) y esquinas (18 px) invisibles
+         que capturan el botón izquierdo y llaman a BeginResizeDrag en el code-behind.
+         El cursor cambia según la dirección. Independientes del zoom (Ctrl+Scroll). -->
+    <Border Grid.Row="0" Grid.Column="1" Background="Transparent" Cursor="SizeNorthSouth"
+            PointerPressed="Grip_N" />
+    <Border Grid.Row="2" Grid.Column="1" Background="Transparent" Cursor="SizeNorthSouth"
+            PointerPressed="Grip_S" />
+    <Border Grid.Row="1" Grid.Column="0" Background="Transparent" Cursor="SizeWestEast"
+            PointerPressed="Grip_W" />
+    <Border Grid.Row="1" Grid.Column="2" Background="Transparent" Cursor="SizeWestEast"
+            PointerPressed="Grip_E" />
+    <Border Grid.Row="0" Grid.Column="0" Background="Transparent" Cursor="TopLeftCorner"
+            PointerPressed="Grip_NW" />
+    <Border Grid.Row="0" Grid.Column="2" Background="Transparent" Cursor="TopRightCorner"
+            PointerPressed="Grip_NE" />
+    <Border Grid.Row="2" Grid.Column="0" Background="Transparent" Cursor="BottomLeftCorner"
+            PointerPressed="Grip_SW" />
+    <Border Grid.Row="2" Grid.Column="2" Background="Transparent" Cursor="BottomRightCorner"
+            PointerPressed="Grip_SE" />
+  </Grid>
 </Window>

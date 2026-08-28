@@ -3,6 +3,7 @@ using System.Text;
 using Avalonia.Platform.Storage;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -26,7 +27,7 @@ namespace Redes.Knowledge.App;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private const double ZoomMin = 0.7, ZoomMax = 2.5;
+    private const double ZoomMin = 0.7, ZoomMax = 3.0;
     private const double ListaAltura = 240;
     private const double ListaAnchura = 306; // idéntica para todos los grupos (340 - márgenes - scrollbar)
 
@@ -45,6 +46,12 @@ public partial class MainWindow : Window
     private bool _cargando;
     private Protocol? _seleccionado;
     private double _zoom = 1.0;
+
+    // Base de fuente EFECTIVA del contenido (capturada al abrir la ventana): el zoom se
+    // aplica como multiplicador real (reflow), así a 100 % el aspecto es el del tema.
+    // Valores provisionales razonables: Opened los sobrescribe con los del tema aplicado.
+    private double _fuenteBase = 13;
+    private double _tituloBase = 14;
 
     /// <summary>Diagramas de la ficha actual (cache para la exportación D4-3).</summary>
     private List<(string Titulo, DiagramDocument Doc, IReadOnlyList<NodoGrafo>? Nodos, IReadOnlyDictionary<string, string?>? Abrir)> _docsActuales = new();
@@ -160,23 +167,59 @@ public partial class MainWindow : Window
                 DetalleCaptura.Text = DetalleDe(_paquetesCaptura[idx]);
         };
 
-        // Zoom global del tamaño de letra: Ctrl + rueda del ratón en toda la interfaz.
+        // Zoom del contenido por REFLOW (diseño UX adoptado): se escala el FontSize real
+        // de la ficha/paneles y el FactorZoom de los diagramas, en lugar de un
+        // RenderTransform global. El texto re-envuelve contra el ancho del panel (solo
+        // crece en altura) → la barra vertical del ScrollViewer basta y nunca hay texto
+        // inaccesible a la derecha. La shell (barras y sidebar) queda fija a 100 %.
         AddHandler(InputElement.PointerWheelChangedEvent,
             (_, e) =>
             {
                 if ((e.KeyModifiers & KeyModifiers.Control) == 0) return;
                 _zoom = Math.Clamp(_zoom + (e.Delta.Y > 0 ? 0.1 : -0.1), ZoomMin, ZoomMax);
-                if (Content is Control root)
-                {
-                    // Avalonia no expone LayoutTransform: se aplica escala de render con origen arriba-izquierda.
-                    root.RenderTransform = new ScaleTransform(_zoom, _zoom);
-                    root.RenderTransformOrigin = new RelativePoint(0, 0, RelativeUnit.Relative);
-                }
-                StatusText.Text = $"Zoom: {_zoom * 100:0}% — Ctrl+Scroll ajusta el tamaño de letra en toda la interfaz";
+                AplicarZoomContenido();
+                StatusText.Text = $"Zoom del contenido: {_zoom * 100:0}% — Ctrl+Scroll ajusta el tamaño de letra (reflow, sin desbordes)";
                 e.Handled = true;
             },
             RoutingStrategies.Bubble,
             handledEventsToo: true);
+
+        // Captura la base de fuente EFECTIVA del contenido una vez la ventana está en el
+        // árbol (el tema la ha aplicado): a zoom 100 % el aspecto no cambia respecto al
+        // montaje anterior. Hasta que se dispare, AplicarZoomContenido no hace nada.
+        Opened += (_, _) =>
+        {
+            _fuenteBase = double.IsNaN(DetailText.FontSize) || DetailText.FontSize <= 0 ? 13 : DetailText.FontSize;
+            var tituloBase = double.IsNaN(DiagramTitle.FontSize) || DiagramTitle.FontSize <= 0 ? _fuenteBase : DiagramTitle.FontSize;
+            _tituloBase = Math.Max(_fuenteBase, tituloBase);
+            AplicarZoomContenido();
+            if (IsLoaded) StatusText.Text = $"Dataset: {_protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · zoom del contenido {_zoom * 100:0}% (Ctrl+Scroll)";
+        };
+    }
+
+    /// <summary>Aplica el zoom por reflow: fuente real del contenido + factor de los
+    /// diagramas. El texto con TextWrapping=Wrap se re-envuelve contra el ancho del
+    /// panel (nunca desborda a la derecha); los diagramas se re-renderizan con su
+    /// FactorZoom (unidad), y su ScrollViewer horizontal aparece solo si desbordan.</summary>
+    private void AplicarZoomContenido()
+    {
+        if (_fuenteBase <= 0) return; // la ventana aún no está abierta (base no capturada)
+
+        DetailText.FontSize = _fuenteBase * _zoom;
+        DiagramTitle.FontSize = _tituloBase * _zoom;
+        ResumenCaptura.FontSize = _fuenteBase * _zoom;
+        DetalleCaptura.FontSize = _fuenteBase * _zoom;
+        ListaPaquetes.FontSize = _fuenteBase * _zoom;
+
+        // Los diagramas se reconstruyen con el nuevo factor SOLO si se están mostrando en
+        // este momento (ficha con diagramas en pantalla): en Leyenda/Acerca de/Comparador
+        // el panel está vacío a propósito y no debe repoblarse al hacer zoom; con una
+        // captura abierta el panel está oculto y cada texto de captura ya escaló su fuente.
+        if (!PanelCaptura.IsVisible && _seleccionado is not null && DiagramPanel.Children.Count > 0)
+        {
+            var vecinos = GrafoRelaciones.Vecinos1Salto(_seleccionado.Acronimo, _relaciones);
+            RenderDiagramas(_seleccionado, vecinos);
+        }
     }
 
     private void CargarFiltros()
@@ -504,17 +547,35 @@ public partial class MainWindow : Window
         foreach (var (titulo, doc, nodosGrafo, abrir) in docs)
         {
             var panel = new StackPanel { Spacing = 4 };
-            // Título hereda el color del tema (sin color fijo) y es seleccionable.
+            // Título hereda el color del tema (sin color fijo), es seleccionable y escala
+            // con el zoom de reflow (misma base de fuente que DiagramTitle).
             panel.Children.Add(new SelectableTextBlock
             {
                 Text = titulo,
-                FontWeight = Avalonia.Media.FontWeight.SemiBold
+                FontWeight = Avalonia.Media.FontWeight.SemiBold,
+                FontSize = _tituloBase * _zoom
             });
-            var view = new DiagramView { Document = doc, Nodos = nodosGrafo };
+            var view = new DiagramView
+            {
+                Document = doc,
+                Nodos = nodosGrafo,
+                // Zoom del diagrama como UNIDAD (reflow de texto + factor propio):
+                // geometría y texto escalan de verdad vía el contexto de dibujo.
+                FactorZoom = _zoom
+            };
             // Navegación del grafo (D5-1): un clic en un nodo abre su ficha.
             if (abrir is not null)
                 view.NodoPulsado += clave => NavegarGrafo(clave, abrir);
-            panel.Children.Add(view);
+            // Cada diagrama con su propio scroll horizontal: solo aparece cuando el
+            // diagrama escalado desborda el ancho del panel (el contenido de texto no
+            // necesita barra horizontal gracias al reflow; los diagramas, de geometría
+            // fija, sí pueden necesitarla a zoom alto).
+            panel.Children.Add(new ScrollViewer
+            {
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                Content = view
+            });
             DiagramPanel.Children.Add(panel);
         }
     }
@@ -889,9 +950,28 @@ public partial class MainWindow : Window
 
     private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        // Arrastre de la ventana desde la barra de título personalizada (SystemDecorations=None).
+        // Arrastre de la ventana desde la barra de título personalizada (WindowDecorations=None).
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             BeginMoveDrag(e);
+    }
+
+    // Grips de redimensión (WindowDecorations=None): el marco del sistema no existe, así
+    // que sin esto la ventana no se puede redimensionar por el borde. Cada grip de borde/
+    // esquina del axaml llama a BeginResizeDrag con su dirección; MinWidth/MinHeight de la
+    // ventana (960×600) fija el límite inferior. El zoom (Ctrl+Scroll) es independiente.
+    private void Grip_N(object? sender, PointerPressedEventArgs e) => IniciarRedimension(WindowEdge.North, e);
+    private void Grip_S(object? sender, PointerPressedEventArgs e) => IniciarRedimension(WindowEdge.South, e);
+    private void Grip_W(object? sender, PointerPressedEventArgs e) => IniciarRedimension(WindowEdge.West, e);
+    private void Grip_E(object? sender, PointerPressedEventArgs e) => IniciarRedimension(WindowEdge.East, e);
+    private void Grip_NW(object? sender, PointerPressedEventArgs e) => IniciarRedimension(WindowEdge.NorthWest, e);
+    private void Grip_NE(object? sender, PointerPressedEventArgs e) => IniciarRedimension(WindowEdge.NorthEast, e);
+    private void Grip_SW(object? sender, PointerPressedEventArgs e) => IniciarRedimension(WindowEdge.SouthWest, e);
+    private void Grip_SE(object? sender, PointerPressedEventArgs e) => IniciarRedimension(WindowEdge.SouthEast, e);
+
+    private void IniciarRedimension(WindowEdge borde, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            BeginResizeDrag(borde, e);
     }
 
     private void Minimize_Click(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;

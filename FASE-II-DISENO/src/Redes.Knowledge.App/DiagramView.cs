@@ -31,6 +31,21 @@ public sealed class DiagramView : Control
         set => SetValue(DocumentProperty, value);
     }
 
+    // Zoom del diagrama como UNIDAD (diseño UX adoptado: "reflow de texto + factor
+    // propio en los diagramas"). La escala se aplica al contexto de dibujo (PushTransform,
+    // igual que el PNG 2× del exporter), de modo que geometría y texto escalan de verdad,
+    // y MeasureOverride devuelve el tamaño escalado para que el ScrollViewer horizontal
+    // que envuelve al diagrama sepa cuándo mostrar su barra. El hit-testing del grafo
+    // compensa el factor (coordenadas de documento fieles a cualquier zoom).
+    public static readonly StyledProperty<double> FactorZoomProperty =
+        AvaloniaProperty.Register<DiagramView, double>(nameof(FactorZoom), 1.0);
+
+    public double FactorZoom
+    {
+        get => GetValue(FactorZoomProperty);
+        set => SetValue(FactorZoomProperty, value);
+    }
+
     // Nodos del grafo (D5-1): rectángulos en coordenadas de documento para hit-testing
     // de navegación. Solo los diagramas de tipo grafo los aportan.
     public static readonly StyledProperty<IReadOnlyList<NodoGrafo>?> NodosProperty =
@@ -49,14 +64,21 @@ public sealed class DiagramView : Control
     private static readonly Cursor CursorMano = new(StandardCursorType.Hand);
     private static readonly Cursor CursorFlecha = new(StandardCursorType.Arrow);
 
+    private double FactorReal => Math.Max(0.1, FactorZoom);
+
     private NodoGrafo? NodoEn(Point p)
     {
         var nodos = Nodos;
         if (nodos is null) return null;
+        // El punto viene en coordenadas del control (ya con el zoom aplicado); los
+        // rectángulos de nodo viven en coordenadas de documento → se compensa el factor.
+        var f = FactorReal;
+        var px = p.X / f;
+        var py = p.Y / f;
         foreach (var n in nodos)
         {
-            if (p.X >= n.X && p.X <= n.X + n.W &&
-                p.Y >= n.Y && p.Y <= n.Y + n.H)
+            if (px >= n.X && px <= n.X + n.W &&
+                py >= n.Y && py <= n.Y + n.H)
                 return n;
         }
         return null;
@@ -108,13 +130,17 @@ public sealed class DiagramView : Control
 
     static DiagramView()
     {
-        AffectsRender<DiagramView>(DocumentProperty);
+        AffectsRender<DiagramView>(DocumentProperty, FactorZoomProperty);
     }
 
     protected override Size MeasureOverride(Size availableSize)
     {
         var d = Document;
-        return d is null ? new Size(0, 0) : new Size(d.Width, d.Height);
+        if (d is null) return new Size(0, 0);
+        // El layout mide el tamaño ESCALADO: el ScrollViewer que envuelve al diagrama
+        // sabe el ancho real y muestra su barra horizontal cuando desborda el panel.
+        var f = FactorReal;
+        return new Size(d.Width * f, d.Height * f);
     }
 
     public override void Render(DrawingContext context)
@@ -125,56 +151,66 @@ public sealed class DiagramView : Control
 
         context.FillRectangle(FondoClaro, new Rect(0, 0, Bounds.Width, Bounds.Height));
 
-        var rectIndex = 0;
-        foreach (var p in d.Items)
+        // Zoom del diagrama como unidad: la escala se aplica al CONTEXTO de dibujo
+        // (igual que el PNG 2× del exporter), de modo que geometría y texto escalan de
+        // verdad y el texto del diagrama crece con el zoom (13 px base → 13·zoom visual).
+        // Dentro del transform TODO va en coordenadas de documento (los 13 px / trazos
+        // base): el push transform los escala después una sola vez. Con factor 1.0 la
+        // matriz es la identidad: dibuja exactamente como antes.
+        var f = FactorReal;
+        using (context.PushTransform(Matrix.CreateScale(f, f)))
         {
-            switch (p.Kind)
+            var rectIndex = 0;
+            foreach (var p in d.Items)
             {
-                case PrimitiveKind.Rect:
-                    var fill = ColorRect(d.Tipo, p, rectIndex++);
-                    var stroke = p.Stroke is null ? TrazoPorDefecto : new SolidColorBrush(Color.Parse(p.Stroke));
-                    context.DrawRectangle(fill, new Pen(stroke, 1.2),
-                        new Rect(p.X, p.Y, p.W, p.H));
-                    break;
+                switch (p.Kind)
+                {
+                    case PrimitiveKind.Rect:
+                        var fill = ColorRect(d.Tipo, p, rectIndex++);
+                        var stroke = p.Stroke is null ? TrazoPorDefecto : new SolidColorBrush(Color.Parse(p.Stroke));
+                        context.DrawRectangle(fill, new Pen(stroke, 1.2),
+                            new Rect(p.X, p.Y, p.W, p.H));
+                        break;
 
-                case PrimitiveKind.Line:
-                    var trazo = p.Stroke is null ? TrazoPorDefecto : new SolidColorBrush(Color.Parse(p.Stroke));
-                    if (d.Tipo == "grafo" && !string.IsNullOrWhiteSpace(p.Label) &&
-                        ColorArista.TryGetValue(p.Label, out var hex))
-                        trazo = new SolidColorBrush(Color.Parse(hex));
-                    context.DrawLine(new Pen(trazo, 1.4),
-                        new Point(p.X, p.Y), new Point(p.X + p.W, p.Y + p.H));
-                    break;
+                    case PrimitiveKind.Line:
+                        var trazo = p.Stroke is null ? TrazoPorDefecto : new SolidColorBrush(Color.Parse(p.Stroke));
+                        if (d.Tipo == "grafo" && !string.IsNullOrWhiteSpace(p.Label) &&
+                            ColorArista.TryGetValue(p.Label, out var hex))
+                            trazo = new SolidColorBrush(Color.Parse(hex));
+                        context.DrawLine(new Pen(trazo, 1.4),
+                            new Point(p.X, p.Y), new Point(p.X + p.W, p.Y + p.H));
+                        break;
 
-                case PrimitiveKind.Text:
-                    var colorTexto = p.Fill is null ? TextoPorDefecto : new SolidColorBrush(Color.Parse(p.Fill));
-                    var texto = p.Label;
-                    // Si el layout indica un ancho máximo (W>0, p. ej. etiqueta dentro de una
-                    // casilla del wire format), medir y truncar con "…" en caso de desborde.
-                    if (p.W > 0)
-                    {
-                        var ftMedida = new FormattedText(texto,
-                            System.Globalization.CultureInfo.CurrentCulture,
-                            FlowDirection.LeftToRight, TypefaceUi, 13, colorTexto);
-                        if (ftMedida.Width > p.W)
+                    case PrimitiveKind.Text:
+                        var colorTexto = p.Fill is null ? TextoPorDefecto : new SolidColorBrush(Color.Parse(p.Fill));
+                        var texto = p.Label;
+                        // Si el layout indica un ancho máximo (W>0, p. ej. etiqueta dentro de una
+                        // casilla del wire format), medir y truncar con "…" en caso de desborde.
+                        if (p.W > 0)
                         {
-                            var i = texto.Length;
-                            while (i > 0)
+                            var ftMedida = new FormattedText(texto,
+                                System.Globalization.CultureInfo.CurrentCulture,
+                                FlowDirection.LeftToRight, TypefaceUi, 13, colorTexto);
+                            if (ftMedida.Width > p.W)
                             {
-                                var candidato = texto[..i] + "…";
-                                var ft2 = new FormattedText(candidato,
-                                    System.Globalization.CultureInfo.CurrentCulture,
-                                    FlowDirection.LeftToRight, TypefaceUi, 13, colorTexto);
-                                if (ft2.Width <= p.W) { texto = candidato; break; }
-                                i--;
+                                var i = texto.Length;
+                                while (i > 0)
+                                {
+                                    var candidato = texto[..i] + "…";
+                                    var ft2 = new FormattedText(candidato,
+                                        System.Globalization.CultureInfo.CurrentCulture,
+                                        FlowDirection.LeftToRight, TypefaceUi, 13, colorTexto);
+                                    if (ft2.Width <= p.W) { texto = candidato; break; }
+                                    i--;
+                                }
                             }
                         }
-                    }
-                    var ft = new FormattedText(texto,
-                        System.Globalization.CultureInfo.CurrentCulture,
-                        FlowDirection.LeftToRight, TypefaceUi, 13, colorTexto);
-                    context.DrawText(ft, new Point(p.X, p.Y));
-                    break;
+                        var ft = new FormattedText(texto,
+                            System.Globalization.CultureInfo.CurrentCulture,
+                            FlowDirection.LeftToRight, TypefaceUi, 13, colorTexto);
+                        context.DrawText(ft, new Point(p.X, p.Y));
+                        break;
+                }
             }
         }
     }

@@ -753,3 +753,17 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - Lección de validación: probar en una carpeta aparte con el mismo AppId **secuestró la entrada de desinstalación** de la instalación real; restaurada reinstalando la 1.0.2 oficial. La prueba con `/SILENT` + mutex tomado aborta por diseño (el diálogo de Inno pide cerrar la app; en modo silencioso no puede mostrarlo).
 
 **Publicación:** **v1.0.4** con CI verde.
+## 28-08-2026 — UX: zoom por reflow (panel B aprobado) + redimensión de ventana por bordes
+
+**Problema reportado:** con zoom y pantalla maximizada, las líneas superaban el ancho y la única barra de scroll era la vertical, dejando texto inaccesible. **Causa raíz:** el zoom usaba `RenderTransform` global (escala la PINTURA, no el layout) — el `ScrollViewer` mide el contenido antes de escalar, así que no detectaba el desbordamiento y su barra horizontal está desactivada a propósito (`TextWrapping`).
+
+**Maqueta aprobada por el responsable (**`FASE-II-DISENO/maquetas/maqueta-zoom-reflow.html`**):** panel A (escala → recorte, el bug) vs. panel B (reflow → legible). El responsable aprueba el **panel B** y lo pide implementar.
+
+**Implementación del zoom por reflow (UX adoptada):**
+- `MainWindow`: se elimina el `RenderTransform` global; el zoom ahora escala el **`FontSize` real** del contenido (ficha, títulos, captura, lista) — el texto re-envuelve contra el ancho del panel y solo crece en altura: la barra vertical basta, nunca hay texto inaccesible. Base de fuente capturada en `Opened` (a 100 % el aspecto no cambia); `ZoomMax` 2.5 → 3.0.
+- `DiagramView`: nueva propiedad **`FactorZoom`** (factor propio del diagrama, como el PNG 2× del exporter): `MeasureOverride` devuelve el tamaño escalado y `Render` aplica `PushTransform` — geometría y texto escalan de verdad. El hit-testing del grafo compensa el factor (`NodoEn` divide). Cada diagrama va en su propio `ScrollViewer` horizontal `Auto` (solo aparece si desborda).
+- El zoom no repuebla `DiagramPanel` en Leyenda/Acerca de/Comparador (su panel está vacío a propósito).
+
+**Redimensión de ventana (petición aparte del zoom):** con `WindowDecorations=None` no hay marco del sistema y la ventana no redimensionaba por el borde. Se añaden **grips invisibles** (bordes 6 px + 4 esquinas) en el axaml que llaman a `BeginResizeDrag` (mismo patrón que `BeginMoveDrag` de la barra); cursor por dirección. **`MinWidth=960`/`MinHeight=600`**: nunca se reduce por debajo de ese límite. Nota API: en Avalonia 12 los cursors de esquina se llaman `TopLeftCorner`/`TopRightCorner`/`BottomLeftCorner`/`BottomRightCorner` (no `SizeTopLeftBottomRight`).
+
+**Validación:** build 0 errores · smoke OK · **78/78 tests**. Maqueta conservada como referencia de diseño.
