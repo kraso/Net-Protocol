@@ -181,16 +181,20 @@ public partial class MainWindow : Window
         MuestraButton.Click += (_, _) => GenerarMuestra();
         // Tooltip de "Muestra de prueba" con la carpeta de capturas REAL del sistema
         // (%LOCALAPPDATA%\NetProtocol\capturas, la misma que usa GenerarMuestra), para que
-        // el usuario pueda localizar las capturas generadas. Se usa un TextBlock con ancho
-        // máximo y una sola línea + elipsis al final: la ruta nunca se parte por el medio;
-        // si fuera demasiado larga se recorta el FINAL ("…") y la parte inicial queda intacta.
+        // el usuario pueda localizar las capturas generadas.
+        // - Una sola línea NO PARTIDA: el indicador de unidad (C:\…) y el resto de la ruta
+        //   van juntos; el ancho máximo es amplio (1100 px) para que la ruta completa de
+        //   cualquier instalación normal salga entera.
+        // - Si un usuario instalara en una ruta tan profunda que ni 1100 px bastaran, el
+        //   recorte con "…" cae SIEMPRE al FINAL del texto: el principio (C:\…) se mantiene
+        //   intacto y legible. Nunca se parte la ruta por el medio ni por el inicio.
         ToolTip.SetTip(MuestraButton, new TextBlock
         {
             Text = $"Genera una captura sintética determinista (muestras de los 28 protocolos con layout F5) y la guarda en su carpeta de capturas: " +
                    Path.Combine(
                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                        "NetProtocol", "capturas"),
-            MaxWidth = 640,
+            MaxWidth = 1100,
             TextWrapping = TextWrapping.NoWrap,
             TextTrimming = TextTrimming.CharacterEllipsis
         });
