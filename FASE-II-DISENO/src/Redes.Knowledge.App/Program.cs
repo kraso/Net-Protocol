@@ -32,6 +32,11 @@ internal static class Program
             }
         }
 
+        // Mutex de "aplicación en ejecución" para el instalador (AppMutex en el .iss):
+        // mientras este nombre exista, Inno Setup sabe que la app está abierta y puede
+        // avisar o cerrarla antes de actualizar los archivos en {app}. Se mantiene vivo
+        // durante todo el ciclo de vida de la ventana (no afecta al modo CLI --l004).
+        using var mutexApp = new Mutex(false, "NetProtocolMutex");
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 

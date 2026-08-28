@@ -21,6 +21,27 @@ SolidCompression=yes
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
+; Actualización segura de versiones anteriores:
+; - Sin AppId explícito: Inno deriva uno estable de AppName+AppPublisher+DefaultDirName
+;   (clave de desinstalación "Net Protocol_is1" en HKCU...), idéntico entre versiones,
+;   así el instalador reconoce la instalación previa y la actualiza en el mismo
+;   directorio. NO fijar aquí un GUID propio: rompería el reconocimiento de las
+;   instalaciones ya hechas con el AppId autogenerado.
+; - AppMutex: la app crea "NetProtocolMutex" mientras está abierta; el instalador
+;   detecta que está en ejecución y (con CloseApplications=force) la cierra sola
+;   antes de sobreescribir los archivos, evitando ficheros bloqueados.
+; - [InstallDelete] (abajo): elimina huérfanos de versiones anteriores.
+AppMutex=NetProtocolMutex
+CloseApplications=force
+CloseApplicationsFilter=NetProtocol.exe
+
+[InstallDelete]
+; Limpia la carpeta de instalación antes de copiar: archivos o DLLs que una
+; versión anterior trajera y la nueva ya no incluya no quedan huérfanos.
+; Los datos del usuario (DB y capturas) viven en %LOCALAPPDATA%\NetProtocol,
+; fuera de {app}, así que no se pierden. (filesandordirs también elimina
+; subdirectorios vacíos que hayan quedado de versiones previas.)
+Type: filesandordirs; Name: "{app}\*"
 
 [Files]
 Source: "..\..\dist\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
