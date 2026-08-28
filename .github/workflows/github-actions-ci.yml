@@ -44,6 +44,13 @@ jobs:
         with:
           name: app-${{ matrix.rid }}
           path: FASE-II-DISENO/dist/${{ matrix.rid }}
+          if-no-files-found: error
+          # Retención corta: los instaladores son los únicos artefactos que aportan
+          # valor a largo plazo (los adjunta el release job); los binarios intermedios
+          # solo sirven a los jobs package del mismo run. Evita agotar la cuota de
+          # almacenamiento de Actions del repo (500 MB en repos privados; el uso se
+          # recalcula cada 6-12 h, motivo por el que un run reciente falló en v1.0.3).
+          retention-days: 2
 
   # ─── Instaladores (solo en tags v*) ────────────────────────────────────────────
   package-win:
@@ -68,6 +75,8 @@ jobs:
         with:
           name: setup-win-x64
           path: FASE-II-DISENO/dist/NetProtocol-Setup-*.exe
+          if-no-files-found: error
+          retention-days: 2
 
   package-linux:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -197,6 +206,7 @@ jobs:
           name: setup-linux
           path: FASE-II-DISENO/dist/NetProtocol-*
           if-no-files-found: error
+          retention-days: 2
 
   package-macos:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -245,6 +255,7 @@ jobs:
           name: setup-macos
           path: FASE-II-DISENO/dist/NetProtocol-*.dmg
           if-no-files-found: error
+          retention-days: 2
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
