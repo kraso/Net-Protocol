@@ -769,3 +769,8 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Validación:** build 0 errores · smoke OK · **78/78 tests**. Maqueta conservada como referencia de diseño.
 
 **Publicación:** **v1.0.5** con CI verde (`<Version>` a 1.0.5; el pipeline construye los instaladores con el tag).
+## 28-08-2026 — Redimensión con mínimo dinámico según el diagrama más ancho
+
+**Revisión del responsable:** el mínimo fijo de 960 px permitía encoger la ventana hasta recortar los diagramas (al redimensionar por borde, la cabecera wire format —la más ancha de la ficha— se cortaba y aparecía su scroll horizontal). **Pedido:** el mínimo de redimensión debe garantizar que el diagrama más ancho visible quepa completo.
+
+**Implementación:** `RenderDiagramas` calcula el ancho máximo de los diagramas de la ficha (`docs.Max(d => d.Doc.Width) × zoom`) y fija `MinWidth` dinámicamente con piso 960 y tope 1400: `MinWidth = Clamp(417 + anchoMax × zoom, 960, 1400)`, donde 417 = grips (6+6) + sidebar (360) + márgenes de la ficha (28) + scrollbar vertical (~17). Verificado: TCP (cabecera 688 px) → mínimo **1105 px** a zoom 100 %; grafo solo → 1017; pila sola → 960. En Leyenda/Acerca de/Comparador/Captura (sin diagramas) se restaura el mínimo base 960. El tope 1400 evita que a zoom alto la ventana sea imposible de encoger en pantallas normales (el diagrama conserva su scroll horizontal propio). 78/78 tests · smoke OK.

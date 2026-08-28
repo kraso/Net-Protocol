@@ -31,6 +31,14 @@ public partial class MainWindow : Window
     private const double ListaAltura = 240;
     private const double ListaAnchura = 306; // idéntica para todos los grupos (340 - márgenes - scrollbar)
 
+    // Mínimo horizontal de la ventana según los diagramas visibles: la redimensión por
+    // borde no puede dejar un diagrama más estrecho que su ancho natural. Componentes
+    // fijos de la UI desde el borde izquierdo hasta el diagrama: grip de borde (6) +
+    // sidebar (360) + márgenes de la ficha (28) + scrollbar vertical (~17) + grip (6).
+    private const double AnchoFijoRedimension = 417;
+    private const double MinAnchoVentana = 960;   // piso absoluto (también en el axaml)
+    private const double MaxAnchoVentana = 1400;  // tope: no romper pantallas normales a zoom alto
+
     private readonly Dictionary<string, Protocol> _protocolos = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Protocol> _normalizados = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, IReadOnlyList<Field>> _camposPorAcronimo = new(StringComparer.OrdinalIgnoreCase);
@@ -537,6 +545,23 @@ public partial class MainWindow : Window
 
         // Cache para la exportación D4-3 (se exportan exactamente estos diagramas).
         _docsActuales = docs;
+
+        // La redimensión por borde debe permitir ver COMPLETO el diagrama más ancho de la
+        // ficha (la cabecera wire format es la más ancha de las tres: 688 px frente al
+        // grafo 600 y a la pila 480). El mínimo se calcula sobre el ancho natural del
+        // documento por el zoom actual, con piso 960 y tope 1400 (a zoom alto el diagrama
+        // sigue teniendo su scroll horizontal propio, y la ventana no se vuelve imposible
+        // de encoger en pantallas normales).
+        if (docs.Count > 0)
+        {
+            var anchoMax = docs.Max(d => d.Doc.Width) * _zoom;
+            MinWidth = Math.Clamp(AnchoFijoRedimension + anchoMax, MinAnchoVentana, MaxAnchoVentana);
+        }
+        else
+        {
+            MinWidth = MinAnchoVentana;
+        }
+
         if (docs.Count == 0)
         {
             DiagramTitle.IsVisible = false;
@@ -706,6 +731,7 @@ public partial class MainWindow : Window
         DiagramTitle.IsVisible = false;
         DiagramPanel.IsVisible = false;
         PanelCaptura.IsVisible = true;
+        MinWidth = MinAnchoVentana; // la vista de captura no tiene diagramas
 
         ResumenCaptura.Text =
             $"{Path.GetFileName(ruta)} · linktype {captura.LinkType} ({(captura.EsEthernet ? "Ethernet" : "otro")}) · {_paquetesCaptura.Count} paquetes";
@@ -891,6 +917,7 @@ public partial class MainWindow : Window
         DiagramPanel.Children.Clear();
         _docsActuales.Clear();
         DiagramTitle.IsVisible = false;
+        MinWidth = MinAnchoVentana; // sin diagramas, la ventana vuelve a su mínimo base
 
         var filas = ProtocoloComparador.Comparar(
             new[] { _seleccionado, referencia },
@@ -999,6 +1026,7 @@ public partial class MainWindow : Window
         DiagramPanel.Children.Clear();
         _docsActuales.Clear();
         DiagramTitle.IsVisible = false;
+        MinWidth = MinAnchoVentana; // sin diagramas, la ventana vuelve a su mínimo base
 
         var sb = new StringBuilder();
         sb.AppendLine("=== Leyenda de familias de protocolos ===");
@@ -1036,6 +1064,7 @@ public partial class MainWindow : Window
         DiagramPanel.Children.Clear();
         _docsActuales.Clear();
         DiagramTitle.IsVisible = false;
+        MinWidth = MinAnchoVentana; // sin diagramas, la ventana vuelve a su mínimo base
 
         var sb = new StringBuilder();
         sb.AppendLine();
