@@ -53,6 +53,16 @@
     <Style Selector="Button.SidebarAction:pressed /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListMediumBrush}" />
     </Style>
+    <!-- Tooltip de UNA línea con ancho amplio: el estilo se aplica al TextBlock interno
+         que crea el ContentPresenter del ToolTip (forma documentada de controlarlo), a
+         diferencia de pasar un TextBlock suelto como contenido, que el ContentPresenter
+         del tema recorta a su propio ancho. La frase + C:\ + ruta salen completas y
+         juntas; el ellipsis solo caería al FINAL con rutas imposiblemente profundas. -->
+    <Style Selector="ToolTip TextBlock">
+      <Setter Property="MaxWidth" Value="4000" />
+      <Setter Property="TextWrapping" Value="NoWrap" />
+      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
   </Window.Styles>
   <!-- Redimensión por borde con WindowDecorations=None: el marco del sistema no existe,
        así que la ventana NO redimensiona por defecto. Se añaden grips invisibles (bordes
