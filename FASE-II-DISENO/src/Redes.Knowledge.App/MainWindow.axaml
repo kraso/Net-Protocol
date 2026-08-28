@@ -120,7 +120,7 @@
               ToolTip.Tip="Exporta los diagramas de la ficha actual (pila, grafo, cabecera) al formato elegido: SVG, PNG o PDF."
               ToolTip.ShowDelay="600" />
       <Button x:Name="AbrirCapturaButton" Content="Abrir captura"
-              ToolTip.Tip="Abre un archivo de captura PCAP/PCAPNG y muestra sus paquetes con detalle por capas y validación de layouts F5."
+              ToolTip.Tip="Abre una ventana del explorador para que selecciones el archivo .cap de captura de paquetes con PCAP/PCAPNG y luego muestra sus detalles en pantalla."
               ToolTip.ShowDelay="600" />
       <Button x:Name="MuestraButton" Content="Muestra de prueba"
               ToolTip.Tip="Genera una captura sintética determinista (muestras de los 28 protocolos con layout F5) en tu carpeta de capturas."
