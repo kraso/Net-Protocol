@@ -181,24 +181,20 @@ public partial class MainWindow : Window
         MuestraButton.Click += (_, _) => GenerarMuestra();
         // Tooltip de "Muestra de prueba": muestra la carpeta de capturas REAL del sistema
         // (%LOCALAPPDATA%\NetProtocol\capturas, la misma que usa GenerarMuestra).
-        // Se usa ToolTip.SetTipTemplate (forma documentada de controlar el contenido del
-        // tooltip) con un TextBlock de UNA línea y MaxWidth 4000 px: la frase introductoria
-        // + el indicador C:\ + la ruta completa salen juntos y sin recorte en cualquier
-        // instalación real. Solo con una ruta imposiblemente profunda el "…" caería al
-        // FINAL del texto (nunca parte el inicio C:\…).
-        var carpetaCapturas = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "NetProtocol", "capturas");
-        ToolTip.SetTip(MuestraButton,
-            $"Genera una captura sintética determinista (muestras de los 28 protocolos con layout F5) y la guarda en su carpeta de capturas: {carpetaCapturas}");
-        ToolTip.SetTipTemplate(MuestraButton, new FuncDataTemplate<string>((s, _) =>
-            new TextBlock
-            {
-                Text = s,
-                MaxWidth = 4000,
-                TextWrapping = TextWrapping.NoWrap,
-                TextTrimming = TextTrimming.CharacterEllipsis
-            }));
+        // Se pasa un TextBlock de UNA línea con MaxWidth 4000 px: la frase + el indicador
+        // C:\ + la ruta completa salen juntos y sin recorte en cualquier instalación real.
+        // Solo con una ruta imposiblemente profunda el "…" caería al FINAL del texto
+        // (nunca parte el inicio C:\…).
+        ToolTip.SetTip(MuestraButton, new TextBlock
+        {
+            Text = $"Genera una captura sintética determinista (muestras de los 28 protocolos con layout F5) y la guarda en su carpeta de capturas: " +
+                   Path.Combine(
+                       Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                       "NetProtocol", "capturas"),
+            MaxWidth = 4000,
+            TextWrapping = TextWrapping.NoWrap,
+            TextTrimming = TextTrimming.CharacterEllipsis
+        });
         CerrarCapturaButton.Click += (_, _) => CerrarCaptura();
         ListaPaquetes.SelectionChanged += (_, _) =>
         {
