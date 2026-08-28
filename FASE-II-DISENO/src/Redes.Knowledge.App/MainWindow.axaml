@@ -122,9 +122,7 @@
       <Button x:Name="AbrirCapturaButton" Content="Abrir captura"
               ToolTip.Tip="Abre una ventana del explorador para que selecciones el archivo .cap de captura de paquetes con PCAP/PCAPNG y luego muestra sus detalles en pantalla."
               ToolTip.ShowDelay="600" />
-      <Button x:Name="MuestraButton" Content="Muestra de prueba"
-              ToolTip.Tip="Genera una captura sintética determinista (muestras de los 28 protocolos con layout F5) en tu carpeta de capturas."
-              ToolTip.ShowDelay="600" />
+      <Button x:Name="MuestraButton" Content="Muestra de prueba" ToolTip.ShowDelay="600" />
     </WrapPanel>
 
     <!-- Barra de estado -->

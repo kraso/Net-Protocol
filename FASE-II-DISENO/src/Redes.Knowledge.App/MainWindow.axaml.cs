@@ -179,6 +179,14 @@ public partial class MainWindow : Window
         ExportButton.Click += async (_, _) => await ExportarDiagramasAsync();
         AbrirCapturaButton.Click += async (_, _) => await AbrirCapturaAsync();
         MuestraButton.Click += (_, _) => GenerarMuestra();
+        // Tooltip de "Muestra de prueba" con la carpeta de capturas REAL del sistema
+        // (%LOCALAPPDATA%\NetProtocol\capturas, la misma que usa GenerarMuestra), para que
+        // el usuario pueda localizar las capturas generadas.
+        ToolTip.SetTip(MuestraButton,
+            $"Genera una captura sintética determinista (muestras de los 28 protocolos con layout F5) y la guarda en su carpeta de capturas: " +
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "NetProtocol", "capturas"));
         CerrarCapturaButton.Click += (_, _) => CerrarCaptura();
         ListaPaquetes.SelectionChanged += (_, _) =>
         {
