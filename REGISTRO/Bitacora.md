@@ -719,3 +719,11 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - `CorpusL004` (Infrastructure) + modo CLI `NetProtocol.exe --l004 <carpeta> [salida]`: cruza cada paquete real con los layouts F5 y genera el informe.
 - **Evidencia `L004-informe-2026-08-27.md`**: 10 protocolos F5 detectados en tráfico real con **100 % de campos en límites** (DHCP, DNS, ETH, ICMP, IPv4, IPv6, NTP, TCP, TLS, UDP); 18/28 sin muestras en el corpus (cubiertos por las muestras sintéticas deterministas). Ajustes honestos: ETH excluye preámbulo/SFD físicos; DNS sobre TCP usa el prefijo de longitud de 2 B y no cuenta controles sin mensaje; DNS sobre puertos no estándar (`dns_port.pcap`) documentado como limitación.
 - `F8-Lagunas.json` **L-004 → cerrado** con evidencia.
+## 26-08-2026 — Decisión: sin firma de código Windows/macOS ni repo apt firmado
+
+**Decisión del responsable:** NO firmar con certificados de pago ni montar un repositorio apt dedicado. Motivos: coste de los certificados de firma de código (Windows) y de Apple Developer Program (macOS), y los recursos de memoria/procesamiento que exigiría una VM dedicada solo para el repo apt.
+
+**Estado resultante (el producto no cambia):**
+- **Linux .deb/.rpm SÍ firmados con GPG** (clave `CD11DE8033B6E164`, sin coste) — se mantiene.
+- **Windows** y **macOS** se distribuyen **sin firma de código**: SmartScreen/Gatekeeper mostrarán sus avisos (ya ocurría). Si algún día hubiera certificado, el pipeline quedó diseñado para añadir `signtool`/`notarytool` sin tocar el resto.
+- **Repo apt firmado: descartado** por recursos; alternativa ligera sin VM dedicada: instalación directa del `.deb` con verificación `.asc`.
