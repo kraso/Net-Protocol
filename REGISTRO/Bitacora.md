@@ -767,3 +767,5 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 **Redimensión de ventana (petición aparte del zoom):** con `WindowDecorations=None` no hay marco del sistema y la ventana no redimensionaba por el borde. Se añaden **grips invisibles** (bordes 6 px + 4 esquinas) en el axaml que llaman a `BeginResizeDrag` (mismo patrón que `BeginMoveDrag` de la barra); cursor por dirección. **`MinWidth=960`/`MinHeight=600`**: nunca se reduce por debajo de ese límite. Nota API: en Avalonia 12 los cursors de esquina se llaman `TopLeftCorner`/`TopRightCorner`/`BottomLeftCorner`/`BottomRightCorner` (no `SizeTopLeftBottomRight`).
 
 **Validación:** build 0 errores · smoke OK · **78/78 tests**. Maqueta conservada como referencia de diseño.
+
+**Publicación:** **v1.0.5** con CI verde (`<Version>` a 1.0.5; el pipeline construye los instaladores con el tag).
