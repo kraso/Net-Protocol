@@ -11,7 +11,7 @@
     <Product>Net Protocol</Product>
     <Description>Net Protocol — Plataforma de referencia, exploración y simulación de redes</Description>
     <ApplicationIcon>Assets\NetProtocol.ico</ApplicationIcon>
-    <Version>1.0.7</Version>
+    <Version>1.0.8</Version>
   </PropertyGroup>
 
   <ItemGroup>
