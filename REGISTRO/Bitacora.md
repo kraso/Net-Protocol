@@ -788,3 +788,5 @@ Build 0/0 · smoke OK · 78/78 tests.
 **Síntoma del responsable:** tras comparar, la pantalla quedaba fija en la comparación y la única vía de volver al protocolo previo era la búsqueda o seleccionar otro protocolo. **Causa:** la comparación es una vista textual que sustituye la ficha (reescribe `DetailText` y limpia los diagramas), pero no ofrecía salida explícita; `_seleccionado` nunca se perdía, simplemente no había botón que lo restaurara.
 
 **Fix:** botón contextual **"✕ Volver a la ficha"** en la barra superior (junto a "Comparar", `IsVisible=False` por defecto): aparece al pulsar "Comparar" y llama `VolverALaFicha()` → `RenderFicha(_seleccionado)` (el protocolo comparado). Se oculta en `RenderFicha` (navegar por sidebar/búsqueda/selector ya restaura la ficha), en Leyenda, Acerca de y Captura (no son comparaciones). Mismo patrón que "✕ Cerrar captura". Build 0/0 · smoke OK · 78/78 tests.
+
+**Publicación:** **v1.0.6** con CI verde (`<Version>` a 1.0.6; el pipeline construye los instaladores con el tag).
