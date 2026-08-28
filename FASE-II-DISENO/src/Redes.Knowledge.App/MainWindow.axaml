@@ -100,13 +100,14 @@
            300 px y carrusel del nombre completo en el desplegable). -->
       <SelectableTextBlock Text="Protocolo:" VerticalAlignment="Center" />
       <ComboBox x:Name="ProtocolSelector" Width="300" />
+      <!-- Comparador justo a la derecha del selector de protocolo (orden solicitado). -->
+      <SelectableTextBlock Text="Comparar con:" VerticalAlignment="Center" />
+      <ComboBox x:Name="CompareTarget" Width="300" />
+      <Button x:Name="CompareButton" Content="Comparar" />
       <SelectableTextBlock Text="Familia:" VerticalAlignment="Center" />
       <ComboBox x:Name="FilterFamilia" Width="210" />
       <SelectableTextBlock Text="Estado:" VerticalAlignment="Center" />
       <ComboBox x:Name="FilterEstado" Width="210" />
-      <SelectableTextBlock Text="Comparar con:" VerticalAlignment="Center" />
-      <ComboBox x:Name="CompareTarget" Width="300" />
-      <Button x:Name="CompareButton" Content="Comparar" />
       <SelectableTextBlock Text="Exportar:" VerticalAlignment="Center" />
       <ComboBox x:Name="ExportFormat" Width="90" />
       <Button x:Name="ExportButton" Content="Exportar" />
