@@ -164,8 +164,10 @@ jobs:
           mkdir -p %{buildroot}/usr/lib/netprotocol
           cp -a ${DISTDIR}/. %{buildroot}/usr/lib/netprotocol/
           # Entrada de menú, icono y comando en el PATH (igual que el .deb).
+          # Ojo: %install corre con cwd=rpmbuild/BUILD → rutas ABSOLUTAS para el icono
+          # (${PWD} se expande al generar el spec, igual que ${DISTDIR}).
           mkdir -p %{buildroot}/usr/share/applications %{buildroot}/usr/share/pixmaps %{buildroot}/usr/bin
-          cp data/Logo_NetProtocol.png %{buildroot}/usr/share/pixmaps/netprotocol.png
+          cp ${PWD}/data/Logo_NetProtocol.png %{buildroot}/usr/share/pixmaps/netprotocol.png
           ln -s /usr/lib/netprotocol/NetProtocol %{buildroot}/usr/bin/netprotocol
           cat > %{buildroot}/usr/share/applications/netprotocol.desktop <<'EOD'
           [Desktop Entry]

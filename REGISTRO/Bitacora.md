@@ -884,3 +884,9 @@ Con esto, **un futuro rename del repositorio adecúa solo la URL de los paquetes
 **Causa raíz:** no era del RPM. `App.axaml` usa `<FluentTheme />` sin variante fijada → `RequestedThemeVariant` por defecto (`Default`), que **sigue el tema del escritorio** del sistema. Windows del responsable = oscuro → app oscura; KDE de openSUSE = claro → app clara. El botón de tema (`AlternarTema`, MainWindow) existía pero solo alternaba en caliente; no fijaba el arranque.
 
 **Fix:** `RequestedThemeVariant="Dark"` en el elemento `<Application>` de `App.axaml` → la app **arranca siempre en oscuro** en todas las plataformas (Windows/`.exe`, Ubuntu/`.deb`, openSUSE/`.rpm`, macOS/`.dmg`) e independientemente del tema del escritorio; el botón de tema sigue alternando claro/oscuro en caliente dentro de la sesión (vuelve a oscuro en el próximo arranque; no se persiste la elección). Build verificado. **Commit pendiente de autorización del responsable.**
+
+## 29-08-2026 — Lanzamiento v1.0.9: fallo del RPM en CI y fix (ruta absoluta del icono)
+
+**Lanzamiento autorizado por el responsable** (commit `8aa7bc4` + bump a 1.0.9 + tag `v1.0.9`). El run CI falló en `package-linux` paso "Empaquetar .rpm". **Causa:** `rpmbuild` ejecuta `%install` con **cwd = `rpmbuild/BUILD`** (no el cwd del workflow); la ruta relativa `data/Logo_NetProtocol.png` no se resolvía → `cp: cannot stat` → "Bad exit status (%install)". El `.deb` sí pasó (corre en el cwd del workflow, ruta relativa válida).
+
+**Fix:** en el spec la copia del icono usa **ruta absoluta** `${PWD}/data/Logo_NetProtocol.png` (el heredoc del spec expande `${PWD}` al generarlo, igual que `${DISTDIR}`). Tag `v1.0.9` movido al commit corregido (`git tag -f` + push `--force`; sin release creado aún, no hay conflicto). **Commit pendiente de autorización del responsable.**
