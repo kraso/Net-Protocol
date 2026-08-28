@@ -7,10 +7,19 @@
   #define MyAppVersion "1.0.1"
 #endif
 
+; URL ascendente del proyecto (se muestra en el desinstalador y en "Programas y
+; características"). CI la pasa con -DMyAppUrl=<url> derivada del repositorio actual
+; (GITHUB_REPOSITORY), de modo que un rename del repo actualiza los paquetes solos;
+; por defecto usa la actual.
+#ifndef MyAppUrl
+  #define MyAppUrl "https://github.com/kraso/Net-Protocol"
+#endif
+
 [Setup]
 AppName=Net Protocol
 AppVersion={#MyAppVersion}
 AppPublisher=Proyecto Redes
+AppPublisherURL={#MyAppUrl}
 DefaultDirName={autopf}\NetProtocol
 DefaultGroupName=Net Protocol
 OutputDir=..\..\dist

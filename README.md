@@ -32,6 +32,35 @@ Detalle: [REGISTRO/Estado-de-Fases.md](REGISTRO/Estado-de-Fases.md) · Historial
 
 ---
 
+## Descarga e instalación
+
+Los instaladores se publican como **GitHub Release** por cada tag `v*` ([releases](https://github.com/kraso/Net-Protocol/releases)). Los instaladores Linux van **firmados con la clave GPG de releases** (`NetProtocol-gpg-pubkey.asc`, adjunta a cada release; clave `CD11DE8033B6E164`). Windows y macOS no llevan firma de código (decisión del proyecto) — SmartScreen/Gatekeeper pueden avisar; se abren igualmente.
+
+| SO | Archivo | Instalación |
+|---|---|---|
+| Windows | `NetProtocol-Setup-<versión>.exe` | Ejecutar el instalador (cierra la app sola si está abierta; actualiza en el mismo directorio sin desinstalar). |
+| Debian/Ubuntu | `NetProtocol-<versión>-amd64.deb` + `.deb.asc` | `sudo apt install ./NetProtocol-<versión>-amd64.deb` · verificar: `gpg --verify NetProtocol-<versión>-amd64.deb.asc NetProtocol-<versión>-amd64.deb` |
+| openSUSE / Fedora / RHEL | `NetProtocol-<versión>-x86_64.rpm` | Ver abajo (importar la clave primero). |
+| macOS | `NetProtocol-<versión>.dmg` | Clic derecho → Abrir (sin firma de código). |
+
+### RPM (openSUSE/Fedora): importar primero la clave pública
+
+En la **primera** instalación de un RPM firmado con una clave nueva el gestor avisa `NOKEY / la clave pública de firma no está disponible`. No es un paquete dañado: falta la clave en el almacén de claves de RPM. Se importa **una sola vez por equipo** y las versiones siguientes se instalan sin preguntas:
+
+```bash
+wget -O NetProtocol-gpg-pubkey.asc \
+  https://github.com/kraso/Net-Protocol/releases/download/<versión>/NetProtocol-gpg-pubkey.asc
+sudo rpm --import NetProtocol-gpg-pubkey.asc
+rpm -Kv NetProtocol-<versión>-x86_64.rpm     # → "digests signatures OK"
+
+sudo zypper install ./NetProtocol-<versión>-x86_64.rpm    # openSUSE
+# sudo dnf install ./NetProtocol-<versión>-x86_64.rpm     # Fedora/RHEL
+```
+
+> Alternativa exprés: `sudo zypper --gpg-auto-import-keys install ./…rpm` y aceptar la clave cuando zypper la pida.
+
+---
+
 ## Estructura del repositorio
 
 ```

@@ -11,6 +11,21 @@ Estrategia aprobada en el plan de Fase II (§E) y materiales de esta carpeta:
 Los tres instaladores se generan en CI al empujar un tag `v*` y se publican como
 **GitHub Release** (job `release` del workflow `github-actions-ci.yml`).
 
+**Entrada de menú e icono (Linux):** tanto el `.deb` como el `.rpm` instalan la
+entrada de menú (`/usr/share/applications/netprotocol.desktop`), el icono
+(`/usr/share/pixmaps/netprotocol.png`, desde `data/Logo_NetProtocol.png`) y un
+comando en el PATH: **`netprotocol`** (enlace a `/usr/lib/netprotocol/NetProtocol`,
+sin duplicar binarios). El `Exec` del menú usa la ruta absoluta `/usr/bin/netprotocol`.
+
+**URL ascendente en la metainformación de los paquetes:** el `.rpm`
+(`URL:` del spec), el `.deb` (`Homepage:` del control) y el instalador Windows
+(`AppPublisherURL` de Inno Setup) publican la URL del repositorio actual. Se
+deriva en CI de `GITHUB_REPOSITORY` (`https://github.com/${GITHUB_REPOSITORY}`),
+que GitHub Actions mantiene siempre a `owner/nombre` actuales: **si se renombra
+el repositorio, los próximos paquetes llevan la URL correcta sin tocar nada**
+(no hay URLs hardcodeadas; el `.iss` conserva el valor actual solo como
+`#define` por defecto para builds locales).
+
 ## Reglas vinculantes (del plan)
 
 1. **Dataset versionado con semver propio** e independiente del ejecutable (`dataset.json` junto a la base de datos local; ver `Quality/DatasetMetadata`).
@@ -81,13 +96,26 @@ Settings → Secrets and variables → Actions (o `gh secret set`):
 ### 4. Verificación por parte de quien instala
 
 ```bash
-# RPM (Fedora/RHEL/openSUSE)
-gpg --import NetProtocol-gpg-pubkey.asc
-rpm --import <(gpg --export)
-rpm -K NetProtocol-1.0.2-x86_64.rpm       # -> "digests signatures OK"
+# RPM (Fedora/RHEL/openSUSE) — importar la clave ANTES de instalar:
+wget -O NetProtocol-gpg-pubkey.asc \
+  https://github.com/kraso/Net-Protocol/releases/download/v1.0.8/NetProtocol-gpg-pubkey.asc
+gpg --import NetProtocol-gpg-pubkey.asc      # comprobación manual
+sudo rpm --import NetProtocol-gpg-pubkey.asc # la importa para rpm/zypper/dnf
+rpm -Kv NetProtocol-1.0.8-x86_64.rpm         # -> "digests signatures OK"
 
+sudo zypper install ./NetProtocol-1.0.8-x86_64.rpm   # openSUSE
+# sudo dnf install ./NetProtocol-1.0.8-x86_64.rpm    # Fedora/RHEL
+```
+
+> **NOKEY / "la clave pública de firma no está disponible"** al primer `zypper install`
+> es normal: la máquina aún no conoce la clave del firmante. No es un paquete
+> dañado → importar la clave como arriba (una sola vez por equipo; las versiones
+> siguientes con la misma clave se instalan sin preguntar). Atajo:
+> `sudo zypper --gpg-auto-import-keys install ./…rpm` (zypper pregunta y la importa).
+
+```bash
 # DEB (Debian/Ubuntu): firma adjunta .asc
-gpg --verify NetProtocol-1.0.2-amd64.deb.asc NetProtocol-1.0.2-amd64.deb
+gpg --verify NetProtocol-1.0.8-amd64.deb.asc NetProtocol-1.0.8-amd64.deb
 
 # Forma canónica completa para apt (repositorio firmado, pendiente)
 # Publicar en un repo apt con Release.gpg firmado (apt-ftparchive/reprepro) e

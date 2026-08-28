@@ -70,7 +70,9 @@ jobs:
         shell: bash
         run: |
           VER="${GITHUB_REF_NAME#v}"
-          iscc "-DMyAppVersion=${VER}" FASE-II-DISENO/packaging/windows/Redes.Knowledge.iss
+          # URL ascendente derivada del repo (mismo patrón que .deb/.rpm).
+          REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
+          iscc "-DMyAppVersion=${VER}" "-DMyAppUrl=${REPO_URL}" FASE-II-DISENO/packaging/windows/Redes.Knowledge.iss
       - uses: actions/upload-artifact@v4
         with:
           name: setup-win-x64
@@ -95,14 +97,23 @@ jobs:
         run: |
           set -euo pipefail
           VER="${GITHUB_REF_NAME#v}"
-          mkdir -p debroot/DEBIAN debroot/usr/lib/netprotocol debroot/usr/share/applications
+          # URL ascendente derivada del repo (GITHUB_REPOSITORY = owner/nombre actuales;
+          # sigue los renames del repositorio automáticamente).
+          REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
+          mkdir -p debroot/DEBIAN debroot/usr/lib/netprotocol debroot/usr/share/applications debroot/usr/share/pixmaps debroot/usr/bin
           cp -a dist/linux-x64/. debroot/usr/lib/netprotocol/
           chmod -R a+rX debroot/usr/lib/netprotocol
+          # Icono de menú (el PNG de Assets va embebido en el ejecutable, no viaja
+          # en el publish: se copia desde la fuente del repo).
+          cp data/Logo_NetProtocol.png debroot/usr/share/pixmaps/netprotocol.png
+          # Comando en el PATH (misma app; sin duplicar binarios).
+          ln -s /usr/lib/netprotocol/NetProtocol debroot/usr/bin/netprotocol
           cat > debroot/usr/share/applications/netprotocol.desktop <<'EOF'
           [Desktop Entry]
           Name=Net Protocol
           Comment=Base de conocimiento de protocolos de red
-          Exec=/usr/lib/netprotocol/NetProtocol
+          Exec=/usr/bin/netprotocol
+          Icon=netprotocol
           Type=Application
           Categories=Network;Utility;
           Terminal=false
@@ -115,6 +126,7 @@ jobs:
           Architecture: amd64
           Depends: liblttng-ust0 (>= 2.12.0), liburcu6 (>= 0.12.1)
           Maintainer: Proyecto Redes
+          Homepage: ${REPO_URL}
           Description: Net Protocol - base de conocimiento de protocolos de red
            Catálogo, fichas, PDU y seguridad de protocolos de red (Fase I/II).
           EOF
@@ -127,6 +139,9 @@ jobs:
           VER="${GITHUB_REF_NAME#v}"
           # rpm no admite guiones en Version (separador version-release); se sustituyen.
           RPM_VER="${VER//-/_}"
+          # URL ascendente derivada del repo (mismo patrón que el .deb); un rename
+          # del repositorio la actualiza solo vía GITHUB_REPOSITORY.
+          REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
           sudo apt-get update -qq
           sudo apt-get install -y -qq rpm
           mkdir -p rpmbuild
@@ -137,7 +152,7 @@ jobs:
           Release: 1%{?dist}
           Summary: Net Protocol - base de conocimiento de protocolos de red
           License: Proprietary
-          URL: https://github.com/kraso/redes-knowledge
+          URL: ${REPO_URL}
           BuildArch: x86_64
           Requires: liblttng-ust0 >= 2.12.0
           Requires: liburcu6 >= 0.12.1
@@ -148,9 +163,26 @@ jobs:
           %install
           mkdir -p %{buildroot}/usr/lib/netprotocol
           cp -a ${DISTDIR}/. %{buildroot}/usr/lib/netprotocol/
+          # Entrada de menú, icono y comando en el PATH (igual que el .deb).
+          mkdir -p %{buildroot}/usr/share/applications %{buildroot}/usr/share/pixmaps %{buildroot}/usr/bin
+          cp data/Logo_NetProtocol.png %{buildroot}/usr/share/pixmaps/netprotocol.png
+          ln -s /usr/lib/netprotocol/NetProtocol %{buildroot}/usr/bin/netprotocol
+          cat > %{buildroot}/usr/share/applications/netprotocol.desktop <<'EOD'
+          [Desktop Entry]
+          Name=Net Protocol
+          Comment=Base de conocimiento de protocolos de red
+          Exec=/usr/bin/netprotocol
+          Icon=netprotocol
+          Type=Application
+          Categories=Network;Utility;
+          Terminal=false
+          EOD
 
           %files
           /usr/lib/netprotocol/*
+          /usr/bin/netprotocol
+          /usr/share/applications/netprotocol.desktop
+          /usr/share/pixmaps/netprotocol.png
           EOF
           rpmbuild --define "_topdir ${PWD}/rpmbuild" -bb netprotocol.spec
           cp rpmbuild/RPMS/x86_64/*.rpm "dist/NetProtocol-${RPM_VER}-x86_64.rpm"

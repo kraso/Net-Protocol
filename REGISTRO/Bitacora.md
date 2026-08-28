@@ -831,3 +831,56 @@ Build 0/0 · smoke OK · 78/78 tests.
 - Placeholder de la sidebar: **"Filtrar familias - Ver leyenda"** (antes "Filtrar familias…").
 - **Fallo observado:** filtrar `ROUT` añadía SEG (GRE = "Generic **Routing** Encapsulation"); `SEG` añadía ROUT (SR = "**Segment** Routing"); `SYNC` añadía HIST (ATM = "A**sync**hronous"). **Causa:** el filtro rápido consideraba familia "coincidente" si cualquier protocolo contenía el texto en nombre/acrónimo, y mostraba la familia entera.
 - **Fix:** si el texto es un **acrónimo de familia exacto** (ROUT, SEG, SYNC…) se filtra SOLO por esa familia; cualquier otro texto (buscar un protocolo: `gre`, `ssh`) sigue localizando su familia. Verificado contra los 113 protocolos reales.
+
+## 29-08-2026 — RPM en openSUSE: NOKEY al instalar (importar la clave pública antes)
+
+**Síntoma del responsable** (`sudo zypper install NetProtocol-1.0.8-x86_64.rpm` en openSUSE): el RPM está firmado (V4 RSA/SHA512, clave `CD11DE8033B6E164`) pero zypper aborta con `NOKEY` / `Error de verificación de firma [4-La clave pública de firma no está disponible]` y ofrece `¿Cancelar, reintentar o ignorar?`.
+
+**Causa:** no es un paquete dañado. La firma es correcta; lo que falta es la **clave pública del firmante en el almacén de claves de RPM** de la máquina (primer contacto con una clave nueva). En Debian/Ubuntu no ocurre porque la firma de los `.deb` va adjunta (`.asc`) y se verifica a mano con `gpg`; el RPM la lleva integrada y el gestor la intenta verificar solo.
+
+**Fix (documentado en el README raíz y en `FASE-II-DISENO/packaging/README.md` §4, que estaba desactualizado — referenciaba v1.0.2 y omitía el paso clave):** importar la clave una sola vez por equipo antes de instalar:
+
+```bash
+wget -O NetProtocol-gpg-pubkey.asc \
+  https://github.com/kraso/Net-Protocol/releases/download/v1.0.8/NetProtocol-gpg-pubkey.asc
+sudo rpm --import NetProtocol-gpg-pubkey.asc
+rpm -Kv NetProtocol-1.0.8-x86_64.rpm   # -> "digests signatures OK"
+sudo zypper install NetProtocol-1.0.8-x86_64.rpm
+```
+
+Atajo: `sudo zypper --gpg-auto-import-keys install ./…rpm` (zypper pide confirmación e importa la clave sobre la marcha). El `a` de "abortar" no deja nada a medias: el sistema queda intacto. Versiones futuras con la misma clave se instalan sin preguntar. **Documentación puesta al día; commit pendiente de autorización del responsable.**
+
+## 29-08-2026 — URL ascendente de los paquetes: derivada del repositorio actual (fix + rename-proof)
+
+**Síntoma del responsable:** en la información del paquete (`zypper info` / `rpm -qi`) la URL ascendente mostraba `https://github.com/kraso/redes-knowledge` (nombre antiguo del repo) en lugar de `https://github.com/kraso/Net-Protocol`.
+
+**Causa:** la URL estaba **hardcodeada** en el spec del `.rpm` del workflow (`URL: https://github.com/kraso/redes-knowledge`); el `.deb` no declaraba `Homepage` y el instalador Windows no publicaba URL. El rename `redes-knowledge → Net-Protocol` (28-08) actualizó el remote y los enlaces de GitHub, pero no la metainformación de los paquetes.
+
+**Fix (rename-proof):** la URL ascendente se deriva ahora en CI de **`GITHUB_REPOSITORY`** (`REPO_URL="https://github.com/${GITHUB_REPOSITORY}"`, variable que GitHub Actions mantiene siempre a `owner/nombre` actuales):
+- `.rpm` → `URL: ${REPO_URL}` (spec del job `package-linux`).
+- `.deb` → `Homepage: ${REPO_URL}` (control, antes inexistente).
+- Windows → `AppPublisherURL={#MyAppUrl}` en el `.iss`, con CI pasando `-DMyAppUrl=${REPO_URL}`; el `#define` por defecto conserva `https://github.com/kraso/Net-Protocol` para builds locales.
+- macOS: sin URL en la metainformación del bundle (el plist no tiene campo estándar de URL ascendente).
+
+Con esto, **un futuro rename del repositorio adecúa solo la URL de los paquetes deb/rpm/exe** (se aplica en el próximo tag `v*`; la v1.0.8 publicada conserva la antigua, que GitHub redirige igualmente). Documentado en `FASE-II-DISENO/packaging/README.md`. **Commit pendiente de autorización del responsable.**
+
+## 29-08-2026 — RPM en openSUSE: sin entrada en el menú de inicio (faltaba el .desktop)
+
+**Síntoma del responsable:** tras instalar el RPM en openSUSE (KDE), la app no aparece en la lista de software del menú de inicio. El paquete se instala (binarios en `/usr/lib/netprotocol/`), pero no hay forma de lanzarla salvo por terminal.
+
+**Causa:** el spec del `.rpm` solo empaqueta `/usr/lib/netprotocol/*` — **sin `.desktop` ni icono ni enlace en el PATH**. El `.deb` sí incluye `netprotocol.desktop` (por eso en Ubuntu/Debian sí sale en el menú); el RPM no → diferencia de comportamiento entre formatos. Además, la app instalada no tiene icono de menú (el `Logo_NetProtocol.png` va embebido como `AvaloniaResource`, no viaja en el publish).
+
+**Fix (CI, `github-actions-ci.yml` — jobs del `package-linux`):** el empaquetado Linux (`.deb` y `.rpm` por igual) ahora instala:
+- `/usr/share/applications/netprotocol.desktop` (menú; `Exec=/usr/bin/netprotocol`, `Icon=netprotocol`) — se genera en el `%install` del spec y en el `debroot` del .deb (heredoc interno `'EOD'` dentro del heredoc del spec).
+- `/usr/share/pixmaps/netprotocol.png` — icono copiado desde `data/Logo_NetProtocol.png` (fuente del repo, no del publish).
+- `/usr/bin/netprotocol` — enlace simbólico al binario real `/usr/lib/netprotocol/NetProtocol` (comando `netprotocol` en el PATH, sin duplicar binarios).
+
+**Lanzar la v1.0.8 ya instalada** (hasta el próxim tag): `netprotocol` no existe aún → `/usr/lib/netprotocol/NetProtocol`; o crear la entrada de menú a mano (`/usr/share/applications/netprotocol.desktop` con `Exec=/usr/lib/netprotocol/NetProtocol`). **Commit pendiente de autorización del responsable.**
+
+## 29-08-2026 — Tema oscuro por defecto al arrancar (solo ocurría en el RPM → era el tema del sistema)
+
+**Síntoma del responsable:** en el RPM de openSUSE la app abría en **modo claro**; pedía que el modo de inicio por defecto fuera el oscuro. **Precisión del responsable:** "eso solo pasa en el rpm" — en Windows abría en oscuro.
+
+**Causa raíz:** no era del RPM. `App.axaml` usa `<FluentTheme />` sin variante fijada → `RequestedThemeVariant` por defecto (`Default`), que **sigue el tema del escritorio** del sistema. Windows del responsable = oscuro → app oscura; KDE de openSUSE = claro → app clara. El botón de tema (`AlternarTema`, MainWindow) existía pero solo alternaba en caliente; no fijaba el arranque.
+
+**Fix:** `RequestedThemeVariant="Dark"` en el elemento `<Application>` de `App.axaml` → la app **arranca siempre en oscuro** en todas las plataformas (Windows/`.exe`, Ubuntu/`.deb`, openSUSE/`.rpm`, macOS/`.dmg`) e independientemente del tema del escritorio; el botón de tema sigue alternando claro/oscuro en caliente dentro de la sesión (vuelve a oscuro en el próximo arranque; no se persiste la elección). Build verificado. **Commit pendiente de autorización del responsable.**
