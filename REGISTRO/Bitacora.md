@@ -783,3 +783,8 @@ Registro cronológico de decisiones, hitos y cambios. Cada entrada: fecha, event
 - `RenderFicha` sincroniza `ProtocolSelector.SelectedItem = p` con un flag `_sincronizandoSelector` (evita recursión) → la marca siempre refleja el protocolo en pantalla, navegues por sidebar, búsqueda, grafo o comparador.
 
 Build 0/0 · smoke OK · 78/78 tests.
+## 28-08-2026 — Salida explícita de la comparación: botón "✕ Volver a la ficha"
+
+**Síntoma del responsable:** tras comparar, la pantalla quedaba fija en la comparación y la única vía de volver al protocolo previo era la búsqueda o seleccionar otro protocolo. **Causa:** la comparación es una vista textual que sustituye la ficha (reescribe `DetailText` y limpia los diagramas), pero no ofrecía salida explícita; `_seleccionado` nunca se perdía, simplemente no había botón que lo restaurara.
+
+**Fix:** botón contextual **"✕ Volver a la ficha"** en la barra superior (junto a "Comparar", `IsVisible=False` por defecto): aparece al pulsar "Comparar" y llama `VolverALaFicha()` → `RenderFicha(_seleccionado)` (el protocolo comparado). Se oculta en `RenderFicha` (navegar por sidebar/búsqueda/selector ya restaura la ficha), en Leyenda, Acerca de y Captura (no son comparaciones). Mismo patrón que "✕ Cerrar captura". Build 0/0 · smoke OK · 78/78 tests.

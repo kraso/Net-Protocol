@@ -161,6 +161,7 @@ public partial class MainWindow : Window
         SearchBox.KeyDown += (_, e) => { if (e.Key == Key.Enter) EjecutarBusqueda(); };
         ThemeButton.Click += (_, _) => AlternarTema();
         CompareButton.Click += (_, _) => CompararConReferencia();
+        VolverFichaButton.Click += (_, _) => VolverALaFicha();
         LegendButton.Click += (_, _) => MostrarLeyenda();
         AboutButton.Click += (_, _) => MostrarAcercaDe();
         FilterFamilia.SelectionChanged += (_, _) => { if (!_cargando) ReconstruirNavegacion(); };
@@ -443,6 +444,10 @@ public partial class MainWindow : Window
         _sincronizandoSelector = true;
         ProtocolSelector.SelectedItem = p;
         _sincronizandoSelector = false;
+
+        // Al volver a una ficha real, la comparación deja de estar en pantalla: se oculta
+        // su botón de salida (si estaba visible).
+        VolverFichaButton.IsVisible = false;
 
         DetailText.TextAlignment = TextAlignment.Left; // "Acerca de" centra el texto; al volver, izquierda.
 
@@ -780,6 +785,7 @@ public partial class MainWindow : Window
         DiagramPanel.IsVisible = false;
         PanelCaptura.IsVisible = true;
         MinWidth = MinAnchoVentana; // la vista de captura no tiene diagramas
+        VolverFichaButton.IsVisible = false; // la captura no es una comparación
 
         ResumenCaptura.Text =
             $"{Path.GetFileName(ruta)} · linktype {captura.LinkType} ({(captura.EsEthernet ? "Ethernet" : "otro")}) · {_paquetesCaptura.Count} paquetes";
@@ -966,6 +972,7 @@ public partial class MainWindow : Window
         _docsActuales.Clear();
         DiagramTitle.IsVisible = false;
         MinWidth = MinAnchoVentana; // sin diagramas, la ventana vuelve a su mínimo base
+        VolverFichaButton.IsVisible = true; // la comparación queda "en pantalla"; hay salida explícita
 
         var filas = ProtocoloComparador.Comparar(
             new[] { _seleccionado, referencia },
@@ -1023,6 +1030,23 @@ public partial class MainWindow : Window
         DetailText.Text = sb.ToString();
     }
 
+    /// <summary>Salida explícita de la vista de comparación: restaura la ficha del
+    /// protocolo previo (la comparación nunca cambia _seleccionado, solo oculta la ficha).
+    /// El botón "✕ Volver a la ficha" solo es visible mientras la comparación está en
+    /// pantalla.</summary>
+    private void VolverALaFicha()
+    {
+        if (_seleccionado is not null)
+            RenderFicha(_seleccionado); // vuelve a la ficha del protocolo que se comparaba
+        else
+        {
+            DetailText.Text = "Seleccione un protocolo.";
+            DiagramPanel.IsVisible = true;
+        }
+        // RenderFicha ya oculta el botón; por si _seleccionado fuera null, se oculta aquí.
+        VolverFichaButton.IsVisible = false;
+    }
+
     private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         // Arrastre de la ventana desde la barra de título personalizada (WindowDecorations=None).
@@ -1075,6 +1099,7 @@ public partial class MainWindow : Window
         _docsActuales.Clear();
         DiagramTitle.IsVisible = false;
         MinWidth = MinAnchoVentana; // sin diagramas, la ventana vuelve a su mínimo base
+        VolverFichaButton.IsVisible = false; // la leyenda no es una comparación
 
         var sb = new StringBuilder();
         sb.AppendLine("=== Leyenda de familias de protocolos ===");
@@ -1113,6 +1138,7 @@ public partial class MainWindow : Window
         _docsActuales.Clear();
         DiagramTitle.IsVisible = false;
         MinWidth = MinAnchoVentana; // sin diagramas, la ventana vuelve a su mínimo base
+        VolverFichaButton.IsVisible = false; // "Acerca de" no es una comparación
 
         var sb = new StringBuilder();
         sb.AppendLine();

@@ -104,6 +104,10 @@
       <SelectableTextBlock Text="Comparar con:" VerticalAlignment="Center" />
       <ComboBox x:Name="CompareTarget" Width="300" />
       <Button x:Name="CompareButton" Content="Comparar" />
+      <!-- "Volver a la ficha": contextual, visible SOLO mientras la comparación está en
+           pantalla. Restaura la ficha del protocolo previo (RenderFicha(_seleccionado)),
+           que la comparación nunca modifica. Mismo patrón que "✕ Cerrar captura". -->
+      <Button x:Name="VolverFichaButton" Content="✕ Volver a la ficha" IsVisible="False" />
       <SelectableTextBlock Text="Familia:" VerticalAlignment="Center" />
       <ComboBox x:Name="FilterFamilia" Width="210" />
       <SelectableTextBlock Text="Estado:" VerticalAlignment="Center" />
