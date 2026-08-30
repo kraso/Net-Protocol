@@ -252,7 +252,7 @@ public partial class MainWindow : Window
         {
             // Transparente para recibir punteros en toda su área (el acrílico lo pinta).
             Background = Brushes.Transparent,
-            BorderBrush = new SolidColorBrush(Color.Parse("#55FFFFFF")),
+            BorderBrush = RecursoPopupBrush("tBordePopup", "#55FFFFFF"),
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(8),
             Padding = new Thickness(1),
@@ -262,7 +262,7 @@ public partial class MainWindow : Window
                 Material = new ExperimentalAcrylicMaterial
                 {
                     BackgroundSource = AcrylicBackgroundSource.Digger,
-                    TintColor = Color.Parse("#22252A"),
+                    TintColor = RecursoPopupColor("tFondoPopup", "#22252A"),
                     TintOpacity = 0.85,
                     MaterialOpacity = 0.75
                 },
@@ -331,9 +331,23 @@ public partial class MainWindow : Window
             };
     }
 
-    // Colores del texto sobre el popup cristalino oscuro (legibles en tema claro y oscuro).
-    private static readonly IBrush TextoPopup = new SolidColorBrush(Color.Parse("#F2F2F2"));
-    private static readonly IBrush EnlacePopup = new SolidColorBrush(Color.Parse("#6CBAFF"));
+    // Colores del popup cristalino (legibles en tema claro y oscuro). Viven como TOKENS
+    // permanentes en App.axaml; aquí se resuelven con respaldo al valor actual del token
+    // (si la resolución de recursos fallara, el popup sigue como estaba).
+    private static IBrush TextoPopup => RecursoPopupBrush("tTextoPopup", "#F2F2F2");
+    private static IBrush EnlacePopup => RecursoPopupBrush("tEnlacePopup", "#6CBAFF");
+
+    private static IBrush RecursoPopupBrush(string clave, string respaldoHex)
+    {
+        if (Application.Current?.TryGetResource(clave, null, out var v) is true && v is IBrush br) return br;
+        return new SolidColorBrush(Color.Parse(respaldoHex));
+    }
+
+    private static Color RecursoPopupColor(string clave, string respaldoHex)
+    {
+        if (Application.Current?.TryGetResource(clave, null, out var v) is true && v is SolidColorBrush sc) return sc.Color;
+        return Color.Parse(respaldoHex);
+    }
 
     /// <summary>Configura los popups de información de los 4 botones de acción (Comparar,
     /// Exportar, Abrir captura, Muestra de prueba), sustituyendo a los tooltips nativos.</summary>
@@ -1329,6 +1343,10 @@ public partial class MainWindow : Window
         app.RequestedThemeVariant = app.RequestedThemeVariant == ThemeVariant.Dark
             ? ThemeVariant.Light
             : ThemeVariant.Dark;
+        // Los diagramas usan paleta por tema (DiagramView): se repintan los que estén
+        // en pantalla con la nueva paleta (AplicarZoomContenido repuebla solo si el panel
+        // tiene diagramas visibles y no hay captura abierta — mismo guard que el zoom).
+        AplicarZoomContenido();
     }
 
     /// <summary>Leyenda de las 13 familias: acrónimo → descripción escueta + ejemplos del catálogo.</summary>

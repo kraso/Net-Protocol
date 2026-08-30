@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Styling;
 using Redes.Knowledge.Visualization;
 
 namespace Redes.Knowledge.App;
@@ -11,7 +12,8 @@ namespace Redes.Knowledge.App;
 /// ADR-003: el modelo no conoce el renderer; este control es el renderer Avalonia.
 /// Respeta el Fill/Stroke de cada primitiva y aplica una paleta por tipo de diagrama:
 /// pila (capas), grafo (semilla/vecinos/aristas por tipo), wire format (campos).
-/// Fondo claro fijo para que sea legible en tema claro y oscuro.
+/// Paleta POR TEMA: claro (fondo blanco, pastel) y oscuro (fondo pizarra, cajas slate);
+/// el texto "por defecto" del layout (#0f172a) se reinterpreta con el color del tema.
 /// </summary>
 public sealed class DiagramView : Control
 {
@@ -100,9 +102,23 @@ public sealed class DiagramView : Control
             NodoPulsado?.Invoke(nodo.Clave);
     }
 
+    // Paleta POR TEMA (estudio F2I-UX-Colorido-y-Estetica): los diagramas ya no son
+    // "islas blancas" en modo oscuro. Determinismo: sin Application.Current (tests)
+    // Oscuro=false → paleta clara de siempre; el golden-master mide layout/estructura,
+    // no los colores del tema.
+    private static bool Oscuro =>
+        Application.Current?.RequestedThemeVariant == ThemeVariant.Dark;
+
     private static readonly IBrush FondoClaro = new SolidColorBrush(Color.Parse("#ffffff"));
-    private static readonly IBrush TextoPorDefecto = new SolidColorBrush(Color.Parse("#0f172a"));
-    private static readonly IBrush TrazoPorDefecto = new SolidColorBrush(Color.Parse("#334155"));
+    private static readonly IBrush FondoOscuro = new SolidColorBrush(Color.Parse("#0F172A"));
+    private static readonly IBrush TextoClaro = new SolidColorBrush(Color.Parse("#0f172a"));
+    private static readonly IBrush TextoOscuro = new SolidColorBrush(Color.Parse("#E2E8F0"));
+    private static readonly IBrush TrazoClaro = new SolidColorBrush(Color.Parse("#334155"));
+    private static readonly IBrush TrazoOscuro = new SolidColorBrush(Color.Parse("#475569"));
+
+    private static IBrush Fondo => Oscuro ? FondoOscuro : FondoClaro;
+    private static IBrush TextoPorDefecto => Oscuro ? TextoOscuro : TextoClaro;
+    private static IBrush TrazoPorDefecto => Oscuro ? TrazoOscuro : TrazoClaro;
 
     // Paleta de capas para el diagrama de pila (top -> bottom).
     private static readonly string[] PaletaPila =
@@ -149,7 +165,7 @@ public sealed class DiagramView : Control
         var d = Document;
         if (d is null) return;
 
-        context.FillRectangle(FondoClaro, new Rect(0, 0, Bounds.Width, Bounds.Height));
+        context.FillRectangle(Fondo, new Rect(0, 0, Bounds.Width, Bounds.Height));
 
         // Zoom del diagrama como unidad: la escala se aplica al CONTEXTO de dibujo
         // (igual que el PNG 2× del exporter), de modo que geometría y texto escalan de
@@ -182,7 +198,14 @@ public sealed class DiagramView : Control
                         break;
 
                     case PrimitiveKind.Text:
-                        var colorTexto = p.Fill is null ? TextoPorDefecto : new SolidColorBrush(Color.Parse(p.Fill));
+                        // El layout usa #0f172a como color de texto "por defecto"; en modo
+                        // oscuro se reinterpreta con el texto del tema (los colores
+                        // explícitos —leyendas, acentos— se respetan tal cual).
+                        var esTextoPorDefecto = p.Fill is null
+                            || p.Fill.Equals("#0f172a", StringComparison.OrdinalIgnoreCase);
+                        var colorTexto = esTextoPorDefecto
+                            ? TextoPorDefecto
+                            : new SolidColorBrush(Color.Parse(p.Fill!));
                         var texto = p.Label;
                         // Si el layout indica un ancho máximo (W>0, p. ej. etiqueta dentro de una
                         // casilla del wire format), medir y truncar con "…" en caso de desborde.
@@ -217,7 +240,8 @@ public sealed class DiagramView : Control
 
     private static IBrush ColorRect(string tipo, Primitive p, int indice)
     {
-        // Pila: paleta por capa (el layout usa el mismo Fill para todas).
+        // Pila: paleta por capa (el layout usa el mismo Fill para todas); los rellenos
+        // pastel se conservan como "chips" de color sobre el lienzo del tema.
         if (tipo == "pila")
             return new SolidColorBrush(Color.Parse(PaletaPila[indice % PaletaPila.Length]));
 
@@ -225,10 +249,16 @@ public sealed class DiagramView : Control
         if (tipo == "grafo")
             return p.Fill is not null && !p.Fill.Equals("#eef2ff", StringComparison.OrdinalIgnoreCase)
                 ? new SolidColorBrush(Color.Parse(p.Fill))
-                : new SolidColorBrush(Color.Parse("#dbeafe"));
+                : RellenoAzulClaro();
 
         // Wire format: campos en azul claro; resto según primitiva o por defecto.
-        if (tipo == "wire-format") return new SolidColorBrush(Color.Parse("#dbeafe"));
-        return p.Fill is null ? new SolidColorBrush(Color.Parse("#eef2ff")) : new SolidColorBrush(Color.Parse(p.Fill));
+        if (tipo == "wire-format") return RellenoAzulClaro();
+        return p.Fill is null ? RellenoNeutro() : new SolidColorBrush(Color.Parse(p.Fill));
     }
+
+    // Rellenos de caja que en claro eran pastel y en oscuro pasan a pizarra (sin "isla blanca").
+    private static IBrush RellenoAzulClaro() =>
+        new SolidColorBrush(Color.Parse(Oscuro ? "#1E3A5F" : "#dbeafe"));
+    private static IBrush RellenoNeutro() =>
+        new SolidColorBrush(Color.Parse(Oscuro ? "#1E293B" : "#eef2ff"));
 }

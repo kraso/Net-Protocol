@@ -14,7 +14,7 @@
          hover más claro; el de cerrar se resalta en rojo al pasar el ratón. -->
     <Style Selector="Button.WinBtn">
       <Setter Property="Background" Value="Transparent" />
-      <Setter Property="Foreground" Value="#E6FFFFFF" />
+      <Setter Property="Foreground" Value="#D9FFFFFF" />
       <Setter Property="FontSize" Value="15" />
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="BorderThickness" Value="0" />
@@ -23,10 +23,10 @@
       <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
     <Style Selector="Button.WinBtn:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="#33FFFFFF" />
+      <Setter Property="Background" Value="#26FFFFFF" />
     </Style>
     <Style Selector="Button.WinBtn.CloseBtn:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="#E81123" />
+      <Setter Property="Background" Value="{DynamicResource tPeligro}" />
     </Style>
     <!-- Botones de acción de la sidebar: réplica del diseño de los ComboBox superiores
          (mismo fondo y borde del tema) pero más estrechos (220 px) y con un matiz
@@ -52,6 +52,41 @@
     </Style>
     <Style Selector="Button.SidebarAction:pressed /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListMediumBrush}" />
+    </Style>
+    <!-- Selección y foco con la paleta de la app (el tema Fluent por defecto pinta la
+         selección con su acento cian de fábrica, ajeno a la identidad slate de la app).
+         ListBox: sidebar de familias, resultados de búsqueda y lista de capturas.
+         ComboBoxItem: desplegables (Protocolo, Comparar con, Familia, Estado, Exportar). -->
+    <Style Selector="ListBoxItem">
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="6,4" />
+    </Style>
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource tSeleccionFondo}" />
+    </Style>
+    <Style Selector="ListBoxItem:selected">
+      <Setter Property="Foreground" Value="{DynamicResource tTexto}" />
+    </Style>
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource tSeleccionFondo}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource tSeleccionBorde}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+    </Style>
+    <Style Selector="ComboBoxItem:selected">
+      <Setter Property="Foreground" Value="{DynamicResource tTexto}" />
+    </Style>
+    <Style Selector="ComboBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource tSeleccionFondo}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource tSeleccionBorde}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <!-- Foco de campos de escritura y desplegables con el acento de la app (no el cian). -->
+    <Style Selector="TextBox:focus /template/ Border">
+      <Setter Property="BorderBrush" Value="{DynamicResource tAcento}" />
+    </Style>
+    <Style Selector="ComboBox:focus /template/ Border">
+      <Setter Property="BorderBrush" Value="{DynamicResource tAcento}" />
     </Style>
   </Window.Styles>
   <!-- Redimensión por borde con WindowDecorations=None: el marco del sistema no existe,
@@ -129,14 +164,14 @@
       - En la parte inferior: Tema, Leyenda y Acerca de
     -->
     <Border x:Name="Sidebar" DockPanel.Dock="Left" Width="360"
-            BorderBrush="#334155" BorderThickness="0,0,1,0">
+            BorderBrush="{DynamicResource tBordeFuerte}" BorderThickness="0,0,1,0">
       <DockPanel Margin="8">
         <StackPanel DockPanel.Dock="Top" Spacing="6">
           <TextBox x:Name="NavFilter" PlaceholderText="Filtrar familias - Ver leyenda" />
-          <Border Height="1" Background="#334155" />
+          <Border Height="1" Background="{DynamicResource tBorde}" />
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom" Spacing="6">
-          <Border Height="1" Background="#334155" />
+          <Border Height="1" Background="{DynamicResource tBorde}" />
           <!-- Sección especial: botones con diseño "tipo desplegable" (mismo fondo/borde
                que los ComboBox de la barra superior) pero más estrechos y con matiz
                propio: icono circular BLANCO BRILLANTE (sin color de acento) + texto +

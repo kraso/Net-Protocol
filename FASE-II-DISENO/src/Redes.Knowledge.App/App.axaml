@@ -3,20 +3,67 @@
              x:Class="Redes.Knowledge.App.App"
              RequestedThemeVariant="Dark">
   <Application.Resources>
-    <!-- Tipografía global embebida: JetBrainsMono Nerd Font Mono (SemiBold).
-         Se referencia por recurso avares:// para uso en XAML y por nombre de familia en código.
-         La herencia se aplica desde el Window (MainWindow.axaml FontFamily="{DynamicResource FuenteUi}"). -->
-    <FontFamily x:Key="FuenteUi">avares://NetProtocol/Assets/Fonts/JetBrainsMonoNerdFontMono-SemiBold.ttf#JetBrainsMono NFM</FontFamily>
-    <!-- Pincel de la barra de título: gradiente negro→blanco horizontal, cristalizado
-         (alphas), predominio del negro, PERMANENTE (colores fijos → no cambia con el tema). -->
-    <LinearGradientBrush x:Key="PincelBarraTitulo"
-                         StartPoint="0%,50%" EndPoint="100%,50%" SpreadMethod="Pad">
-      <GradientStop Offset="0.0" Color="#F2000000" />
-      <GradientStop Offset="0.55" Color="#E6000000" />
-      <GradientStop Offset="0.80" Color="#D9000000" />
-      <GradientStop Offset="0.97" Color="#B3FFFFFF" />
-      <GradientStop Offset="1.0" Color="#FFFFFFFF" />
-    </LinearGradientBrush>
+    <ResourceDictionary>
+      <!-- Tokens de color POR TEMA (ThemeDictionaries: al alternar claro/oscuro se
+           re-resuelven solos vía DynamicResource). Identidad slate profesional de la
+           app (#0F172A / #334155) + acento azul (claro #2563EB / oscuro #528BFF) y el
+           acento de enlace del popup (#6CBAFF). Diseño: F2I-UX-Colorido-y-Estetica. -->
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="tFondo" Color="#F8FAFC" />
+          <SolidColorBrush x:Key="tSuperficie" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="tBorde" Color="#CBD5E1" />
+          <SolidColorBrush x:Key="tBordeFuerte" Color="#94A3B8" />
+          <SolidColorBrush x:Key="tTexto" Color="#0F172A" />
+          <SolidColorBrush x:Key="tTextoSuave" Color="#475569" />
+          <SolidColorBrush x:Key="tAcento" Color="#2563EB" />
+          <SolidColorBrush x:Key="tAcentoHover" Color="#1D4ED8" />
+          <SolidColorBrush x:Key="tSeleccionFondo" Color="#8CDBEAFE" />
+          <SolidColorBrush x:Key="tSeleccionBorde" Color="#802563EB" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="tFondo" Color="#0F172A" />
+          <SolidColorBrush x:Key="tSuperficie" Color="#1E293B" />
+          <SolidColorBrush x:Key="tBorde" Color="#334155" />
+          <SolidColorBrush x:Key="tBordeFuerte" Color="#475569" />
+          <SolidColorBrush x:Key="tTexto" Color="#E2E8F0" />
+          <SolidColorBrush x:Key="tTextoSuave" Color="#94A3B8" />
+          <SolidColorBrush x:Key="tAcento" Color="#528BFF" />
+          <SolidColorBrush x:Key="tAcentoHover" Color="#6CBAFF" />
+          <SolidColorBrush x:Key="tSeleccionFondo" Color="#8C1E3A5F" />
+          <SolidColorBrush x:Key="tSeleccionBorde" Color="#806CBAFF" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+
+      <!-- Recursos PERMANENTES (idénticos en ambos temas) -->
+
+      <!-- Tipografía global embebida: JetBrainsMono Nerd Font Mono (SemiBold).
+           Se referencia por recurso avares:// para uso en XAML y por nombre de familia en código.
+           La herencia se aplica desde el Window (MainWindow.axaml FontFamily="{DynamicResource FuenteUi}"). -->
+      <FontFamily x:Key="FuenteUi">avares://NetProtocol/Assets/Fonts/JetBrainsMonoNerdFontMono-SemiBold.ttf#JetBrainsMono NFM</FontFamily>
+
+      <!-- Barra de título "cristal pizarra": gradiente negro azulado → slate translúcido,
+           NUNCA blanco. El extremo derecho aloja los botones de ventana: con el blanco puro
+           anterior (Offset 0.97/1.0 #FFFFFFFF) quedaban blancos sobre blanco (≈1,1:1);
+           con slate-600 translúcido el glifo blanco queda a ≈7,5:1. PERMANENTE (la barra
+           es oscura por diseño en claro y oscuro). -->
+      <LinearGradientBrush x:Key="PincelBarraTitulo"
+                           StartPoint="0%,50%" EndPoint="100%,50%" SpreadMethod="Pad">
+        <GradientStop Offset="0.00" Color="#F20F172A" />
+        <GradientStop Offset="0.55" Color="#E61E293B" />
+        <GradientStop Offset="0.82" Color="#D9334155" />
+        <GradientStop Offset="1.00" Color="#C6475569" />
+      </LinearGradientBrush>
+
+      <!-- Popup cristalino: oscuro por diseño en ambos temas (tinte, borde, texto, enlace). -->
+      <SolidColorBrush x:Key="tFondoPopup" Color="#22252A" />
+      <SolidColorBrush x:Key="tBordePopup" Color="#55FFFFFF" />
+      <SolidColorBrush x:Key="tTextoPopup" Color="#F2F2F2" />
+      <SolidColorBrush x:Key="tEnlacePopup" Color="#6CBAFF" />
+
+      <!-- Peligro: botón cerrar en hover (convención) y errores. Fijo. -->
+      <SolidColorBrush x:Key="tPeligro" Color="#E81123" />
+    </ResourceDictionary>
   </Application.Resources>
   <Application.Styles>
     <FluentTheme />
