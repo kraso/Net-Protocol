@@ -106,13 +106,13 @@ Settings → Secrets and variables → Actions (o `gh secret set`):
 ```bash
 # RPM (Fedora/RHEL/openSUSE) — importar la clave ANTES de instalar:
 wget -O NetProtocol-gpg-pubkey.asc \
-  https://github.com/kraso/Net-Protocol/releases/download/v1.0.9/NetProtocol-gpg-pubkey.asc
+  https://github.com/kraso/Net-Protocol/releases/download/v1.0.10/NetProtocol-gpg-pubkey.asc
 gpg --import NetProtocol-gpg-pubkey.asc      # comprobación manual
 sudo rpm --import NetProtocol-gpg-pubkey.asc # la importa para rpm/zypper/dnf
-rpm -Kv NetProtocol-1.0.9-x86_64.rpm         # -> "digests signatures OK"
+rpm -Kv NetProtocol-1.0.10-x86_64.rpm        # -> "digests signatures OK"
 
-sudo zypper install ./NetProtocol-1.0.9-x86_64.rpm   # openSUSE
-# sudo dnf install ./NetProtocol-1.0.9-x86_64.rpm    # Fedora/RHEL
+sudo zypper install ./NetProtocol-1.0.10-x86_64.rpm   # openSUSE
+# sudo dnf install ./NetProtocol-1.0.10-x86_64.rpm    # Fedora/RHEL
 ```
 
 > **NOKEY / "la clave pública de firma no está disponible"** al primer `zypper install`
@@ -123,7 +123,7 @@ sudo zypper install ./NetProtocol-1.0.9-x86_64.rpm   # openSUSE
 
 ```bash
 # DEB (Debian/Ubuntu): firma adjunta .asc
-gpg --verify NetProtocol-1.0.9-amd64.deb.asc NetProtocol-1.0.9-amd64.deb
+gpg --verify NetProtocol-1.0.10-amd64.deb.asc NetProtocol-1.0.10-amd64.deb
 
 # Forma canónica completa para apt (repositorio firmado, pendiente)
 # Publicar en un repo apt con Release.gpg firmado (apt-ftparchive/reprepro) e
