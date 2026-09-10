@@ -147,6 +147,14 @@ sudo zypper install ./NetProtocol-1.0.14-linux-x86_64.rpm   # openSUSE
 > siguientes con la misma clave se instalan sin preguntar). Atajo:
 > `sudo zypper --gpg-auto-import-keys install ./…rpm` (zypper pregunta y la importa).
 
+> **"La descarga se realiza sin aislamiento como root … no pudo accederlo el usuario '_apt' (13: Permiso denegado)"** con `apt install ./…deb` es un aviso de apt, no un fallo del paquete (la instalación completa). Apt baja privilegios al usuario `_apt` para leer el `.deb`; aunque el archivo sea legible, `_apt` no puede atravesar los directorios de tu `$HOME` (perms `700`). Se evita copiando el paquete fuera del home o usando `dpkg`:
+>
+> ```bash
+> cp NetProtocol-1.0.14-linux-amd64.deb /tmp/ && sudo apt install /tmp/NetProtocol-1.0.14-linux-amd64.deb
+> # o, equivalente sin sandbox:
+> sudo dpkg -i NetProtocol-1.0.14-linux-amd64.deb
+> ```
+
 ```bash
 # DEB (Debian/Ubuntu): firma adjunta .asc
 gpg --verify NetProtocol-1.0.14-linux-amd64.deb.asc NetProtocol-1.0.14-linux-amd64.deb
