@@ -69,6 +69,21 @@ public partial class MainWindow : Window
     // de los popups de información (sin parpadeo).
     private Point _ultimaPosPuntero = new(-1, -1);
 
+    // Supervisión GLOBAL de los popups de información: cierre determinista por deadline
+    // (5 s desde que el popup se ABRE). Los re-enters espurios de X11 ya no pueden reiniciar
+    // un temporizador por-popup (eso dejaba los tooltips abiertos mucho tiempo y de forma
+    // errática); la deadline solo se fija en la transición cerrado→abierto.
+    private readonly DispatcherTimer _supervisorTooltips;
+    private readonly List<SupertipPopup> _vigilados = new();
+
+    /// <summary>Estado de un popup de información vigilado por el supervisor global.</summary>
+    private sealed class SupertipPopup
+    {
+        public required Popup Popup { get; init; }
+        public DateTime AbiertoDesde { get; set; }
+        public DateTime NoReabrirHasta { get; set; } = DateTime.MinValue;
+    }
+
     /// <summary>Diagramas de la ficha actual (cache para la exportación D4-3).</summary>
     private List<(string Titulo, DiagramDocument Doc, IReadOnlyList<NodoGrafo>? Nodos, IReadOnlyDictionary<string, string?>? Abrir)> _docsActuales = new();
 
@@ -187,7 +202,23 @@ public partial class MainWindow : Window
         // Tooltip de "Muestra de prueba": el contenido (frase + carpeta REAL de capturas) y
         // Popups de información de los botones de acción (Comparar, Exportar, Abrir captura,
         // Muestra de prueba), en sustitución de los tooltips nativos: estilo cristalino y
-        // permanencia por geometría (ver ConfigurarPopupsBotones).
+        // cierre determinista por deadline (ver ConfigurarPopupsBotones).
+        _supervisorTooltips = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _supervisorTooltips.Tick += (_, _) =>
+        {
+            foreach (var v in _vigilados)
+            {
+                if (!v.Popup.IsOpen) continue;
+                if (DateTime.UtcNow - v.AbiertoDesde > TimeSpan.FromSeconds(5))
+                {
+                    v.Popup.IsOpen = false;
+                    // Gracia anti-reabrir: en X11 el desmapeo del overlay re-emite enters
+                    // espurios; ignorarlos 1,2 s para no volver a abrir el popup al cerrarlo.
+                    v.NoReabrirHasta = DateTime.UtcNow.AddMilliseconds(1200);
+                }
+            }
+        };
+        _supervisorTooltips.Start();
         ConfigurarPopupsBotones();
         CerrarCapturaButton.Click += (_, _) => CerrarCaptura();
         ListaPaquetes.SelectionChanged += (_, _) =>
@@ -290,44 +321,27 @@ public partial class MainWindow : Window
         if (Content is Panel raiz && !raiz.Children.Contains(popup))
             raiz.Children.Add(popup);
 
-        // Permanencia SIN PARPADEO: salir del botón (o del popup) programa un cierre
-        // diferido que solo se ejecuta si la posición real del puntero ya no está sobre
-        // el rect del BOTÓN (misma capa que la ventana, fiable) ni sobre el popup (flag
-        // sobrePopup, solo para la transición botón→popup y poder pulsar el enlace de
-        // Muestra; en X11 este flag puede quedarse a true y por eso el auto-cierre de
-        // tiempo es incondicional e independiente de él).
-
-        // AUTO-CIERRE por tiempo INCONDICIONAL (mismo comportamiento que el ShowDuration
-        // del ToolTip nativo): en Linux/X11 los eventos de puntero del overlay no llegan
-        // de forma fiable (ni PointerExited, ni el "puntero sobre el popup"). Por eso el
-        // cierre NO depende de ninguna señal: se programa al abrir y a los 6 s cierra
-        // siempre que el popup siga abierto. Una breve gracia anti-reabrir absorbe los
-        // artefactos que X11 emite al desmapear el overlay (re-enter espurio que volvería
-        // a abrir el popup y daría la impresión de que nunca se cierra).
-        var sobrePopup = false;
-        var autoCierre = new DispatcherTimer { Interval = TimeSpan.FromSeconds(6) };
-        var noReabrirHasta = DateTime.MinValue;
-        autoCierre.Tick += (_, _) =>
-        {
-            autoCierre.Stop();
-            noReabrirHasta = DateTime.UtcNow.AddMilliseconds(1000);
-            popup.IsOpen = false;
-        };
-
-        bool PuedeReabrir() => DateTime.UtcNow >= noReabrirHasta;
+        // CIERRE determinista por DEADLINE (supervisor global, ver _supervisorTooltips):
+        // el popup se cierra 5 s después de ABRIRSE, sin depender de flags ni eventos del
+        // overlay. En Linux/X11 los PointerEntered autobiográficos del botón/popup se
+        // re-emiten sin orden (reiniciaban un temporizador por-popup → cierres a los 30-60 s
+        // y erráticos); aquí la deadline se fija solo en la transición cerrado→abierto, así
+        // que ningún re-enter la puede prolongar. El cierre por geometría (salir del botón)
+        // sigue como atajo cuando los eventos SÍ llegan (Windows).
+        var vig = new SupertipPopup { Popup = popup };
+        _vigilados.Add(vig);
 
         void OcultarPopup()
         {
-            autoCierre.Stop();
             popup.IsOpen = false;
         }
 
         void AbrirSiProcede()
         {
-            if (!PuedeReabrir()) return;
+            if (DateTime.UtcNow < vig.NoReabrirHasta) return;
+            var yaAbierto = popup.IsOpen;
             popup.IsOpen = true;
-            autoCierre.Stop();
-            autoCierre.Start();
+            if (!yaAbierto) vig.AbiertoDesde = DateTime.UtcNow;
         }
 
         bool PunteroDentro()
@@ -336,7 +350,7 @@ public partial class MainWindow : Window
             var botonRect = anfitrion.TranslatePoint(new Point(0, 0), this) is { } pb
                 ? new Rect(pb, anfitrion.Bounds.Size)
                 : vacio;
-            return sobrePopup || botonRect.Contains(_ultimaPosPuntero);
+            return botonRect.Contains(_ultimaPosPuntero);
         }
 
         void ProgramarCierre()
@@ -355,8 +369,8 @@ public partial class MainWindow : Window
         // Al pulsar el botón se cierra el popup sin consumir el clic: el botón sigue
         // ejecutando su acción normal (Comparar, Exportar, Abrir captura, Muestra…).
         anfitrion.PointerPressed += (_, _) => OcultarPopup();
-        borde.PointerEntered += (_, _) => { sobrePopup = true; AbrirSiProcede(); };
-        borde.PointerExited += (_, _) => { sobrePopup = false; ProgramarCierre(); };
+        borde.PointerEntered += (_, _) => AbrirSiProcede();
+        borde.PointerExited += (_, _) => ProgramarCierre();
         if (alPulsar is not null)
             contenido.PointerPressed += (_, _) =>
             {
