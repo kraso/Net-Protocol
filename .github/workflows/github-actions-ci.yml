@@ -124,7 +124,7 @@ jobs:
           Exec=/usr/bin/netprotocol
           Icon=netprotocol
           Type=Application
-          Categories=Network;Utility;
+          Categories=Network;
           Terminal=false
           EOF
           sed -i 's/^          //' debroot/usr/share/applications/netprotocol.desktop
@@ -200,7 +200,7 @@ jobs:
           Exec=/usr/bin/netprotocol
           Icon=netprotocol
           Type=Application
-          Categories=Network;Utility;
+          Categories=Network;
           Terminal=false
           EOD
 
@@ -229,7 +229,9 @@ jobs:
           chmod 755 "$APPDIR/usr/bin/NetProtocol" "$APPDIR/usr/bin/createdump"
           # Icono (256×256, freedesktop).
           cp src/Redes.Knowledge.App/Assets/Logo_NetProtocol.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/netprotocol.png"
-          ln -s ../icons/hicolor/256x256/apps/netprotocol.png "$APPDIR/netprotocol.png"
+          # Icono raíz del AppDir: COPIA real (el symlink relativo "..icons/..." apuntaba
+          # fuera del AppDir y appimagetool no encontraba el icono -> exit 1).
+          cp src/Redes.Knowledge.App/Assets/Logo_NetProtocol.png "$APPDIR/netprotocol.png"
           # Entrada de menú.
           cat > "$APPDIR/netprotocol.desktop" <<'EOF'
           [Desktop Entry]
@@ -238,7 +240,7 @@ jobs:
           Exec=/usr/bin/NetProtocol
           Icon=netprotocol
           Type=Application
-          Categories=Network;Utility;
+          Categories=Network;
           Terminal=false
           EOF
           sed -i 's/^          //' "$APPDIR/netprotocol.desktop"
