@@ -397,16 +397,96 @@ jobs:
         run: |
           set -euo pipefail
           VER="${GITHUB_REF_NAME#v}"
-          {
-            echo "Net Protocol ${VER} — instaladores oficiales"
-            echo ""
-            echo "**Incluye:**"
-            echo "- **Windows** (win-x64): instalador Inno Setup \`.exe\`"
-            echo "- **Linux** (linux-x64): \`.deb\` (Debian/Ubuntu), \`.rpm\` (Fedora/RHEL/openSUSE) y \`.AppImage\` (portable), cada uno con su firma \`.asc\` adjunta"
-            echo "- **macOS** (osx-x64): imagen \`.dmg\`"
-            echo ""
-            echo "**Notas:** builds self-contained (no requieren .NET instalado). Linux: .rpm firmado (rpmsign + .asc) y .deb/.AppImage con firma GPG adjunta (.asc), verificables con `NetProtocol-gpg-pubkey.asc` (si la clave esta configurada en CI). Windows/macOS sin firma de codigo (pendiente de certificados)."
-          } > RELEASE_NOTES.md
+          cat > RELEASE_NOTES.md <<EOF
+          # Net Protocol ${VER} — instaladores oficiales
+
+          Instaladores **self-contained**: no necesitan tener .NET instalado en el equipo. Disponibles para **Windows** (x64), **Linux** (x64) y **macOS** (x64).
+
+          ## Novedades en esta versión
+
+          - **Linux sin dependencias nativas**: se eliminó el requisito de \`liblttng-ust0\` y \`liburcu6\`. La aplicación arranca con \`DOTNET_EnableDiagnostics=0\`, de modo que el \`.deb\` y el \`.rpm\` se instalan limpios en cualquier distro (antes fallaba el \`dpkg\`/\`dnf\` por versiones mínimas de esas librerías).
+          - **Nuevo instalador portátil AppImage**: se ejecuta sin instalar, con icono de escritorio.
+          - **Patrón de nombres unificado**: todos los instaladores siguen \`NetProtocol-<versión>-<SO>-<arquitectura>.<extensión>\`.
+          - **Firmas GPG**: los tres instaladores Linux llevan su firma \`.asc\` adjunta, y el \`.rpm\` además incorpora firma integrada (\`rpmsign\`). Clave pública de verificación adjunta: \`NetProtocol-gpg-pubkey.asc\`.
+          - Icono **256×256** en los menús de Linux y dentro de la AppImage; icono \`.icns\` nativo en el bundle de macOS.
+
+          ---
+
+          ## Windows — \`.exe\` (Inno Setup)
+
+          Descarga \`NetProtocol-${VER}-win-x64.exe\` y haz doble clic. Crea el grupo "Net Protocol" en el menú Inicio, instala en \`%ProgramFiles%\NetProtocol\` y deja un desinstalador. Los datos de la aplicación quedan en \`%LOCALAPPDATA%\NetProtocol\` y **se conservan** al actualizar de versión.
+
+          Instalación silenciosa por línea de comandos:
+
+          \`\`\`powershell
+          .\NetProtocol-${VER}-win-x64.exe /VERYSILENT /CURRENTUSER
+          \`\`\`
+
+          ## Debian / Ubuntu — \`.deb\`
+
+          \`\`\`bash
+          sudo apt install ./NetProtocol-${VER}-linux-amd64.deb
+          \`\`\`
+
+          Verificación de la firma (recomendado):
+
+          \`\`\`bash
+          gpg --import NetProtocol-gpg-pubkey.asc
+          gpg --verify NetProtocol-${VER}-linux-amd64.deb.asc NetProtocol-${VER}-linux-amd64.deb
+          \`\`\`
+
+          Al terminar, la aplicación aparece en el menú con su icono y deja el comando \`netprotocol\` disponible en el PATH. No requiere librerías adicionales.
+
+          ## Fedora / RHEL / openSUSE — \`.rpm\`
+
+          Importa la clave pública una sola vez por equipo y verifica la firma integrada del paquete:
+
+          \`\`\`bash
+          sudo rpm --import NetProtocol-gpg-pubkey.asc
+          rpm -Kv NetProtocol-${VER}-linux-x86_64.rpm   # → "digests signatures OK"
+          \`\`\`
+
+          Instala según tu distribución:
+
+          \`\`\`bash
+          sudo dnf install ./NetProtocol-${VER}-linux-x86_64.rpm      # Fedora / RHEL
+          sudo zypper install ./NetProtocol-${VER}-linux-x86_64.rpm   # openSUSE
+          \`\`\`
+
+          Firma GPG adjunta (adicional a la integrada):
+
+          \`\`\`bash
+          gpg --import NetProtocol-gpg-pubkey.asc
+          gpg --verify NetProtocol-${VER}-linux-x86_64.rpm.asc NetProtocol-${VER}-linux-x86_64.rpm
+          \`\`\`
+
+          ## Cualquier distribución Linux — \`.AppImage\` (portable)
+
+          No requiere instalación ni privilegios de administrador:
+
+          \`\`\`bash
+          chmod +x NetProtocol-${VER}-linux-x86_64.AppImage
+          ./NetProtocol-${VER}-linux-x86_64.AppImage
+          \`\`\`
+
+          Verificación de la firma:
+
+          \`\`\`bash
+          gpg --verify NetProtocol-${VER}-linux-x86_64.AppImage.asc NetProtocol-${VER}-linux-x86_64.AppImage
+          \`\`\`
+
+          ## macOS — \`.dmg\`
+
+          Descarga \`NetProtocol-${VER}-macos-x64.dmg\`, ábrelo y arrastra **Net Protocol.app** a la carpeta Aplicaciones. Como el bundle aún no lleva firma de código de Apple, en el primer arranque haz clic derecho sobre la aplicación → **Abrir**.
+
+          ---
+
+          ## Notas
+
+          - **Windows y macOS** aún no llevan firma de código (certificado pendiente); al descargarlos Windows SmartScreen mostrará un aviso → "Más información" → "Ejecutar de todas formas".
+          - **Linux**: la huella de la clave se ve con \`gpg --with-fingerprint NetProtocol-gpg-pubkey.asc\`.
+          - Los artefactos de esta release se generan automáticamente por GitHub Actions desde el tag \`v${VER}\` (jobs \`package-win\`, \`package-linux\`, \`package-macos\`).
+          EOF
           gh release create "$GITHUB_REF_NAME" dist/setup-*/* \
             --title "Net Protocol ${VER}" \
             --notes-file RELEASE_NOTES.md
