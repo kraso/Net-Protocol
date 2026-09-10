@@ -21,6 +21,7 @@ FASE-II-DISENO/dist/
 .codegraph/
 .mcp.json
 AGENTS.md
+GEMINI.md
 opencode.jsonc
 _prompt_extraido.txt
 
@@ -35,3 +36,5 @@ NetProtocol.rar
 # Inspección temporal de paquetes (descargas/extracciones de diagnóstico)
 .tmp-inspect/
 
+# Registros de sesiones con la IA
+SESION-*
