@@ -46,7 +46,7 @@ Los instaladores se publican como **GitHub Release** por cada tag `v*` ([release
 
 > **Patrón de nombres:** todos los instaladores comparten el formato
 > `NetProtocol-<versión>-<SO>-<arquitectura>.<extensión>`; la firma adjunta de cada
-> instalador Linux es `<instalador>.asc` (p. ej. `NetProtocol-1.0.12-linux-amd64.deb.asc`).
+> instalador Linux es `<instalador>.asc` (p. ej. `NetProtocol-1.0.13-linux-amd64.deb.asc`).
 > `NetProtocol-gpg-pubkey.asc` es la clave pública de releases (la misma en todas las
 > versiones), no una firma por-version.
 
