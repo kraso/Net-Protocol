@@ -242,7 +242,9 @@ public partial class MainWindow : Window
     /// Permanencia SIN PARPADEO: el cierre se decide por GEOMETRÍA (posición del puntero
     /// contra los rects del botón y del popup), no por PointerEntered/Exited (que al abrir
     /// el overlay disparan eventos espurios y provocan ciclos de abrir/cerrar). La posición
-    /// la mantiene el PointerMoved global (_ultimaPosPuntero).
+    /// la mantiene el PointerMoved global (_ultimaPosPuntero). Como respaldo (Linux/X11,
+    /// donde los eventos del overlay pueden no emitirse), hay un auto-cierre por tiempo que
+    /// se refresca mientras el puntero esté sobre el popup.
     /// Si se pasa <paramref name="alPulsar"/>, se engancha al contenido y cierra el popup.</summary>
     private void CrearPopupInfo(Control anfitrion, Control contenido, Action? alPulsar = null)
     {
@@ -293,8 +295,32 @@ public partial class MainWindow : Window
         // aunque viva en otra capa visual; un TranslatePoint entre capas NO es fiable).
         // Al salir del botón o del popup se programa un cierre diferido que solo se
         // ejecuta si la posición real no está sobre ninguno de los dos.
-        var sobreBoton = false;
         var sobrePopup = false;
+
+        // AUTO-CIERRE por tiempo (fallback robusto, sobre todo en Linux/X11): igual que
+        // el ToolTip nativo (ShowDuration), el popup se cierra transcurrido un tiempo aunque
+        // el puntero siga encima del botón o el cierre por geometría no llegue a ejecutarse
+        // (en X11 los PointerExited del overlay pueden no emitirse y el popup se quedaba fijo).
+        // Estar sobre el popup lo mantiene vivo (para leer el texto o pulsar el enlace de
+        // "Muestra de prueba"); salir o pulsar fuera lo cierra como antes.
+        var autoCierre = new DispatcherTimer { Interval = TimeSpan.FromSeconds(6) };
+        autoCierre.Tick += (_, _) =>
+        {
+            autoCierre.Stop();
+            if (!sobrePopup) popup.IsOpen = false;
+        };
+
+        void ReiniciarAutoCierre()
+        {
+            autoCierre.Stop();
+            autoCierre.Start();
+        }
+
+        void OcultarPopup()
+        {
+            autoCierre.Stop();
+            popup.IsOpen = false;
+        }
 
         bool PunteroDentro()
         {
@@ -311,22 +337,22 @@ public partial class MainWindow : Window
             timer.Tick += (_, _) =>
             {
                 timer.Stop();
-                if (!PunteroDentro()) popup.IsOpen = false;
+                if (!PunteroDentro()) OcultarPopup();
             };
             timer.Start();
         }
 
-        anfitrion.PointerEntered += (_, _) => { sobreBoton = true; popup.IsOpen = true; };
-        anfitrion.PointerExited += (_, _) => { sobreBoton = false; ProgramarCierre(); };
+        anfitrion.PointerEntered += (_, _) => { popup.IsOpen = true; ReiniciarAutoCierre(); };
+        anfitrion.PointerExited += (_, _) => ProgramarCierre();
         // Al pulsar el botón se cierra el popup sin consumir el clic: el botón sigue
         // ejecutando su acción normal (Comparar, Exportar, Abrir captura, Muestra…).
-        anfitrion.PointerPressed += (_, _) => popup.IsOpen = false;
-        borde.PointerEntered += (_, _) => { sobrePopup = true; popup.IsOpen = true; };
+        anfitrion.PointerPressed += (_, _) => OcultarPopup();
+        borde.PointerEntered += (_, _) => { sobrePopup = true; popup.IsOpen = true; ReiniciarAutoCierre(); };
         borde.PointerExited += (_, _) => { sobrePopup = false; ProgramarCierre(); };
         if (alPulsar is not null)
             contenido.PointerPressed += (_, _) =>
             {
-                popup.IsOpen = false;
+                OcultarPopup();
                 alPulsar();
             };
     }

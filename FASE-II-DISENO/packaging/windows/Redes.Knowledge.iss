@@ -4,7 +4,7 @@
 ; por defecto usa la última publicada.
 
 #ifndef MyAppVersion
-  #define MyAppVersion "1.0.11"
+  #define MyAppVersion "1.0.12"
 #endif
 
 ; URL ascendente del proyecto (se muestra en el desinstalador y en "Programas y

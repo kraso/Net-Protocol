@@ -164,6 +164,12 @@ jobs:
           URL: ${REPO_URL}
           BuildArch: x86_64
 
+          # El runtime .NET self-contained lleva librerías con DT_NEEDED a liblttng-ust y
+          # liburcu, que NO usa en ejecución (DOTNET_EnableDiagnostics=0 las desactiva).
+          # rpmbuild las convierte en auto-Requires y Fedora/RHEL fallan la instalación con
+          # "nada proporciona liblttng-ust.so.0()(64bit)"; se excluyen solo estas dos.
+          %global __requires_exclude ^lib(lttng-ust|urcu).*$
+
           %description
           Base de conocimiento/consulta de protocolos de red (catálogo F3, fichas F4, PDU F5, seguridad F6).
 
