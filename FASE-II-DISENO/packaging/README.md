@@ -5,17 +5,39 @@ Estrategia aprobada en el plan de Fase II (§E) y materiales de esta carpeta:
 | SO | Formato objetivo | Herramienta | Estado |
 |---|---|---|---|
 | Windows | Instalador `.exe` | **Inno Setup** (script: [`windows/Redes.Knowledge.iss`](windows/Redes.Knowledge.iss)) | ✅ En CI (tag `v*`) |
-| macOS | `.dmg` | `hdiutil` + bundle `.app` (en runner macOS) | ✅ En CI (tag `v*`) |
-| Linux | `.deb` + `.rpm` | `dpkg-deb` / `rpmbuild` (en runner Ubuntu) | ✅ En CI (tag `v*`) |
+| macOS | `.dmg` + `.app` bundle | `sips` + `iconutil` (`.icns`) + `hdiutil` (en runner macOS) | ✅ En CI (tag `v*`) |
+| Linux | `.deb` + `.rpm` + `.AppImage` | `dpkg-deb` / `rpmbuild` / `appimagetool` (en runner Ubuntu) | ✅ En CI (tag `v*`) |
 
 Los tres instaladores se generan en CI al empujar un tag `v*` y se publican como
 **GitHub Release** (job `release` del workflow `github-actions-ci.yml`).
 
-**Entrada de menú e icono (Linux):** tanto el `.deb` como el `.rpm` instalan la
+## Patrón unificado de nombres
+
+Todos los instaladores comparten el formato **`NetProtocol-<versión>-<SO>-<arquitectura>.<extensión>`**
+y cada instalador Linux lleva su firma adjunta como **`<instalador>.asc`**:
+
+| Instalador | Archivo | Firma adjunta |
+|---|---|---|
+| Windows (Inno Setup) | `NetProtocol-<ver>-win-x64.exe` | — (sin firma de código) |
+| Debian/Ubuntu | `NetProtocol-<ver>-linux-amd64.deb` | `…-linux-amd64.deb.asc` |
+| Fedora/RHEL/openSUSE | `NetProtocol-<ver>-linux-x86_64.rpm` | `…-linux-x86_64.rpm.asc` + firma integrada `rpmsign` |
+| Linux portable | `NetProtocol-<ver>-linux-x86_64.AppImage` | `…-linux-x86_64.AppImage.asc` |
+| macOS | `NetProtocol-<ver>-macos-x64.dmg` | — (sin firma de código) |
+
+> El token de arquitectura usa la convención nativa de cada ecosistema
+> (`amd64` para .deb, `x86_64` para .rpm/.AppImage, `x64` para exe/dmg).
+> `NetProtocol-gpg-pubkey.asc` **no** sigue el patrón de versión: es la clave
+> pública de releases, la misma en todas las versiones, con nombre estable para
+> que los comandos de importación no cambien entre releases.
+
+**Entrada de menú e icono (Linux):** tanto el `.deb`, `.rpm` como `.AppImage` instalan la
 entrada de menú (`/usr/share/applications/netprotocol.desktop`), el icono
-(`/usr/share/pixmaps/netprotocol.png`, desde `data/Logo_NetProtocol.png`) y un
-comando en el PATH: **`netprotocol`** (enlace a `/usr/lib/netprotocol/NetProtocol`,
-sin duplicar binarios). El `Exec` del menú usa la ruta absoluta `/usr/bin/netprotocol`.
+(`/usr/share/pixmaps/netprotocol.png`, desde `src/Redes.Knowledge.App/Assets/Logo_NetProtocol.png` — PNG 256×256,
+estándar freedesktop) y un comando en el PATH: **`netprotocol`** (un **wrapper** que
+lanza `/usr/lib/netprotocol/NetProtocol` con `DOTNET_EnableDiagnostics=0` — sin duplicar
+binarios). El `Exec` del menú usa la ruta absoluta `/usr/bin/netprotocol`. La AppImage
+lleva su propio icono (`usr/share/icons/hicolor/256x256/apps/netprotocol.png`) y un
+`AppRun` equivalente en la raíz del AppDir.
 
 > **Ojo con el bit de ejecución:** `actions/download-artifact@v4` pierde el modo
 > de ejecución al descargar el binario (problema conocido del action). Por eso
@@ -48,30 +70,34 @@ el repositorio, los próximos paquetes llevan la URL correcta sin tocar nada**
 3. Firma/código y firma del instalador (firmas requeridas por SO — configurar en CI).
 4. Publicar instaladores; adjuntar `dataset.json` (versión, hash golden, conteos).
 
-## Dependencias runtime de los instaladores Linux
+## Runtime sin dependencias nativas (Linux)
 
-El runtime .NET self-contained necesita dos librerías nativas del sistema para
-diagnósticos/trazado (`lttng-ust`, `urcu`). Se declaran como dependencias del
-paquete para que el gestor las instale automáticamente:
+El runtime .NET self-contained carga `lttng-ust`/`urcu` para diagnósticos/trazado
+(EventPipe) **solo de forma perezosa**, pero eso obligaba a declarar
+`liblttng-ust0`/`liburcu6` como dependencias del paquete — incómodo en distros
+con versiones antiguas (p. ej. Ubuntu 20.04 tiene `liblttng-ust0` 2.11.0,
+inferior al mínimo exigido). Para **no** depender de esas librerías:
 
-| Paquete | `.deb` (`Depends`) | `.rpm` (`Requires`) |
-|---|---|---|
-| LTTng userspace tracer | `liblttng-ust0 (>= 2.12.0)` | `liblttng-ust0 >= 2.12.0` |
-| Userspace RCU | `liburcu6 (>= 0.12.1)` | `liburcu6 >= 0.12.1` |
+- El `.deb` y el `.rpm` instalan un **wrapper** en `/usr/bin/netprotocol` que
+  exporta `DOTNET_EnableDiagnostics=0` y ejecuta el binario con `exec`.
+- La `.AppImage` lleva un **`AppRun`** equivalente en la raíz del AppDir.
 
-> Alternativa si no quieres estas dependencias: desactivar la traza en el
-> runtime con `DOTNET_EnableDiagnostics=0` (p. ej. en `netprotocol.desktop` o un
-> wrapper). Se mantienen declaradas porque el comportamiento por defecto del
-> runtime las carga.
+Consecuencia: **los paquetes ya no declaran `Depends`/`Requires` nativos** y se
+instalan en cualquier distro sin librerías adicionales. La traza de diagnóstico
+queda desactivada (no afecta a la funcionalidad de la app).
+
+> Para recuperar la traza: lanzar el binario directamente
+> (`/usr/lib/netprotocol/NetProtocol`) o quitar la variable del wrapper.
 
 ## Firma GPG de los instaladores Linux
 
 La firma se hace en CI (job `package-linux`) **solo si existen los secretos**;
 sin ellos el job avisa (`::warning::`) y publica sin firmar. La misma clave GPG
-firma el `.rpm` (firma integrada con `rpmsign`) y el `.deb` (firma adjunta `.asc`
-estándar — `dpkg-sig`, el firmador clásico, fue **retirado de los repos de
-Ubuntu/Debian**; la forma canónica de apt sigue siendo un repositorio con
-`Release` firmado, ver abajo).
+firma el `.rpm` (firma integrada con `rpmsign` **más** firma adjunta `.asc`) y los
+`.deb`/`.AppImage` con firma adjunta `.asc` estándar (`gpg --detach-sign --armor`,
+siguiendo el patrón `<instalador>.asc`). `dpkg-sig`, el firmador clásico del `.deb`,
+fue **retirado de los repos de Ubuntu/Debian**; la forma canónica de apt sigue
+siendo un repositorio con `Release` firmado, ver abajo).
 
 ### 1. Generar la clave (una sola vez, en tu equipo)
 
@@ -98,21 +124,21 @@ Settings → Secrets and variables → Actions (o `gh secret set`):
 ### 3. Qué produce CI cuando la clave está configurada
 
 - `.rpm` firmado (`rpmsign --addsign`) + **verificación obligatoria** (`rpm --checksig`); si falla, el job falla.
-- `.deb` + firma `.deb.asc` (`gpg --detach-sign --armor`) + verificación (`gpg --verify`).
-- Se adjunta al release la clave pública `NetProtocol-gpg-pubkey.asc`.
+- `.deb`, `.rpm` y `.AppImage` con firma adjunta `<instalador>.asc` (`gpg --detach-sign --armor`) + verificación (`gpg --verify`).
+- Se adjunta al release la clave pública `NetProtocol-gpg-pubkey.asc` (misma clave en todas las versiones).
 
 ### 4. Verificación por parte de quien instala
 
 ```bash
 # RPM (Fedora/RHEL/openSUSE) — importar la clave ANTES de instalar:
 wget -O NetProtocol-gpg-pubkey.asc \
-  https://github.com/kraso/Net-Protocol/releases/download/v1.0.10/NetProtocol-gpg-pubkey.asc
+  https://github.com/kraso/Net-Protocol/releases/download/v1.0.11/NetProtocol-gpg-pubkey.asc
 gpg --import NetProtocol-gpg-pubkey.asc      # comprobación manual
 sudo rpm --import NetProtocol-gpg-pubkey.asc # la importa para rpm/zypper/dnf
-rpm -Kv NetProtocol-1.0.10-x86_64.rpm        # -> "digests signatures OK"
+rpm -Kv NetProtocol-1.0.11-linux-x86_64.rpm        # -> "digests signatures OK"
 
-sudo zypper install ./NetProtocol-1.0.10-x86_64.rpm   # openSUSE
-# sudo dnf install ./NetProtocol-1.0.10-x86_64.rpm    # Fedora/RHEL
+sudo zypper install ./NetProtocol-1.0.11-linux-x86_64.rpm   # openSUSE
+# sudo dnf install ./NetProtocol-1.0.11-linux-x86_64.rpm    # Fedora/RHEL
 ```
 
 > **NOKEY / "la clave pública de firma no está disponible"** al primer `zypper install`
@@ -123,7 +149,10 @@ sudo zypper install ./NetProtocol-1.0.10-x86_64.rpm   # openSUSE
 
 ```bash
 # DEB (Debian/Ubuntu): firma adjunta .asc
-gpg --verify NetProtocol-1.0.10-amd64.deb.asc NetProtocol-1.0.10-amd64.deb
+gpg --verify NetProtocol-1.0.11-linux-amd64.deb.asc NetProtocol-1.0.11-linux-amd64.deb
+
+# AppImage (portable): misma verificación con .asc adjunta
+gpg --verify NetProtocol-1.0.11-linux-x86_64.AppImage.asc NetProtocol-1.0.11-linux-x86_64.AppImage
 
 # Forma canónica completa para apt (repositorio firmado, pendiente)
 # Publicar en un repo apt con Release.gpg firmado (apt-ftparchive/reprepro) e

@@ -76,7 +76,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: setup-win-x64
-          path: FASE-II-DISENO/dist/NetProtocol-Setup-*.exe
+          path: FASE-II-DISENO/dist/NetProtocol-*-win-x64.exe
           if-no-files-found: error
           retention-days: 2
 
@@ -106,11 +106,17 @@ jobs:
           # upload/download-artifact v4 pierde el bit de ejecución al descargar:
           # fijar 0755 explícito en los ELF del apphost (no depender del mode del artefacto).
           chmod 755 debroot/usr/lib/netprotocol/NetProtocol debroot/usr/lib/netprotocol/createdump
-          # Icono de menú (el PNG de Assets va embebido en el ejecutable, no viaja
-          # en el publish: se copia desde la fuente del repo).
-          cp data/Logo_NetProtocol.png debroot/usr/share/pixmaps/netprotocol.png
-          # Comando en el PATH (misma app; sin duplicar binarios).
-          ln -s /usr/lib/netprotocol/NetProtocol debroot/usr/bin/netprotocol
+          # Icono de menú: PNG 256×256 de Assets (estándar freedesktop).
+          cp src/Redes.Knowledge.App/Assets/Logo_NetProtocol.png debroot/usr/share/pixmaps/netprotocol.png
+          # Comando en el PATH: wrapper que desactiva la traza del runtime
+          # (DOTNET_EnableDiagnostics=0) para NO depender de liblttng-ust/liburcu.
+          cat > debroot/usr/bin/netprotocol <<'EOF'
+          #!/bin/sh
+          export DOTNET_EnableDiagnostics=0
+          exec /usr/lib/netprotocol/NetProtocol "$@"
+          EOF
+          sed -i 's/^          //' debroot/usr/bin/netprotocol
+          chmod 755 debroot/usr/bin/netprotocol
           cat > debroot/usr/share/applications/netprotocol.desktop <<'EOF'
           [Desktop Entry]
           Name=Net Protocol
@@ -121,19 +127,19 @@ jobs:
           Categories=Network;Utility;
           Terminal=false
           EOF
+          sed -i 's/^          //' debroot/usr/share/applications/netprotocol.desktop
           cat > debroot/DEBIAN/control <<EOF
           Package: netprotocol
           Version: ${VER}
           Section: net
           Priority: optional
           Architecture: amd64
-          Depends: liblttng-ust0 (>= 2.12.0), liburcu6 (>= 0.12.1)
           Maintainer: Proyecto Redes
           Homepage: ${REPO_URL}
           Description: Net Protocol - base de conocimiento de protocolos de red
            Catálogo, fichas, PDU y seguridad de protocolos de red (Fase I/II).
           EOF
-          dpkg-deb --build --root-owner-group debroot "dist/NetProtocol-${VER}-amd64.deb"
+          dpkg-deb --build --root-owner-group debroot "dist/NetProtocol-${VER}-linux-amd64.deb"
       - name: Empaquetar .rpm (Fedora/RHEL)
         working-directory: FASE-II-DISENO
         shell: bash
@@ -157,8 +163,6 @@ jobs:
           License: Proprietary
           URL: ${REPO_URL}
           BuildArch: x86_64
-          Requires: liblttng-ust0 >= 2.12.0
-          Requires: liburcu6 >= 0.12.1
 
           %description
           Base de conocimiento/consulta de protocolos de red (catálogo F3, fichas F4, PDU F5, seguridad F6).
@@ -179,8 +183,16 @@ jobs:
           # Ojo: %install corre con cwd=rpmbuild/BUILD → rutas ABSOLUTAS para el icono
           # (${PWD} se expande al generar el spec, igual que ${DISTDIR}).
           mkdir -p %{buildroot}/usr/share/applications %{buildroot}/usr/share/pixmaps %{buildroot}/usr/bin
-          cp ${PWD}/data/Logo_NetProtocol.png %{buildroot}/usr/share/pixmaps/netprotocol.png
-          ln -s /usr/lib/netprotocol/NetProtocol %{buildroot}/usr/bin/netprotocol
+          cp ${PWD}/src/Redes.Knowledge.App/Assets/Logo_NetProtocol.png %{buildroot}/usr/share/pixmaps/netprotocol.png
+          # Comando en el PATH: wrapper con DOTNET_EnableDiagnostics=0
+          # (sin depender de liblttng-ust/liburcu). "\$@" se escapa para que el
+          # spec generado conserve los argumentos literalmente.
+          cat > %{buildroot}/usr/bin/netprotocol <<'EOW'
+          #!/bin/sh
+          export DOTNET_EnableDiagnostics=0
+          exec /usr/lib/netprotocol/NetProtocol "\$@"
+          EOW
+          chmod 755 %{buildroot}/usr/bin/netprotocol
           cat > %{buildroot}/usr/share/applications/netprotocol.desktop <<'EOD'
           [Desktop Entry]
           Name=Net Protocol
@@ -198,8 +210,50 @@ jobs:
           /usr/share/applications/netprotocol.desktop
           /usr/share/pixmaps/netprotocol.png
           EOF
+          sed -i 's/^          //' netprotocol.spec
           rpmbuild --define "_topdir ${PWD}/rpmbuild" -bb netprotocol.spec
-          cp rpmbuild/RPMS/x86_64/*.rpm "dist/NetProtocol-${RPM_VER}-x86_64.rpm"
+          cp rpmbuild/RPMS/x86_64/*.rpm "dist/NetProtocol-${RPM_VER}-linux-x86_64.rpm"
+      - name: Empaquetar AppImage (portable)
+        working-directory: FASE-II-DISENO
+        shell: bash
+        run: |
+          set -euo pipefail
+          VER="${GITHUB_REF_NAME#v}"
+          # Descargar appimagetool (AppImage type 2, sin FUSE en CI).
+          wget -q -O /tmp/appimagetool "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x /tmp/appimagetool
+          # Estructura AppDir estándar.
+          APPDIR="dist/NetProtocol.AppDir"
+          mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+          cp -a dist/linux-x64/. "$APPDIR/usr/bin/"
+          chmod 755 "$APPDIR/usr/bin/NetProtocol" "$APPDIR/usr/bin/createdump"
+          # Icono (256×256, freedesktop).
+          cp src/Redes.Knowledge.App/Assets/Logo_NetProtocol.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/netprotocol.png"
+          ln -s ../icons/hicolor/256x256/apps/netprotocol.png "$APPDIR/netprotocol.png"
+          # Entrada de menú.
+          cat > "$APPDIR/netprotocol.desktop" <<'EOF'
+          [Desktop Entry]
+          Name=Net Protocol
+          Comment=Base de conocimiento de protocolos de red
+          Exec=/usr/bin/NetProtocol
+          Icon=netprotocol
+          Type=Application
+          Categories=Network;Utility;
+          Terminal=false
+          EOF
+          sed -i 's/^          //' "$APPDIR/netprotocol.desktop"
+          # AppRun: wrapper del runtime (mismo criterio que el .deb/.rpm:
+          # DOTNET_EnableDiagnostics=0, sin depender de liblttng-ust/liburcu).
+          cat > "$APPDIR/AppRun" <<'EOF'
+          #!/bin/sh
+          export DOTNET_EnableDiagnostics=0
+          exec "$(dirname "$0")/usr/bin/NetProtocol" "$@"
+          EOF
+          sed -i 's/^          //' "$APPDIR/AppRun"
+          chmod 755 "$APPDIR/AppRun"
+          # Generar AppImage (ARCH= x86_64; sin FUSE: --appimage-extract-and-run).
+          ARCH=x86_64 /tmp/appimagetool --appimage-extract-and-run "$APPDIR" \
+            "dist/NetProtocol-${VER}-linux-x86_64.AppImage"
       - name: Firmar .deb/.rpm con GPG (si la clave esta configurada en secretos)
         working-directory: FASE-II-DISENO
         shell: bash
@@ -238,15 +292,24 @@ jobs:
           gpg --armor --export "${GPG_KEY_ID}" > dist/NetProtocol-gpg-pubkey.asc
           rpm --import dist/NetProtocol-gpg-pubkey.asc
           rpm --checksig dist/NetProtocol-*.rpm
-          # Firmar el .deb con firma adjunta .asc estandar (dpkg-sig fue retirado de
-          # los repos de Ubuntu/Debian); verificar con gpg --verify.
+          # Firmas adjuntas .asc para los TRES instaladores Linux (deb, rpm,
+          # AppImage), siguiendo el patrón `<instalador>.asc`. El firmador clasico
+          # del .deb (dpkg-sig) fue retirado de Ubuntu/Debian; gpg --detach-sign
+          # --armor es la forma estandar. Se verifica cada una con gpg --verify.
+          LINUX_INSTALADORES="dist/NetProtocol-*-linux-amd64.deb dist/NetProtocol-*-linux-x86_64.rpm dist/NetProtocol-*-linux-x86_64.AppImage"
           if [ -n "${GPG_PASSPHRASE:-}" ]; then
-            printf '%s\n' "$PASS" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
-              --detach-sign --armor -u "${GPG_KEY_ID}" dist/NetProtocol-*.deb
+            for F in $LINUX_INSTALADORES; do
+              printf '%s\n' "$PASS" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
+                --detach-sign --armor -u "${GPG_KEY_ID}" "$F"
+            done
           else
-            gpg --batch --yes --detach-sign --armor -u "${GPG_KEY_ID}" dist/NetProtocol-*.deb
+            for F in $LINUX_INSTALADORES; do
+              gpg --batch --yes --detach-sign --armor -u "${GPG_KEY_ID}" "$F"
+            done
           fi
-          gpg --verify dist/NetProtocol-*.deb.asc dist/NetProtocol-*.deb
+          for F in $LINUX_INSTALADORES; do
+            gpg --verify "$F.asc" "$F"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: setup-linux
@@ -272,9 +335,19 @@ jobs:
           set -euo pipefail
           VER="${GITHUB_REF_NAME#v}"
           APP="dist/Net Protocol.app"
-          mkdir -p "$APP/Contents/MacOS"
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
           cp -a dist/osx-x64/. "$APP/Contents/MacOS/"
           chmod +x "$APP/Contents/MacOS/NetProtocol"
+          # Generar .icns desde el PNG 256×256 (sips + iconutil, nativos de macOS).
+          ICONSET="$APP/Contents/Resources/NetProtocol.iconset"
+          mkdir -p "$ICONSET"
+          SRC="src/Redes.Knowledge.App/Assets/Logo_NetProtocol.png"
+          for SIZE in 16 32 64 128 256; do
+            sips -z $SIZE $SIZE "$SRC" --out "$ICONSET/icon_${SIZE}x${SIZE}.png" >/dev/null
+            sips -z $((SIZE*2)) $((SIZE*2)) "$SRC" --out "$ICONSET/icon_${SIZE}x${SIZE}@2x.png" >/dev/null
+          done
+          iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/NetProtocol.icns"
+          rm -rf "$ICONSET"
           cat > "$APP/Contents/Info.plist" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -290,12 +363,13 @@ jobs:
             <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
             <key>LSMinimumSystemVersion</key><string>10.15</string>
             <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
+            <key>CFBundleIconFile</key><string>NetProtocol.icns</string>
             <key>NSHighResolutionCapable</key><true/>
           </dict>
           </plist>
           EOF
           hdiutil create -volname "Net Protocol" -srcfolder "$APP" \
-            -ov -format UDZO "dist/NetProtocol-${VER}-macos.dmg"
+            -ov -format UDZO "dist/NetProtocol-${VER}-macos-x64.dmg"
       - uses: actions/upload-artifact@v4
         with:
           name: setup-macos
@@ -326,10 +400,10 @@ jobs:
             echo ""
             echo "**Incluye:**"
             echo "- **Windows** (win-x64): instalador Inno Setup \`.exe\`"
-            echo "- **Linux** (linux-x64): paquete \`.deb\` (Debian/Ubuntu) y \`.rpm\` (Fedora/RHEL/openSUSE)"
+            echo "- **Linux** (linux-x64): \`.deb\` (Debian/Ubuntu), \`.rpm\` (Fedora/RHEL/openSUSE) y \`.AppImage\` (portable), cada uno con su firma \`.asc\` adjunta"
             echo "- **macOS** (osx-x64): imagen \`.dmg\`"
             echo ""
-            echo "**Notas:** builds self-contained (no requieren .NET instalado). Linux: .rpm firmado (rpmsign) y .deb con firma GPG adjunta (.asc), verificables con `NetProtocol-gpg-pubkey.asc` (si la clave esta configurada en CI). Windows/macOS sin firma de codigo (pendiente de certificados)."
+            echo "**Notas:** builds self-contained (no requieren .NET instalado). Linux: .rpm firmado (rpmsign + .asc) y .deb/.AppImage con firma GPG adjunta (.asc), verificables con `NetProtocol-gpg-pubkey.asc` (si la clave esta configurada en CI). Windows/macOS sin firma de codigo (pendiente de certificados)."
           } > RELEASE_NOTES.md
           gh release create "$GITHUB_REF_NAME" dist/setup-*/* \
             --title "Net Protocol ${VER}" \

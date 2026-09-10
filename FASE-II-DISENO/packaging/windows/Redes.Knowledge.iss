@@ -4,7 +4,7 @@
 ; por defecto usa la última publicada.
 
 #ifndef MyAppVersion
-  #define MyAppVersion "1.0.10"
+  #define MyAppVersion "1.0.11"
 #endif
 
 ; URL ascendente del proyecto (se muestra en el desinstalador y en "Programas y
@@ -23,7 +23,9 @@ AppPublisherURL={#MyAppUrl}
 DefaultDirName={autopf}\NetProtocol
 DefaultGroupName=Net Protocol
 OutputDir=..\..\dist
-OutputBaseFilename=NetProtocol-Setup-{#MyAppVersion}
+; Patrón unificado de nombres: NetProtocol-<versión>-<SO>-<arquitectura>.<ext>.
+; Windows (RID win-x64) → NetProtocol-<ver>-win-x64.exe.
+OutputBaseFilename=NetProtocol-{#MyAppVersion}-win-x64
 SetupIconFile=NetProtocol.ico
 Compression=lzma2
 SolidCompression=yes

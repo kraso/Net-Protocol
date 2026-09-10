@@ -38,10 +38,17 @@ Los instaladores se publican como **GitHub Release** por cada tag `v*` ([release
 
 | SO | Archivo | Instalación |
 |---|---|---|
-| Windows | `NetProtocol-Setup-<versión>.exe` | Ejecutar el instalador (cierra la app sola si está abierta; actualiza en el mismo directorio sin desinstalar). |
-| Debian/Ubuntu | `NetProtocol-<versión>-amd64.deb` + `.deb.asc` | `sudo apt install ./NetProtocol-<versión>-amd64.deb` · verificar: `gpg --verify NetProtocol-<versión>-amd64.deb.asc NetProtocol-<versión>-amd64.deb` |
-| openSUSE / Fedora / RHEL | `NetProtocol-<versión>-x86_64.rpm` | Ver abajo (importar la clave primero). |
-| macOS | `NetProtocol-<versión>.dmg` | Clic derecho → Abrir (sin firma de código). |
+| Windows | `NetProtocol-<versión>-win-x64.exe` | Ejecutar el instalador (cierra la app sola si está abierta; actualiza en el mismo directorio sin desinstalar). |
+| Debian/Ubuntu | `NetProtocol-<versión>-linux-amd64.deb` + `.deb.asc` | `sudo apt install ./NetProtocol-<versión>-linux-amd64.deb` · verificar: `gpg --verify NetProtocol-<versión>-linux-amd64.deb.asc NetProtocol-<versión>-linux-amd64.deb` |
+| openSUSE / Fedora / RHEL | `NetProtocol-<versión>-linux-x86_64.rpm` (+ `.rpm.asc`) | Ver abajo (importar la clave primero). |
+| Linux (portable) | `NetProtocol-<versión>-linux-x86_64.AppImage` (+ `.AppImage.asc`) | `chmod +x ...AppImage && ./...AppImage` (sin instalar). |
+| macOS | `NetProtocol-<versión>-macos-x64.dmg` | Clic derecho → Abrir (sin firma de código). |
+
+> **Patrón de nombres:** todos los instaladores comparten el formato
+> `NetProtocol-<versión>-<SO>-<arquitectura>.<extensión>`; la firma adjunta de cada
+> instalador Linux es `<instalador>.asc` (p. ej. `NetProtocol-1.0.11-linux-amd64.deb.asc`).
+> `NetProtocol-gpg-pubkey.asc` es la clave pública de releases (la misma en todas las
+> versiones), no una firma por-version.
 
 ### RPM (openSUSE/Fedora): importar primero la clave pública
 
@@ -51,10 +58,10 @@ En la **primera** instalación de un RPM firmado con una clave nueva el gestor a
 wget -O NetProtocol-gpg-pubkey.asc \
   https://github.com/kraso/Net-Protocol/releases/download/<versión>/NetProtocol-gpg-pubkey.asc
 sudo rpm --import NetProtocol-gpg-pubkey.asc
-rpm -Kv NetProtocol-<versión>-x86_64.rpm     # → "digests signatures OK"
+rpm -Kv NetProtocol-<versión>-linux-x86_64.rpm     # → "digests signatures OK"
 
-sudo zypper install ./NetProtocol-<versión>-x86_64.rpm    # openSUSE
-# sudo dnf install ./NetProtocol-<versión>-x86_64.rpm     # Fedora/RHEL
+sudo zypper install ./NetProtocol-<versión>-linux-x86_64.rpm    # openSUSE
+# sudo dnf install ./NetProtocol-<versión>-linux-x86_64.rpm     # Fedora/RHEL
 ```
 
 > Alternativa exprés: `sudo zypper --gpg-auto-import-keys install ./…rpm` y aceptar la clave cuando zypper la pida.

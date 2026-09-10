@@ -48,4 +48,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: setup-win-x64
-          path: FASE-II-DISENO/dist/RedesKnowledge-Setup-*.exe
+          path: FASE-II-DISENO/dist/NetProtocol-*-win-x64.exe
