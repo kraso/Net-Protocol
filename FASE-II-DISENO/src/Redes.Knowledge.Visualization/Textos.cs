@@ -127,6 +127,8 @@ public static class Textos
 
             // Navegación
             ["nav.resultados"] = ("Resultados ({0})", "Results ({0})"),
+            ["filtro.todas.familias"] = ("Todas las familias", "All families"),
+            ["filtro.todos.estados"] = ("Todos los estados", "All states"),
 
             // Sidebar y vistas textuales
             ["nav.filtro"] = ("Filtrar familias - Ver leyenda", "Filter families - View legend"),
@@ -218,6 +220,13 @@ public static class Textos
     /// <summary>Nombre visible del estado en el idioma activo; si falta, el valor del enum.</summary>
     public static string Estado(LifecycleState estado) =>
         Estados.TryGetValue(estado, out var par) ? (Idioma == En ? par.En : par.Es) : estado.ToString();
+
+    /// <summary>
+    /// Igual que <see cref="Estado(LifecycleState)"/> pero partiendo del nombre del enum, que
+    /// es como lo entrega el comparador de protocolos. Un valor no reconocido se devuelve tal cual.
+    /// </summary>
+    public static string Estado(string valor) =>
+        Enum.TryParse<LifecycleState>(valor, out var estado) ? Estado(estado) : valor;
 
     /// <summary>Fija el idioma activo. Un valor desconocido o nulo deja español.</summary>
     public static void Fijar(string? idioma)

@@ -1152,3 +1152,15 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 118/118 en `Redes.Knowledge.Tests` y 46/46 en `App.Tests` (dos nuevas: comparador traducido y cabecera de resultados traducida). Las siete doradas siguen pasando sin tocarlas. Cobertura 94,78 % líneas / 83,45 % ramas.
 
 **Lo único que queda de i18n:** el nombre visible de familia y estado en los desplegables y en el ítem de navegación, que exige mover el valor del enum a `Tag` para no romper el filtro.
+
+## 13-11-2026 — i18n de los desplegables y cierre de la cobertura de textos
+
+**Motivo:** era el último hueco: los desplegables de familia/estado y la segunda línea del ítem de navegación mostraban el estado en español (`Vigente`, `Obsoleto`) aunque la interfaz estuviera en inglés.
+
+**Diseño:** el desplegable ya no guarda una cadena sino un `ComboBoxItem` con el nombre visible en `Content` y el valor del enum en `Tag`. `Activos` deja de hacer `Enum.TryParse` sobre el texto y lee el `Tag`, así que traducir la etiqueta no puede romper el filtro. `RefrescarFiltros` reescribe los textos conservando la selección y `RefrescarNavegacion` rehace los ítems en su sitio, sin tocar expanders ni selección.
+
+**Comparador:** el estado de sus filas viene como cadena desde `ProtocoloComparador`; se añade `Textos.Estado(string)` (parsea el nombre del enum y delega en el mapa) para traducirlo sin modificar el comparador.
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 118/118 en `Redes.Knowledge.Tests` y 47/47 en `App.Tests` (una nueva: al filtrar por el primer estado, el conjunto visible coincide exactamente con los protocolos de ese estado y no cambia al traducir la etiqueta). Cobertura 94,73 % líneas / 83,26 % ramas.
+
+**Cobertura de i18n:** con esto la interfaz completa sale del catálogo — chrome, ficha, comparador, captura, IANA, navegación, popups y estados.

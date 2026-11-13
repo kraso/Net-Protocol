@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Interactivity;
 using Redes.Knowledge.App;
+using Redes.Knowledge.Domain;
 using Redes.Knowledge.Visualization;
 
 namespace Redes.Knowledge.App.Tests;
@@ -160,4 +161,43 @@ public class IdiomaTests
             Textos.Fijar(previo);
         }
     }
+
+    [AvaloniaFact]
+    public void ElFiltroPorEstadoSigueFuncionandoConEtiquetasTraducidas()
+    {
+        var previo = Textos.Idioma;
+        try
+        {
+            Textos.Fijar(Textos.Es);
+            var ventana = NuevaVentana();
+            var panel = ventana.FindControl<StackPanel>("NavPanel")!;
+            var estado = ventana.FindControl<ComboBox>("FilterEstado")!;
+
+            var todos = Recolectar(panel);
+            Assert.True(todos.Count > 0);
+
+            estado.SelectedIndex = 1; // primer valor del enum: Vigente / Current
+            var vigentes = Recolectar(panel);
+
+            Assert.Equal(todos.Count(p => p.Estado == LifecycleState.Vigente), vigentes.Count);
+            Assert.All(vigentes, p => Assert.Equal(LifecycleState.Vigente, p.Estado));
+
+            // Al traducir cambia la etiqueta visible, pero el filtro sigue leyendo el enum
+            // que viaja en Tag: el conjunto filtrado no se mueve.
+            Pulsar(ventana, "LanguageButton");
+
+            Assert.Equal("Current", (estado.SelectedItem as ComboBoxItem)?.Content as string);
+            Assert.Equal(vigentes.Count, Recolectar(panel).Count);
+        }
+        finally
+        {
+            Textos.Fijar(previo);
+        }
+    }
+
+    private static List<Protocol> Recolectar(StackPanel panel) =>
+        panel.Children.OfType<Expander>()
+            .SelectMany(e => ((ListBox)e.Content!).Items.OfType<ListBoxItem>())
+            .Select(i => i.Tag).OfType<Protocol>()
+            .ToList();
 }

@@ -48,6 +48,8 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
 - El comparador, la vista de captura, el bloque de servicio IANA, la cabecera de resultados y los popups
   de ayuda también salen del catálogo. El popup se refresca al cambiar de idioma y una captura abierta
   se repinta en su sitio conservando el paquete seleccionado.
+- Los desplegables de familia y estado y el ítem de navegación muestran el nombre traducido del estado:
+  el valor del enum viaja en `Tag`, así que el filtro sigue comparando el mismo dato.
 
 ### Corregido
 - **L-005 cerrada**: 107/113 fichas con `Source` de nivel 1 (94,69 %, objetivo ≥90 %); el job

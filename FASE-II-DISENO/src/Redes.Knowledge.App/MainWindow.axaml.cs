@@ -509,14 +509,49 @@ public partial class MainWindow : Window
     private void CargarFiltros()
     {
         _cargando = true;
-        FilterFamilia.Items.Add("Todas las familias");
-        foreach (FamiliaProtocolo f in Enum.GetValues<FamiliaProtocolo>()) FilterFamilia.Items.Add(f.ToString());
+        // El valor del enum viaja en Tag y el texto visible en Content: traducir el nombre
+        // no puede romper el filtro, que sigue leyendo el enum.
+        FilterFamilia.Items.Clear();
+        FilterFamilia.Items.Add(new ComboBoxItem { Content = Textos.T("filtro.todas.familias"), Tag = null });
+        foreach (FamiliaProtocolo f in Enum.GetValues<FamiliaProtocolo>())
+            FilterFamilia.Items.Add(new ComboBoxItem { Content = f.ToString(), Tag = f });
         FilterFamilia.SelectedIndex = 0;
 
-        FilterEstado.Items.Add("Todos los estados");
-        foreach (LifecycleState e in Enum.GetValues<LifecycleState>()) FilterEstado.Items.Add(e.ToString());
+        FilterEstado.Items.Clear();
+        FilterEstado.Items.Add(new ComboBoxItem { Content = Textos.T("filtro.todos.estados"), Tag = null });
+        foreach (LifecycleState e in Enum.GetValues<LifecycleState>())
+            FilterEstado.Items.Add(new ComboBoxItem { Content = Textos.Estado(e), Tag = e });
         FilterEstado.SelectedIndex = 0;
         _cargando = false;
+    }
+
+    /// <summary>Reescribe las etiquetas de los desplegables conservando la selección.</summary>
+    private void RefrescarFiltros()
+    {
+        if (FilterFamilia.ItemCount > 0)
+        {
+            ((ComboBoxItem)FilterFamilia.Items[0]!).Content = Textos.T("filtro.todas.familias");
+            var i = 1;
+            foreach (FamiliaProtocolo f in Enum.GetValues<FamiliaProtocolo>())
+                if (i < FilterFamilia.ItemCount) ((ComboBoxItem)FilterFamilia.Items[i++]!).Content = f.ToString();
+        }
+
+        if (FilterEstado.ItemCount > 0)
+        {
+            ((ComboBoxItem)FilterEstado.Items[0]!).Content = Textos.T("filtro.todos.estados");
+            var i = 1;
+            foreach (LifecycleState e in Enum.GetValues<LifecycleState>())
+                if (i < FilterEstado.ItemCount) ((ComboBoxItem)FilterEstado.Items[i++]!).Content = Textos.Estado(e);
+        }
+    }
+
+    /// <summary>Rehace el contenido de los ítems de navegación sin tocar expanders ni selección.</summary>
+    private void RefrescarNavegacion()
+    {
+        foreach (var expander in NavPanel.Children.OfType<Expander>())
+            if (expander.Content is ListBox lista)
+                foreach (var item in lista.Items.OfType<ListBoxItem>())
+                    if (item.Tag is Protocol p) item.Content = ItemProtocolo(p);
     }
 
     /// <summary>Selector de la referencia de comparación: permite comparar el protocolo
@@ -588,9 +623,9 @@ public partial class MainWindow : Window
         get
         {
             FamiliaProtocolo? familia = FilterFamilia.SelectedIndex > 0 &&
-                Enum.TryParse<FamiliaProtocolo>(FilterFamilia.SelectedItem?.ToString(), out var f) ? f : null;
+                FilterFamilia.SelectedItem is ComboBoxItem { Tag: FamiliaProtocolo f } ? f : null;
             LifecycleState? estado = FilterEstado.SelectedIndex > 0 &&
-                Enum.TryParse<LifecycleState>(FilterEstado.SelectedItem?.ToString(), out var e) ? e : null;
+                FilterEstado.SelectedItem is ComboBoxItem { Tag: LifecycleState e } ? e : null;
             return _catalogo.Activos(familia, estado);
         }
     }
@@ -1257,7 +1292,7 @@ public partial class MainWindow : Window
         var cortos = new[]
         {
             (Textos.T("cmp.familia"), a.Familia, b.Familia),
-            (Textos.T("cmp.estado"), a.Estado, b.Estado),
+            (Textos.T("cmp.estado"), Textos.Estado(a.Estado), Textos.Estado(b.Estado)),
             (Textos.T("cmp.capas"), a.Capas, b.Capas),
             (Textos.T("cmp.pdu"), a.Pdu, b.Pdu),
             (Textos.T("cmp.puertos"), a.Puertos, b.Puertos),
@@ -1451,6 +1486,10 @@ public partial class MainWindow : Window
         AutomationProperties.SetName(DetalleCaptura, Textos.T("acc.captura.detalle"));
         AutomationProperties.SetName(CerrarCapturaButton, Textos.T("boton.cerrar.captura"));
 
+        // Desplegables de familia/estado: su texto visible sigue al idioma; el valor del
+        // enum queda en Tag, así que la selección no se pierde.
+        RefrescarFiltros();
+
         // Popups de información: se construyen una sola vez, así que su texto se refresca aquí.
         if (_popupComparar is not null) _popupComparar.Text = Textos.T("help.comparar");
         if (_popupExportar is not null) _popupExportar.Text = Textos.T("help.exportar");
@@ -1463,6 +1502,9 @@ public partial class MainWindow : Window
     {
         Textos.Alternar();
         AplicarIdioma();
+
+        // Ítems de la navegación: se rehacen en su sitio (conserva expanders y selección).
+        RefrescarNavegacion();
 
         // La captura ya se puede traducir (resumen, lista y detalle): se repinta en su sitio
         // en vez de dejar el texto en el idioma anterior.
@@ -1590,7 +1632,7 @@ public partial class MainWindow : Window
         });
         panel.Children.Add(new TextBlock
         {
-            Text = $"{p.Familia} · {p.Estado}",
+            Text = $"{p.Familia} · {Textos.Estado(p.Estado)}",
             FontSize = 11,
             Opacity = 0.65
         });
