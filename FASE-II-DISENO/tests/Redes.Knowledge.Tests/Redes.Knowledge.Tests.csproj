@@ -5,9 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <!-- El catálogo de textos es estado estático del proceso: las clases que lo cambian
-         (TextosTests) y las que lo leen (FichaTexto) no pueden correr en paralelo. -->
-    <ParallelizeTestCollections>false</ParallelizeTestCollections>
+    <!-- La serialización de colecciones se desactiva en AssemblyInfo.cs: xunit v2 no lee
+         esta propiedad (es de v3) y el catálogo de textos es estado estático del proceso. -->
   </PropertyGroup>
 
   <ItemGroup>

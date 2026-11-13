@@ -1216,3 +1216,13 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Lo que sí se gana:** las dos reglas de tiempo salen a métodos puros (`DebeCerrarse`, `EnGracia`) y quedan probadas, junto con el registro de los cuatro popups en el árbol de la ventana. Lo que no se puede probar sin pantalla real —cierre por geometría y re-enters de X11— sigue siendo comprobación manual, igual que antes.
 
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 124/124 en `Redes.Knowledge.Tests` y 52/52 en `App.Tests` (tres nuevas en `PopupsTests`). Cobertura 94,79 % líneas / 83,26 % ramas. Build sin advertencias. `MainWindow` baja de 1.648 a 1.486 líneas.
+
+## 13-11-2026 — La suite de dominio vuelve a ser determinista
+
+**Qué pasó:** el run `43389726504` falló en `quality` con una sola prueba en rojo, `ComparadorTextoTests.EnInglesTraduceLaCabeceraYLasFuentes`, que en local pasaba siempre. Causa: `Textos.Idioma` es estado estático del proceso y `TextosTests` lo cambia; en xunit v2 las clases de prueba corren en paralelo por defecto, así que el formateador podía leer el idioma a medio cambio.
+
+**Por qué no se vio antes:** la propiedad MSBuild `ParallelizeTestCollections` que había puesto en el `.csproj` **no la lee xunit v2** (es de v3). En Windows la carrera no se manifestaba por el orden de arranque; en el runner de Linux sí.
+
+**Corrección:** `AssemblyInfo.cs` con `[assembly: CollectionBehavior(DisableTestParallelization = true)]`, que es el mecanismo real de v2. La propiedad del `.csproj` se retira para no dar una falsa sensación de protección.
+
+**Verificación:** seis ejecuciones consecutivas de `Redes.Knowledge.Tests` → 124/124 en todas. Suite completa 124/124 + 52/52 y puerta de cobertura en 94,79 % / 83,26 %.
