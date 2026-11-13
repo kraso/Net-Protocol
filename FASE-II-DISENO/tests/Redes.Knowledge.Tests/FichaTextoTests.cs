@@ -133,4 +133,38 @@ public class FichaTextoTests
         Assert.DoesNotContain("Vecinos a 1 salto", texto);
         Assert.Contains(" 4. Encapsulación         : IP", texto);
     }
+
+    [Fact]
+    public void EnInglesTraduceEtiquetasSinPerderElFormato()
+    {
+        var previo = Textos.Idioma;
+        try
+        {
+            Textos.Fijar(Textos.En);
+
+            var texto = FichaTexto.Render(new FichaTextoModelo
+            {
+                Protocolo = new Protocol
+                {
+                    Nombre = "Transmission Control Protocol",
+                    Acronimo = "TCP",
+                    Familia = FamiliaProtocolo.TRAN,
+                    Estado = LifecycleState.Obsoleto,
+                    Capas = "4"
+                },
+                Pdu = "segment"
+            });
+
+            Assert.Contains(" 1. Identity              : Transmission Control Protocol · TCP · family TRAN [F3]", texto);
+            Assert.Contains(" 2. Status                : Obsolete (F3 catalog, 2026-08-26)", texto);
+            Assert.Contains(" 5. Layers                : 4", texto);
+            Assert.Contains(" 7. PDU                   : segment", texto);
+            Assert.DoesNotContain("Identidad", texto);
+            Assert.DoesNotContain("Estado ", texto);
+        }
+        finally
+        {
+            Textos.Fijar(previo);
+        }
+    }
 }

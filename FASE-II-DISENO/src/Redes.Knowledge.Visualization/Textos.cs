@@ -1,4 +1,5 @@
 using System.Globalization;
+using Redes.Knowledge.Domain;
 
 namespace Redes.Knowledge.Visualization;
 
@@ -65,6 +66,34 @@ public static class Textos
             ["help.muestra"] = (
                 "Genera una captura sintética determinista con los 28 protocolos con layout F5.",
                 "Generates a deterministic synthetic capture with the 28 protocols that have an F5 layout."),
+
+            // Ficha del protocolo (formateador FichaTexto, en Visualization)
+            ["ficha.identidad"] = ("Identidad", "Identity"),
+            ["ficha.estado"] = ("Estado", "Status"),
+            ["ficha.finalidad"] = ("Finalidad", "Purpose"),
+            ["ficha.encapsulacion"] = ("Encapsulación", "Encapsulation"),
+            ["ficha.capas"] = ("Capas", "Layers"),
+            ["ficha.transporte"] = ("Transp./dir", "Transp./addr"),
+            ["ficha.pdu"] = ("PDU", "PDU"),
+            ["ficha.mensajes"] = ("Mensajes", "Messages"),
+            ["ficha.campos"] = ("Campos", "Fields"),
+            ["ficha.secuencia"] = ("Secuencia", "Sequence"),
+            ["ficha.addressing"] = ("Addressing", "Addressing"),
+            ["ficha.routing"] = ("Routing", "Routing"),
+            ["ficha.seguridad"] = ("Seguridad", "Security"),
+            ["ficha.qos"] = ("QoS/rendim.", "QoS/perf."),
+            ["ficha.observabilidad"] = ("Observabilidad", "Observability"),
+            ["ficha.interoperabilidad"] = ("Interoperabilidad", "Interoperability"),
+            ["ficha.implementaciones"] = ("Implementaciones", "Implementations"),
+            ["ficha.fuentes"] = ("Fuentes", "Sources"),
+            ["ficha.familia"] = ("familia", "family"),
+            ["ficha.estado.f3"] = (
+                "{0} (catálogo F3, 2026-08-26)",
+                "{0} (F3 catalog, 2026-08-26)"),
+            ["ficha.cifrado"] = ("cifrado: {0} [F6]", "encrypted: {0} [F6]"),
+            ["ficha.nota"] = ("Nota/F3", "Note/F3"),
+            ["ficha.vecinos"] = ("--- Vecinos a 1 salto (grafo F4) ---", "--- 1-hop neighbors (F4 graph) ---"),
+            ["ficha.campos.titulo"] = ("--- Campos catalogados (F5) ---", "--- Catalogued fields (F5) ---"),
 
             // Sidebar y vistas textuales
             ["nav.filtro"] = ("Filtrar familias - Ver leyenda", "Filter families - View legend"),
@@ -134,6 +163,28 @@ public static class Textos
 
     /// <summary>Idioma activo del proceso. Español por defecto.</summary>
     public static string Idioma { get; private set; } = Es;
+
+    /// <summary>
+    /// Nombre visible de cada estado del ciclo de vida. El valor del enum no cambia: solo
+    /// se traduce lo que se muestra, para no romper filtros ni comparaciones.
+    /// </summary>
+    private static readonly Dictionary<LifecycleState, (string Es, string En)> Estados =
+        new()
+        {
+            [LifecycleState.Vigente] = ("Vigente", "Current"),
+            [LifecycleState.Actualizado] = ("Actualizado", "Updated"),
+            [LifecycleState.Obsoleto] = ("Obsoleto", "Obsolete"),
+            [LifecycleState.Sustituido] = ("Sustituido", "Superseded"),
+            [LifecycleState.Experimental] = ("Experimental", "Experimental"),
+            [LifecycleState.Propietario] = ("Propietario", "Proprietary"),
+            [LifecycleState.Restringido] = ("Restringido", "Restricted"),
+            [LifecycleState.Historico] = ("Histórico", "Historical"),
+            [LifecycleState.Desconocido] = ("Desconocido", "Unknown")
+        };
+
+    /// <summary>Nombre visible del estado en el idioma activo; si falta, el valor del enum.</summary>
+    public static string Estado(LifecycleState estado) =>
+        Estados.TryGetValue(estado, out var par) ? (Idioma == En ? par.En : par.Es) : estado.ToString();
 
     /// <summary>Fija el idioma activo. Un valor desconocido o nulo deja español.</summary>
     public static void Fijar(string? idioma)

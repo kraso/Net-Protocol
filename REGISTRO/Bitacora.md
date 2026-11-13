@@ -1122,3 +1122,17 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Cambio:** `.gitignore` excluye `sessions/` como carpeta y conserva `SESION-*` y `conversation.txt`, que siguen cubriendo copias sueltas en la raíz. El árbol de `README.md` documenta la carpeta como local y fuera de git. No se versiona ningún volcado: contienen conversaciones completas y no son entregables.
 
 **Verificación:** `git check-ignore -v sessions` → `.gitignore:47:sessions/`; `git ls-files` no devuelve ningún fichero bajo `sessions/`; el árbol de trabajo queda limpio tras el commit.
+
+## 13-11-2026 — i18n de la ficha del protocolo
+
+**Motivo:** el conmutador es/en traducía el chrome y la barra de estado, pero la vista principal —la ficha de 18 campos— seguía en español, así que pulsar `EN` dejaba la pantalla a medias. Era el hallazgo `R3-idioma-parcial` de la revisión anterior.
+
+**Catálogo:** 24 claves nuevas `ficha.*` cubren las 18 etiquetas, la palabra «familia», el sufijo del catálogo F3, el cifrado, la nota, el bloque de vecinos y el título de campos F5. Se añade `Textos.Estado(LifecycleState)`: un mapa de nombre visible para los nueve estados que **no toca el valor del enum**, de modo que filtros y comparaciones siguen leyendo lo mismo.
+
+**Formato:** las etiquetas inglesas caben en las 22 columnas del padding (`Interoperability` son 16, `Implementations` 15), así que la alineación se mantiene sin cambiar el formateador. La línea de detalle de los campos F5 (`offset`, `bits`, `(opt.)`) se deja tal cual: es terminología técnica que no se traduce.
+
+**Hermeticidad:** las pruebas de UI ahora fijan `NETPROTOCOL_IDIOMA=es` en el arranque headless, antes de construir ninguna ventana. Eso cierra el hallazgo `R3-deteccion-por-entorno`: la app resuelve el idioma en el constructor y, sin la fijación, un equipo con `LANG=en` habría ejecutado las doradas contra textos ingleses. `Redes.Knowledge.Tests` deja de paralelizar colecciones porque el catálogo es estado estático del proceso y ahora lo leen tanto las pruebas que lo cambian como las que formatean.
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 118/118 en `Redes.Knowledge.Tests` (una nueva: la ficha en inglés traduce etiquetas sin perder el padding y traduce el estado) y 44/44 en `App.Tests`. Las siete doradas siguen pasando sin tocarlas, que es la prueba de que el español no cambió. Cobertura 94,69 % líneas / 83,33 % ramas.
+
+**Lo que queda de i18n:** comparador, panel de captura, desplegables de familia/estado y popups de ayuda siguen en español.

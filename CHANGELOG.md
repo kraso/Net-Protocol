@@ -39,6 +39,12 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
   en `ViewModels/CatalogoViewModel.cs`, sin dependencia de Avalonia: el code-behind baja de 1.521 a
   1.430 líneas y la lógica queda cubierta por siete pruebas nuevas.
 - El glob de las pruebas doradas pasa de `Golden\**` a `Golden/**`, para que también resuelva en Linux.
+- La ficha del protocolo pasa por el catálogo de textos: sus 18 etiquetas, la nota, los vecinos y el
+  título de campos F5 se traducen, y el estado del ciclo de vida tiene nombre visible en ambos idiomas
+  sin cambiar el valor del enum. La salida en español es idéntica (la fijan las pruebas doradas).
+- Las pruebas de UI fijan `NETPROTOCOL_IDIOMA=es` antes de construir la ventana, así que ya no dependen
+  del `LANG` del equipo; `Redes.Knowledge.Tests` deja de paralelizar colecciones porque el catálogo de
+  textos es estado estático del proceso.
 
 ### Corregido
 - **L-005 cerrada**: 107/113 fichas con `Source` de nivel 1 (94,69 %, objetivo ≥90 %); el job

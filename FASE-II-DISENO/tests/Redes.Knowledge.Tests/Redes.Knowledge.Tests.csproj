@@ -5,6 +5,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <!-- El catálogo de textos es estado estático del proceso: las clases que lo cambian
+         (TextosTests) y las que lo leen (FichaTexto) no pueden correr en paralelo. -->
+    <ParallelizeTestCollections>false</ParallelizeTestCollections>
   </PropertyGroup>
 
   <ItemGroup>
