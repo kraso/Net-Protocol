@@ -99,25 +99,14 @@ public partial class MainWindow : Window
             Icon = null; // si no se pudiera decodificar, se usa el del ejecutable
         }
 
-        var raiz = RaizDatos();
-        // Base de datos local en un directorio con permiso de escritura (%LOCALAPPDATA%):
-        // junto al ejecutable (Program Files) NO se puede escribir como usuario normal.
-        var localApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var dirDb = string.IsNullOrEmpty(localApp)
-            ? Path.Combine(raiz, "FASE-II-DISENO", "run")
-            : Path.Combine(localApp, "NetProtocol");
-        Directory.CreateDirectory(dirDb);
-        var store = new SqliteKnowledgeStore($"Data Source={Path.Combine(dirDb, "knowledge.db")};Pooling=False");
-
-        _repo = new SqliteProtocolRepository(store);
-        _servicios = new SqliteServiceRepository(store);
-        _busqueda = new SqliteSearchEngine(store);
-
-        var importados = DatasetBootstrap.EnsureProtocolos(store,
-            Path.Combine(raiz, "FASE-03-INVENTARIO", "F3-Protocolos.json"));
-        // Catálogos F3–F6 e índices de consulta: estado y lógica pura en el ViewModel,
-        // sin dependencia de Avalonia (ver ViewModels/CatalogoViewModel.cs).
-        _catalogo = CatalogoViewModel.Cargar(raiz, _repo.GetAll(), _servicios.Todos());
+        // Catálogo, base local y bootstrap de F3: todo el arranque vive en ArranqueCatalogo,
+        // fuera de la ventana (ver ArranqueCatalogo.cs).
+        var arranque = ArranqueCatalogo.Cargar();
+        _repo = arranque.Repositorio;
+        _servicios = arranque.Servicios;
+        _busqueda = arranque.Busqueda;
+        _catalogo = arranque.Catalogo;
+        var importados = arranque.Importados;
 
         CargarFiltros();
         CargarComparador();
@@ -1466,21 +1455,4 @@ public partial class MainWindow : Window
         RelacionTipo.Implementa => "implementa",
         _ => "documenta"
     };
-
-    /// <summary>
-    /// Raíz de datos. En el modo instalado (release) los catálogos viajan junto al
-    /// ejecutable en "datos/..." (el csproj los copia al publicar) y esa carpeta es la
-    /// raíz; en desarrollo se sube desde el directorio del exe hasta la raíz del repo.
-    /// </summary>
-    private static string RaizDatos()
-    {
-        var bundled = Path.Combine(AppContext.BaseDirectory, "datos");
-        if (Directory.Exists(Path.Combine(bundled, "FASE-03-INVENTARIO")))
-            return bundled;
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !File.Exists(Path.Combine(d.FullName, "PLANREDES.md")))
-            d = d.Parent;
-        return d?.FullName
-            ?? throw new InvalidOperationException("No se encontró la raíz del repositorio.");
-    }
 }

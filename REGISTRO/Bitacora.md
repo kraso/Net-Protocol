@@ -1226,3 +1226,15 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Corrección:** `AssemblyInfo.cs` con `[assembly: CollectionBehavior(DisableTestParallelization = true)]`, que es el mecanismo real de v2. La propiedad del `.csproj` se retira para no dar una falsa sensación de protección.
 
 **Verificación:** seis ejecuciones consecutivas de `Redes.Knowledge.Tests` → 124/124 en todas. Suite completa 124/124 + 52/52 y puerta de cobertura en 94,79 % / 83,26 %.
+
+## 13-11-2026 — El arranque del catálogo sale de la ventana
+
+**Motivo:** el constructor abría la base, creaba tres repositorios, aseguraba F3 y cargaba F3–F6 en medio del cableado de controles. Es lógica de arranque, no de UI, y no se podía ejercitar sin construir la ventana.
+
+**Cambio:** `ArranqueCatalogo.Cargar()` devuelve un `EstadoArranque` con repositorios, motor de búsqueda, `CatalogoViewModel` e `importados`. La resolución de la raíz (`RaizDatos`, con el modo instalado `datos/` y el modo desarrollo subiendo hasta `PLANREDES.md`) se mudó con él. El constructor queda en cinco líneas de asignación y `MainWindow` baja de 1.486 a 1.458 líneas.
+
+**Pruebas:** tres nuevas — la raíz contiene `F3-Protocolos.json`; el catálogo trae ≥100 protocolos, TCP, relaciones F4 y familias; y una segunda carga no reimporta nada (`Importados == 0`).
+
+**Un dato que conviene saber:** los servicios IANA **no** se importan en el arranque, así que la tabla `Services` puede estar vacía en una base nueva. La prueba se ajustó a eso en vez de exigir un dato que el arranque no produce.
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 124/124 y 55/55. Cobertura 94,79 % / 83,26 %. Build sin advertencias.

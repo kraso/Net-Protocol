@@ -60,6 +60,8 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
 - Los popups de información y su supervisión (deadline de 5 s, gracia anti-reabrir de 1,2 s y cierre
   por geometría) salen a `SupervisorPopups` sin cambiar ninguna constante; el code-behind baja a 1.486
   líneas y las dos reglas de tiempo quedan cubiertas por pruebas.
+- El arranque del catálogo (raíz de datos, base SQLite, repositorios, bootstrap F3 y carga F3–F6) sale
+  a `ArranqueCatalogo`, con tres pruebas que verifican la raíz, el catálogo cargado y la idempotencia.
 
 ### Corregido
 - **L-005 cerrada**: 107/113 fichas con `Source` de nivel 1 (94,69 %, objetivo ≥90 %); el job
