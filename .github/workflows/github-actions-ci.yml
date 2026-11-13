@@ -31,8 +31,12 @@ jobs:
             rid: win-x64
           - os: ubuntu-latest
             rid: linux-x64
+          - os: ubuntu-latest
+            rid: linux-arm64
           - os: macos-latest
             rid: osx-x64
+          - os: macos-latest
+            rid: osx-arm64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -86,13 +90,27 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     needs: [quality, build]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: linux-x64
+            deb_arch: amd64
+            rpm_arch: x86_64
+            appimage_arch: x86_64
+            appimage_tool: appimagetool-x86_64.AppImage
+          - rid: linux-arm64
+            deb_arch: arm64
+            rpm_arch: aarch64
+            appimage_arch: aarch64
+            appimage_tool: appimagetool-aarch64.AppImage
     steps:
       - uses: actions/checkout@v4
-      - name: Descargar binario linux-x64
+      - name: Descargar binario ${{ matrix.rid }}
         uses: actions/download-artifact@v4
         with:
-          name: app-linux-x64
-          path: FASE-II-DISENO/dist/linux-x64
+          name: app-${{ matrix.rid }}
+          path: FASE-II-DISENO/dist/${{ matrix.rid }}
       - name: Empaquetar .deb (Debian/Ubuntu)
         working-directory: FASE-II-DISENO
         shell: bash
@@ -103,7 +121,7 @@ jobs:
           # sigue los renames del repositorio automáticamente).
           REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
           mkdir -p debroot/DEBIAN debroot/usr/lib/netprotocol debroot/usr/share/applications debroot/usr/share/pixmaps debroot/usr/bin
-          cp -a dist/linux-x64/. debroot/usr/lib/netprotocol/
+          cp -a dist/${{ matrix.rid }}/. debroot/usr/lib/netprotocol/
           chmod -R a+rX debroot/usr/lib/netprotocol
           # upload/download-artifact v4 pierde el bit de ejecución al descargar:
           # fijar 0755 explícito en los ELF del apphost (no depender del mode del artefacto).
@@ -135,13 +153,13 @@ jobs:
           Version: ${VER}
           Section: net
           Priority: optional
-          Architecture: amd64
+          Architecture: ${{ matrix.deb_arch }}
           Maintainer: Proyecto Redes
           Homepage: ${REPO_URL}
           Description: Net Protocol - base de conocimiento de protocolos de red
            Catálogo, fichas, PDU y seguridad de protocolos de red (Fase I/II).
           EOF
-          dpkg-deb --build --root-owner-group debroot "dist/NetProtocol-${VER}-linux-amd64.deb"
+          dpkg-deb --build --root-owner-group debroot "dist/NetProtocol-${VER}-linux-${{ matrix.deb_arch }}.deb"
       - name: Empaquetar .rpm (Fedora/RHEL)
         working-directory: FASE-II-DISENO
         shell: bash
@@ -156,7 +174,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq rpm
           mkdir -p rpmbuild
-          DISTDIR="${PWD}/dist/linux-x64"
+          DISTDIR="${PWD}/dist/${{ matrix.rid }}"
           cat > netprotocol.spec <<EOF
           Name: netprotocol
           Version: ${RPM_VER}
@@ -164,7 +182,7 @@ jobs:
           Summary: Net Protocol - base de conocimiento de protocolos de red
           License: Proprietary
           URL: ${REPO_URL}
-          BuildArch: x86_64
+          BuildArch: ${{ matrix.rpm_arch }}
 
           # El runtime .NET self-contained lleva librerías con DT_NEEDED a liblttng-ust y
           # liburcu, que NO usa en ejecución (DOTNET_EnableDiagnostics=0 las desactiva).
@@ -219,8 +237,8 @@ jobs:
           /usr/share/pixmaps/netprotocol.png
           EOF
           sed -i 's/^          //' netprotocol.spec
-          rpmbuild --define "_topdir ${PWD}/rpmbuild" -bb netprotocol.spec
-          cp rpmbuild/RPMS/x86_64/*.rpm "dist/NetProtocol-${RPM_VER}-linux-x86_64.rpm"
+          rpmbuild --define "_topdir ${PWD}/rpmbuild" --target ${{ matrix.rpm_arch }} -bb netprotocol.spec
+          cp rpmbuild/RPMS/${{ matrix.rpm_arch }}/*.rpm "dist/NetProtocol-${RPM_VER}-linux-${{ matrix.rpm_arch }}.rpm"
       - name: Empaquetar AppImage (portable)
         working-directory: FASE-II-DISENO
         shell: bash
@@ -228,12 +246,12 @@ jobs:
           set -euo pipefail
           VER="${GITHUB_REF_NAME#v}"
           # Descargar appimagetool (AppImage type 2, sin FUSE en CI).
-          wget -q -O /tmp/appimagetool "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+          wget -q -O /tmp/appimagetool "https://github.com/AppImage/AppImageKit/releases/download/continuous/${{ matrix.appimage_tool }}"
           chmod +x /tmp/appimagetool
           # Estructura AppDir estándar.
           APPDIR="dist/NetProtocol.AppDir"
           mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/share/icons/hicolor/256x256/apps"
-          cp -a dist/linux-x64/. "$APPDIR/usr/bin/"
+          cp -a dist/${{ matrix.rid }}/. "$APPDIR/usr/bin/"
           chmod 755 "$APPDIR/usr/bin/NetProtocol" "$APPDIR/usr/bin/createdump"
           # Icono (256×256, freedesktop).
           cp src/Redes.Knowledge.App/Assets/Logo_NetProtocol.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/netprotocol.png"
@@ -261,9 +279,9 @@ jobs:
           EOF
           sed -i 's/^          //' "$APPDIR/AppRun"
           chmod 755 "$APPDIR/AppRun"
-          # Generar AppImage (ARCH= x86_64; sin FUSE: --appimage-extract-and-run).
-          ARCH=x86_64 /tmp/appimagetool --appimage-extract-and-run "$APPDIR" \
-            "dist/NetProtocol-${VER}-linux-x86_64.AppImage"
+          # Generar AppImage (ARCH segun matriz; sin FUSE: --appimage-extract-and-run).
+          ARCH=${{ matrix.appimage_arch }} /tmp/appimagetool --appimage-extract-and-run "$APPDIR" \
+            "dist/NetProtocol-${VER}-linux-${{ matrix.appimage_arch }}.AppImage"
       - name: Firmar .deb/.rpm con GPG (si la clave esta configurada en secretos)
         working-directory: FASE-II-DISENO
         shell: bash
@@ -306,7 +324,7 @@ jobs:
           # AppImage), siguiendo el patrón `<instalador>.asc`. El firmador clasico
           # del .deb (dpkg-sig) fue retirado de Ubuntu/Debian; gpg --detach-sign
           # --armor es la forma estandar. Se verifica cada una con gpg --verify.
-          LINUX_INSTALADORES="dist/NetProtocol-*-linux-amd64.deb dist/NetProtocol-*-linux-x86_64.rpm dist/NetProtocol-*-linux-x86_64.AppImage"
+          LINUX_INSTALADORES="dist/NetProtocol-*-linux-*.deb dist/NetProtocol-*-linux-*.rpm dist/NetProtocol-*-linux-*.AppImage"
           if [ -n "${GPG_PASSPHRASE:-}" ]; then
             for F in $LINUX_INSTALADORES; do
               printf '%s\n' "$PASS" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
@@ -322,7 +340,7 @@ jobs:
           done
       - uses: actions/upload-artifact@v4
         with:
-          name: setup-linux
+          name: setup-linux-${{ matrix.deb_arch }}
           path: FASE-II-DISENO/dist/NetProtocol-*
           if-no-files-found: error
           retention-days: 2
@@ -331,13 +349,23 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: macos-latest
     needs: [quality, build]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: osx-x64
+            dmg_arch: x64
+            min_macos: '10.15'
+          - rid: osx-arm64
+            dmg_arch: arm64
+            min_macos: '11.0'
     steps:
       - uses: actions/checkout@v4
-      - name: Descargar binario osx-x64
+      - name: Descargar binario ${{ matrix.rid }}
         uses: actions/download-artifact@v4
         with:
-          name: app-osx-x64
-          path: FASE-II-DISENO/dist/osx-x64
+          name: app-${{ matrix.rid }}
+          path: FASE-II-DISENO/dist/${{ matrix.rid }}
       - name: Crear bundle .app + .dmg
         working-directory: FASE-II-DISENO
         shell: bash
@@ -346,7 +374,7 @@ jobs:
           VER="${GITHUB_REF_NAME#v}"
           APP="dist/Net Protocol.app"
           mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-          cp -a dist/osx-x64/. "$APP/Contents/MacOS/"
+          cp -a dist/${{ matrix.rid }}/. "$APP/Contents/MacOS/"
           chmod +x "$APP/Contents/MacOS/NetProtocol"
           # Generar .icns desde el PNG 256×256 (sips + iconutil, nativos de macOS).
           ICONSET="$APP/Contents/Resources/NetProtocol.iconset"
@@ -371,7 +399,7 @@ jobs:
             <key>CFBundleExecutable</key><string>NetProtocol</string>
             <key>CFBundlePackageType</key><string>APPL</string>
             <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
-            <key>LSMinimumSystemVersion</key><string>10.15</string>
+            <key>LSMinimumSystemVersion</key><string>${{ matrix.min_macos }}</string>
             <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
             <key>CFBundleIconFile</key><string>NetProtocol.icns</string>
             <key>NSHighResolutionCapable</key><true/>
@@ -379,10 +407,10 @@ jobs:
           </plist>
           EOF
           hdiutil create -volname "Net Protocol" -srcfolder "$APP" \
-            -ov -format UDZO "dist/NetProtocol-${VER}-macos-x64.dmg"
+            -ov -format UDZO "dist/NetProtocol-${VER}-macos-${{ matrix.dmg_arch }}.dmg"
       - uses: actions/upload-artifact@v4
         with:
-          name: setup-macos
+          name: setup-macos-${{ matrix.dmg_arch }}
           path: FASE-II-DISENO/dist/NetProtocol-*.dmg
           if-no-files-found: error
           retention-days: 2
@@ -408,7 +436,7 @@ jobs:
           cat > RELEASE_NOTES.md <<EOF
           # Net Protocol ${VER} — instaladores oficiales
 
-          Instaladores **self-contained**: no necesitan tener .NET instalado en el equipo. Disponibles para **Windows** (x64), **Linux** (x64) y **macOS** (x64).
+          Instaladores **self-contained**: no necesitan tener .NET instalado en el equipo. Disponibles para **Windows** (x64), **Linux** (x64 y arm64) y **macOS** (Intel x64 y Apple Silicon arm64).
 
           ## Novedades en esta versión
 
@@ -485,7 +513,26 @@ jobs:
 
           ## macOS — \`.dmg\`
 
-          Descarga \`NetProtocol-${VER}-macos-x64.dmg\`, ábrelo y arrastra **Net Protocol.app** a la carpeta Aplicaciones. Como el bundle aún no lleva firma de código de Apple, en el primer arranque haz clic derecho sobre la aplicación → **Abrir**.
+          Descarga \`NetProtocol-${VER}-macos-x64.dmg\` (Intel) o \`NetProtocol-${VER}-macos-arm64.dmg\` (Apple Silicon), ábrelo y arrastra **Net Protocol.app** a la carpeta Aplicaciones. Como el bundle aún no lleva firma de código de Apple, en el primer arranque haz clic derecho sobre la aplicación → **Abrir**.
+
+          ## ARM64 — Linux y macOS
+
+          Los mismos formatos existen para **arm64** (Raspberry Pi, servidores ARM, Apple Silicon nativo):
+
+          | Plataforma | Archivo |
+          |---|---|
+          | Debian/Ubuntu arm64 | \`NetProtocol-${VER}-linux-arm64.deb\` + \`.asc\` |
+          | Fedora/RHEL/openSUSE aarch64 | \`NetProtocol-${VER}-linux-aarch64.rpm\` + \`.asc\` |
+          | Linux portable aarch64 | \`NetProtocol-${VER}-linux-aarch64.AppImage\` + \`.asc\` |
+          | macOS Apple Silicon | \`NetProtocol-${VER}-macos-arm64.dmg\` |
+
+          \`\`\`bash
+          sudo apt install ./NetProtocol-${VER}-linux-arm64.deb
+          sudo dnf install ./NetProtocol-${VER}-linux-aarch64.rpm
+          chmod +x NetProtocol-${VER}-linux-aarch64.AppImage && ./NetProtocol-${VER}-linux-aarch64.AppImage
+          \`\`\`
+
+          En macOS Apple Silicon usa el \`.dmg\` arm64: es nativo y no pasa por Rosetta.
 
           ---
 

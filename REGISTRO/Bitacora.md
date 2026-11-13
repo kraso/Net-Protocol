@@ -969,3 +969,20 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 - **`.gitignore`** — se añade `.gentle-ai-default-agent.json`, generado por `gentle-ai sync` y no versionable.
 
 **Verificación:** `dotnet test -c Release` → 78/78, 0 errores. Enlaces relativos del README resueltos. Tabla de jobs contrastada con `yaml.safe_load` del workflow real.
+
+## 13-11-2026 — Soporte arm64 en build y empaquetado (P1)
+
+**Motivo:** la matriz de CI solo construía `win-x64`, `linux-x64` y `osx-x64`. No había binario para Linux ARM (Raspberry Pi, servidores ARM) ni para macOS Apple Silicon nativo, que hasta ahora corría bajo Rosetta.
+
+**Cambios:**
+
+- **`build`**: la matriz pasa a 5 RID — `win-x64`, `linux-x64`, `linux-arm64`, `osx-x64`, `osx-arm64`. La publicación self-contained cruzada funciona desde el runner x64.
+- **`package-linux`**: se convierte en matriz `amd64` / `arm64`. El `.deb` declara `Architecture: arm64`, el `.rpm` usa `BuildArch: aarch64` con `rpmbuild --target aarch64`, y la AppImage se genera con `ARCH=aarch64` y `appimagetool-aarch64.AppImage`. Los globs de firma GPG pasan a `dist/NetProtocol-*-linux-*` para cubrir ambas arquitecturas sin duplicar pasos.
+- **`package-macos`**: matriz `x64` / `arm64`, con `LSMinimumSystemVersion` 10.15 para Intel y 11.0 para Apple Silicon (arm64 exige macOS 11+).
+- **Artefactos**: `setup-linux-amd64`, `setup-linux-arm64`, `setup-macos-x64`, `setup-macos-arm64`. El job `release` los recoge con el glob `dist/setup-*/*` sin cambios.
+- **Notas de release**: nueva sección ARM64 con la tabla de archivos y los comandos de instalación.
+- **Documentación**: tabla de descargas del README con columna de arquitectura, tabla de nombres de `packaging/README.md` y matriz de jobs de `ci/README.md`.
+
+**Verificación:** `dotnet publish -c Release -r linux-arm64` y `-r osx-arm64` con `--self-contained true` → exit 0. Cabeceras comprobadas: el binario Linux es ELF `e_machine=0xb7` (AArch64) y el de macOS es Mach-O `cputype=0x0100000c` (arm64). Tamaños: 110,7 MB y 115,5 MB.
+
+**Fuera de alcance:** `win-arm64`. Windows on ARM ejecuta el binario x64 por emulación y el instalador Inno Setup necesitaría `ArchitecturesAllowed=arm64` (Inno Setup 6.3+), que no se puede verificar desde este equipo.

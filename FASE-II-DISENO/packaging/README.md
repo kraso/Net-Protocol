@@ -19,13 +19,17 @@ y cada instalador Linux lleva su firma adjunta como **`<instalador>.asc`**:
 | Instalador | Archivo | Firma adjunta |
 |---|---|---|
 | Windows (Inno Setup) | `NetProtocol-<ver>-win-x64.exe` | — (sin firma de código) |
-| Debian/Ubuntu | `NetProtocol-<ver>-linux-amd64.deb` | `…-linux-amd64.deb.asc` |
-| Fedora/RHEL/openSUSE | `NetProtocol-<ver>-linux-x86_64.rpm` | `…-linux-x86_64.rpm.asc` + firma integrada `rpmsign` |
-| Linux portable | `NetProtocol-<ver>-linux-x86_64.AppImage` | `…-linux-x86_64.AppImage.asc` |
-| macOS | `NetProtocol-<ver>-macos-x64.dmg` | — (sin firma de código) |
+| Debian/Ubuntu | `NetProtocol-<ver>-linux-amd64.deb` | `...-linux-amd64.deb.asc` |
+| Debian/Ubuntu arm64 | `NetProtocol-<ver>-linux-arm64.deb` | `...-linux-arm64.deb.asc` |
+| Fedora/RHEL/openSUSE | `NetProtocol-<ver>-linux-x86_64.rpm` | `...-linux-x86_64.rpm.asc` + firma integrada `rpmsign` |
+| Fedora/RHEL/openSUSE aarch64 | `NetProtocol-<ver>-linux-aarch64.rpm` | `...-linux-aarch64.rpm.asc` + firma integrada `rpmsign` |
+| Linux portable | `NetProtocol-<ver>-linux-x86_64.AppImage` | `...-linux-x86_64.AppImage.asc` |
+| Linux portable aarch64 | `NetProtocol-<ver>-linux-aarch64.AppImage` | `...-linux-aarch64.AppImage.asc` |
+| macOS Intel | `NetProtocol-<ver>-macos-x64.dmg` | — (sin firma de código) |
+| macOS Apple Silicon | `NetProtocol-<ver>-macos-arm64.dmg` | — (sin firma de código) |
 
 > El token de arquitectura usa la convención nativa de cada ecosistema
-> (`amd64` para .deb, `x86_64` para .rpm/.AppImage, `x64` para exe/dmg).
+> (`amd64`/`arm64` para .deb, `x86_64`/`aarch64` para .rpm/.AppImage, `x64`/`arm64` para exe/dmg).
 > `NetProtocol-gpg-pubkey.asc` **no** sigue el patrón de versión: es la clave
 > pública de releases, la misma en todas las versiones, con nombre estable para
 > que los comandos de importación no cambien entre releases.
@@ -61,7 +65,7 @@ el repositorio, los próximos paquetes llevan la URL correcta sin tocar nada**
 1. **Dataset versionado con semver propio** e independiente del ejecutable (`dataset.json` junto a la base de datos local; ver `Quality/DatasetMetadata`).
 2. **Actualización sin recompilar**: el ejecutable lee el dataset desde datos versionables; el pipeline (D2) regenera snapshots.
 3. **Modo offline completo**: el dataset se embebe en el primer arranque desde los catálogos de la Fase I (bootstrap D3).
-4. Publicación **self-contained por RID** (win-x64, linux-x64, osx-x64) validada localmente en D7 (carpeta `dist/`).
+4. Publicación **self-contained por RID** (win-x64, linux-x64, linux-arm64, osx-x64, osx-arm64) validada localmente en D7 (carpeta `dist/`).
 
 ## Pasos de release (checklist)
 

@@ -8,8 +8,11 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
 
 ### Añadido
 - `LICENSE` (MIT), `SECURITY.md` y este `CHANGELOG.md`.
+- Soporte **arm64**: `linux-arm64` y `osx-arm64` en la matriz de build, y empaquetado `.deb` `arm64`,
+  `.rpm` `aarch64`, AppImage `aarch64` y `.dmg` `arm64` en los jobs de release.
 
 ### Cambiado
+- `on.push` acotado a `main` y tags `v*`: la matriz ya no se lanza en cada rama.
 - Sincronización documental con la realidad publicada: README, `REGISTRO/Estado-de-Fases.md` y
   `FASE-II-DISENO/F2I-Diseno-de-Software.md` reflejan la v1.0.14 y las 78/78 pruebas.
 - `FASE-II-DISENO/ci/` deja de duplicar el workflow: apunta a `.github/workflows/github-actions-ci.yml`

@@ -51,13 +51,17 @@ Detalle: [REGISTRO/Estado-de-Fases.md](REGISTRO/Estado-de-Fases.md) · Historial
 
 Los instaladores se publican como **GitHub Release** por cada tag `v*` ([releases](https://github.com/kraso/Net-Protocol/releases)). Los instaladores Linux se firman con la **clave GPG de releases** (`NetProtocol-gpg-pubkey.asc`, adjunta a cada release; clave `CD11DE8033B6E164`); si un release no trae `.asc` ni esa clave, se publicó sin firma porque faltaban los secretos GPG del repositorio. Windows y macOS no llevan firma de código (decisión del proyecto) — SmartScreen/Gatekeeper pueden avisar; se abren igualmente.
 
-| SO | Archivo | Instalación |
-|---|---|---|
-| Windows | `NetProtocol-<versión>-win-x64.exe` | Ejecutar el instalador (cierra la app sola si está abierta; actualiza en el mismo directorio sin desinstalar). |
-| Debian/Ubuntu | `NetProtocol-<versión>-linux-amd64.deb` + `.deb.asc` | `sudo apt install ./NetProtocol-<versión>-linux-amd64.deb` · verificar: `gpg --verify NetProtocol-<versión>-linux-amd64.deb.asc NetProtocol-<versión>-linux-amd64.deb` |
-| openSUSE / Fedora / RHEL | `NetProtocol-<versión>-linux-x86_64.rpm` (+ `.rpm.asc`) | Ver abajo (importar la clave primero). |
-| Linux (portable) | `NetProtocol-<versión>-linux-x86_64.AppImage` (+ `.AppImage.asc`) | `chmod +x ...AppImage && ./...AppImage` (sin instalar). |
-| macOS | `NetProtocol-<versión>-macos-x64.dmg` | Clic derecho → Abrir (sin firma de código). |
+| SO | Arch | Archivo | Instalación |
+|---|---|---|---|
+| Windows | x64 | `NetProtocol-<versión>-win-x64.exe` | Ejecutar el instalador (cierra la app sola si está abierta; actualiza en el mismo directorio sin desinstalar). |
+| Debian/Ubuntu | amd64 | `NetProtocol-<versión>-linux-amd64.deb` + `.deb.asc` | `sudo apt install ./NetProtocol-<versión>-linux-amd64.deb` · verificar: `gpg --verify NetProtocol-<versión>-linux-amd64.deb.asc NetProtocol-<versión>-linux-amd64.deb` |
+| Debian/Ubuntu | arm64 | `NetProtocol-<versión>-linux-arm64.deb` + `.deb.asc` | `sudo apt install ./NetProtocol-<versión>-linux-arm64.deb` |
+| openSUSE / Fedora / RHEL | x86_64 | `NetProtocol-<versión>-linux-x86_64.rpm` (+ `.rpm.asc`) | Ver abajo (importar la clave primero). |
+| openSUSE / Fedora / RHEL | aarch64 | `NetProtocol-<versión>-linux-aarch64.rpm` (+ `.rpm.asc`) | Igual que el x86_64, con el paquete `aarch64`. |
+| Linux (portable) | x86_64 | `NetProtocol-<versión>-linux-x86_64.AppImage` (+ `.AppImage.asc`) | `chmod +x ...AppImage && ./...AppImage` (sin instalar). |
+| Linux (portable) | aarch64 | `NetProtocol-<versión>-linux-aarch64.AppImage` (+ `.AppImage.asc`) | Igual, con el AppImage `aarch64`. |
+| macOS | x64 (Intel) | `NetProtocol-<versión>-macos-x64.dmg` | Clic derecho → Abrir (sin firma de código). |
+| macOS | arm64 (Apple Silicon) | `NetProtocol-<versión>-macos-arm64.dmg` | Igual, nativo sin Rosetta. |
 
 > **Patrón de nombres:** todos los instaladores comparten el formato
 > `NetProtocol-<versión>-<SO>-<arquitectura>.<extensión>`; la firma adjunta de cada
