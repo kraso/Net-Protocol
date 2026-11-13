@@ -23,6 +23,10 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
   `FASE-II-DISENO/F2I-Diseno-de-Software.md` reflejan la v1.0.14 y las 78/78 pruebas.
 - `FASE-II-DISENO/ci/` deja de duplicar el workflow: apunta a `.github/workflows/github-actions-ci.yml`
   como fuente de verdad única.
+- `MainWindow` delega el estado del catálogo (F3–F6, relaciones F4, dedup IANA) y sus consultas puras
+  en `ViewModels/CatalogoViewModel.cs`, sin dependencia de Avalonia: el code-behind baja de 1.521 a
+  1.430 líneas y la lógica queda cubierta por siete pruebas nuevas.
+- El glob de las pruebas doradas pasa de `Golden\**` a `Golden/**`, para que también resuelva en Linux.
 
 ### Corregido
 - `SECURITY.md` ya no compromete un plazo de acuse de recibo que el proyecto no puede garantizar, y

@@ -1049,3 +1049,16 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Verificación local (clave desechable, no la de release):** se generó una clave `rsa2048` en un `GNUPGHOME` temporal y se ejecutó el script extraído del YAML con `bash -n` (sintaxis OK) y dos pasadas. Con la frase correcta: `importacion=OK`, `exit_fd0=0`, `exit_file=0`, `verify=OK`, `vias_fallidas=0`, salida 0. Con frase incorrecta y el agente reiniciado: `exit_fd0=1`, `exit_file=1`, `verify=FALLO`, `vias_fallidas=3`, salida 1. La clave y los ficheros temporales se borraron después. YAML validado con `yaml.safe_load` (7 jobs).
 
 **Nota sobre la revisión de I0:** el hallazgo `R3-JOBS-INCOMPLETOS` (MEDIUM) afirmaba que `ci/README.md` omitía `diagnostico-gpg` y la cadena `needs`. Es incorrecto: la fila existe desde `b407434` y la cadena está en la tabla. Se actualiza la descripción de esa fila al comportamiento endurecido.
+
+## 13-11-2026 — P2/I2: extracción del estado del catálogo a un ViewModel
+
+**Motivo:** `MainWindow.axaml.cs` concentraba 1.521 líneas de code-behind, incluidas diez estructuras de datos del catálogo y consultas que no dependen de Avalonia. Sin separarlas no se pueden probar ni la puerta de cobertura puede medirlas.
+
+**Cambios:**
+
+- **`ViewModels/CatalogoViewModel.cs` (nuevo).** Contiene los índices de protocolos (por id, acrónimo y nombre normalizado), campos PDU F5, PDU resumida, cifrado F6, notas y familias F3, fichas F4, relaciones F4 y el resultado de deduplicación IANA. Expone `Cargar(raiz, protocolos, servicios)`, `Activos(familia, estado)`, `Resolver`, `PorUrn`, `CamposF5De`, `PduDe`, `CifradoDe`, `FichaDe`, `NotaDe`, `FamiliaDe`, `VecinosDe`, `PuertosDe` y `Normalizar`. No referencia Avalonia.
+- **`MainWindow.axaml.cs`.** Los diez campos pasan a un único `_catalogo`; el constructor sustituye el bloque de carga por una llamada a `CatalogoViewModel.Cargar`. `PuertosDe`, `Activos` y `Normalizar` delegan. El code-behind queda en 1.430 líneas.
+- **`tests/Redes.Knowledge.App.Tests/CatalogoViewModelTests.cs` (nuevo).** Siete pruebas puras: indexación por acrónimo y nombre, lectura de los catálogos F3–F6, filtros de familia y estado, unión de puertos por coincidencia exacta y vínculo curado, vecinos F4, normalización y resolución por URN.
+- **`Redes.Knowledge.App.Tests.csproj`.** El glob de las doradas pasa de `Golden\**` a `Golden/**`, que resuelve también en Linux (hallazgo LOW de la revisión de I0).
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 101/101 y 18/18, 0 errores. Puerta de cobertura: 94,40 % líneas y 84,52 % ramas, umbral 90/75 cumplido. Las siete pruebas de caracterización siguen pasando sin tocar las doradas.

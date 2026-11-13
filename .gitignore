@@ -45,3 +45,6 @@ NetProtocol.rar
 
 # Registros de sesiones con la IA
 SESION-*
+
+# Cobertura generada por dotnet test
+coverage/

@@ -13,6 +13,7 @@ using Avalonia.Platform;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Redes.Knowledge.Domain;
+using Redes.Knowledge.App.ViewModels;
 using Redes.Knowledge.Infrastructure;
 using Redes.Knowledge.Infrastructure.Capturas;
 using Redes.Knowledge.Infrastructure.Updates;
@@ -41,15 +42,7 @@ public partial class MainWindow : Window
     private const double MinAnchoVentana = 960;   // piso absoluto (también en el axaml)
     private const double MaxAnchoVentana = 1400;  // tope: no romper pantallas normales a zoom alto
 
-    private readonly Dictionary<string, Protocol> _protocolos = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, Protocol> _normalizados = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, IReadOnlyList<Field>> _camposPorAcronimo = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, string> _pduPorAcronimo = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, string> _cifradoPorAcronimo = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, CatalogJson.NotaFuente> _notasFuentes = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, FichaPrioritaria> _fichas = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, string> _familias = new(StringComparer.OrdinalIgnoreCase);
-    private readonly List<Relationship> _relaciones = new();
+    private readonly CatalogoViewModel _catalogo;
     private readonly SqliteProtocolRepository _repo;
     private readonly SqliteServiceRepository _servicios;
     private readonly SqliteSearchEngine _busqueda;
@@ -92,9 +85,6 @@ public partial class MainWindow : Window
     private List<PcapPacket> _paquetesCaptura = new();
     private string _rutaCaptura = "";
 
-    /// <summary>Deduplicación fina IANA (D2-2): sinónimos agrupados + vínculos al catálogo.</summary>
-    private ResultadoDedup _dedup = new(new Dictionary<string, string>(), Array.Empty<ServicioCanonico>(), 0, 0);
-
     public MainWindow()
     {
         InitializeComponent();
@@ -127,39 +117,9 @@ public partial class MainWindow : Window
 
         var importados = DatasetBootstrap.EnsureProtocolos(store,
             Path.Combine(raiz, "FASE-03-INVENTARIO", "F3-Protocolos.json"));
-        // D2-2: deduplicación fina IANA en memoria (sinónimos agrupados + vínculos al catálogo).
-        _dedup = ServiciosDedup.Agrupar(_servicios.Todos());
-        foreach (var p in _repo.GetAll()) _protocolos[p.Id.Value] = p;
-        foreach (var p in _protocolos.Values)
-        {
-            _normalizados[Normalizar(p.Acronimo)] = p;
-            _normalizados[Normalizar(p.Nombre)] = p;
-        }
-        foreach (var kv in CatalogJson.CargarNotasFuenteF3(
-                     Path.Combine(raiz, "FASE-03-INVENTARIO", "F3-Protocolos.json")))
-            _notasFuentes[kv.Key] = kv.Value;
-        foreach (var kv in CatalogJson.CargarFamiliasF3(
-                     Path.Combine(raiz, "FASE-03-INVENTARIO", "F3-Protocolos.json")))
-            _familias[kv.Key] = kv.Value;
-
-        // Catálogos de la Fase I para las vistas avanzadas (D5): campos PDU (F5) para
-// cualquier protocolo del catálogo que los tenga catalogados (no solo los 6 iniciales).
-        var f5 = Path.Combine(raiz, "FASE-05-MENSAJERIA", "F5-Campos-PDU.json");
-        foreach (var p in _protocolos.Values)
-        {
-            var campos = CatalogJson.CargarCamposF5(f5, p.Acronimo);
-            if (campos.Count > 0) _camposPorAcronimo[p.Acronimo] = campos;
-            var pdu = CatalogoExploracion.ObtenerPduF5(f5, p.Acronimo);
-            if (pdu is not null) _pduPorAcronimo[p.Acronimo] = pdu;
-        }
-        _cifradoPorAcronimo = CatalogoExploracion.CargarSeguridadF6(
-            Path.Combine(raiz, "FASE-06-SEGURIDAD", "F6-Seguridad-Protocolos.json"), "cifrado")
-            .ToDictionary(e => e.Key, e => e.Value, StringComparer.OrdinalIgnoreCase);
-        _relaciones.AddRange(CatalogoExploracion.CargarRelacionesF4(
-            Path.Combine(raiz, "FASE-04-PROFUNDIZACION", "F4-Matriz-Encapsulacion.json")));
-        foreach (var kv in CatalogoExploracion.CargarFichasF4(
-                     Path.Combine(raiz, "FASE-04-PROFUNDIZACION", "F4-Fichas-Prioritarias.json")))
-            _fichas[kv.Key] = kv.Value;
+        // Catálogos F3–F6 e índices de consulta: estado y lógica pura en el ViewModel,
+        // sin dependencia de Avalonia (ver ViewModels/CatalogoViewModel.cs).
+        _catalogo = CatalogoViewModel.Cargar(raiz, _repo.GetAll(), _servicios.Todos());
 
         CargarFiltros();
         CargarComparador();
@@ -167,16 +127,16 @@ public partial class MainWindow : Window
         ReconstruirNavegacion();
         // Ficha inicial: primer protocolo con relaciones catalogadas (TCP) para mostrar
         // el grafo F4 al abrir; si no existe, el primero del catálogo.
-        var inicial = _protocolos.Values
+        var inicial = _catalogo.Protocolos.Values
             .FirstOrDefault(p => p.Acronimo == "TCP")
-            ?? _protocolos.Values
-                .OrderByDescending(p => GrafoRelaciones.Vecinos1Salto(p.Acronimo, _relaciones).Count)
+            ?? _catalogo.Protocolos.Values
+                .OrderByDescending(p => GrafoRelaciones.Vecinos1Salto(p.Acronimo, _catalogo.Relaciones).Count)
                 .ThenBy(p => p.Acronimo, StringComparer.OrdinalIgnoreCase)
                 .FirstOrDefault();
         RenderFicha(inicial);
 
-        StatusText.Text = $"Dataset: {_protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · " +
-                          $"{_relaciones.Count} relaciones F4 · importados: {importados} · zoom {_zoom * 100:0}% (Ctrl+Scroll)";
+        StatusText.Text = $"Dataset: {_catalogo.Protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · " +
+                          $"{_catalogo.Relaciones.Count} relaciones F4 · importados: {importados} · zoom {_zoom * 100:0}% (Ctrl+Scroll)";
 
         SearchButton.Click += (_, _) => EjecutarBusqueda();
         SearchBox.KeyDown += (_, e) => { if (e.Key == Key.Enter) EjecutarBusqueda(); };
@@ -255,7 +215,7 @@ public partial class MainWindow : Window
             var tituloBase = double.IsNaN(DiagramTitle.FontSize) || DiagramTitle.FontSize <= 0 ? _fuenteBase : DiagramTitle.FontSize;
             _tituloBase = Math.Max(_fuenteBase, tituloBase);
             AplicarZoomContenido();
-            if (IsLoaded) StatusText.Text = $"Dataset: {_protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · zoom del contenido {_zoom * 100:0}% (Ctrl+Scroll)";
+            if (IsLoaded) StatusText.Text = $"Dataset: {_catalogo.Protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · zoom del contenido {_zoom * 100:0}% (Ctrl+Scroll)";
             _ = ComprobarActualizacionesAsync();
         };
 
@@ -530,7 +490,7 @@ public partial class MainWindow : Window
         // captura abierta el panel está oculto y cada texto de captura ya escaló su fuente.
         if (!PanelCaptura.IsVisible && _seleccionado is not null && DiagramPanel.Children.Count > 0)
         {
-            var vecinos = GrafoRelaciones.Vecinos1Salto(_seleccionado.Acronimo, _relaciones);
+            var vecinos = GrafoRelaciones.Vecinos1Salto(_seleccionado.Acronimo, _catalogo.Relaciones);
             RenderDiagramas(_seleccionado, vecinos);
         }
     }
@@ -553,7 +513,7 @@ public partial class MainWindow : Window
     private void CargarComparador()
     {
         _cargando = true;
-        foreach (var p in _protocolos.Values
+        foreach (var p in _catalogo.Protocolos.Values
                      .OrderBy(p => p.Acronimo, StringComparer.OrdinalIgnoreCase))
             CompareTarget.Items.Add(p);
         // Muestra "ACR · Nombre" en el desplegable (ancho suficiente para los 113).
@@ -579,7 +539,7 @@ public partial class MainWindow : Window
                 TextTrimming = TextTrimming.CharacterEllipsis,
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
             });
-        CompareTarget.SelectedItem = _protocolos.Values.FirstOrDefault(p => p.Acronimo == "TCP");
+        CompareTarget.SelectedItem = _catalogo.Protocolos.Values.FirstOrDefault(p => p.Acronimo == "TCP");
         _cargando = false;
     }
 
@@ -590,7 +550,7 @@ public partial class MainWindow : Window
     private void CargarSelectorProtocolo()
     {
         _cargando = true;
-        foreach (var p in _protocolos.Values
+        foreach (var p in _catalogo.Protocolos.Values
                      .OrderBy(p => p.Acronimo, StringComparer.OrdinalIgnoreCase))
             ProtocolSelector.Items.Add(p);
         // Ítems del desplegable: "ACR · Nombre" con carrusel bajo el puntero (ancho fijo).
@@ -616,14 +576,11 @@ public partial class MainWindow : Window
     {
         get
         {
-            IEnumerable<Protocol> lista = _protocolos.Values;
-            if (FilterFamilia.SelectedIndex > 0 &&
-                Enum.TryParse<FamiliaProtocolo>(FilterFamilia.SelectedItem?.ToString(), out var familia))
-                lista = lista.Where(p => p.Familia == familia);
-            if (FilterEstado.SelectedIndex > 0 &&
-                Enum.TryParse<LifecycleState>(FilterEstado.SelectedItem?.ToString(), out var estado))
-                lista = lista.Where(p => p.Estado == estado);
-            return lista;
+            FamiliaProtocolo? familia = FilterFamilia.SelectedIndex > 0 &&
+                Enum.TryParse<FamiliaProtocolo>(FilterFamilia.SelectedItem?.ToString(), out var f) ? f : null;
+            LifecycleState? estado = FilterEstado.SelectedIndex > 0 &&
+                Enum.TryParse<LifecycleState>(FilterEstado.SelectedItem?.ToString(), out var e) ? e : null;
+            return _catalogo.Activos(familia, estado);
         }
     }
 
@@ -689,7 +646,7 @@ public partial class MainWindow : Window
         _cargando = false;
 
         if (IsLoaded)
-            StatusText.Text = $"Visible: {Activos.Count()} de {_protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · zoom {_zoom * 100:0}%";
+            StatusText.Text = $"Visible: {Activos.Count()} de {_catalogo.Protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · zoom {_zoom * 100:0}%";
     }
 
     private static void CerrarOtros(Expander abierto, IEnumerable<Expander> todos)
@@ -706,7 +663,7 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(q)) { ReconstruirNavegacion(); return; }
 
         var encontrados = _busqueda.Search(q, 100)
-            .Select(h => _protocolos.TryGetValue(h.Urn, out var p) ? p : null)
+            .Select(h => _catalogo.Protocolos.TryGetValue(h.Urn, out var p) ? p : null)
             .Where(p => p is not null)
             .Cast<Protocol>()
             .ToList();
@@ -765,20 +722,20 @@ public partial class MainWindow : Window
 
         DetailText.TextAlignment = TextAlignment.Left; // "Acerca de" centra el texto; al volver, izquierda.
 
-        _notasFuentes.TryGetValue(p.Acronimo, out var nf);
+        _catalogo.Notas.TryGetValue(p.Acronimo, out var nf);
         var nota = string.IsNullOrWhiteSpace(nf?.Nota) ? null : nf.Nota;
         var fuenteF3 = string.IsNullOrWhiteSpace(nf?.Fuente) || nf.Fuente == "pendiente" ? null : nf.Fuente;
-        _fichas.TryGetValue(p.Acronimo, out var ficha);
-        var vecinos = GrafoRelaciones.Vecinos1Salto(p.Acronimo, _relaciones);
+        _catalogo.Fichas.TryGetValue(p.Acronimo, out var ficha);
+        var vecinos = GrafoRelaciones.Vecinos1Salto(p.Acronimo, _catalogo.Relaciones);
 
         var modelo = new FichaTextoModelo
         {
             Protocolo = p,
             Ficha = ficha,
-            Campos = _camposPorAcronimo.TryGetValue(p.Acronimo, out var camposF5) ? camposF5 : Array.Empty<Field>(),
+            Campos = _catalogo.Campos.TryGetValue(p.Acronimo, out var camposF5) ? camposF5 : Array.Empty<Field>(),
             Vecinos = vecinos.Select(EtiquetaVecino).ToArray(),
-            Pdu = _pduPorAcronimo.TryGetValue(p.Acronimo, out var pduV) ? pduV : ficha?.Campo(7),
-            Cifrado = _cifradoPorAcronimo.TryGetValue(p.Acronimo, out var cf) ? cf : null,
+            Pdu = _catalogo.Pdu.TryGetValue(p.Acronimo, out var pduV) ? pduV : ficha?.Campo(7),
+            Cifrado = _catalogo.Cifrado.TryGetValue(p.Acronimo, out var cf) ? cf : null,
             Puertos = PuertosDe(p.Acronimo),
             Nota = nota,
             FuenteF3 = fuenteF3
@@ -826,7 +783,7 @@ public partial class MainWindow : Window
             {
                 var clave = Normalizar(v.Nombre);
                 nodos.Add((clave, EtiquetaNodo(v)));
-                var abrir = _normalizados.TryGetValue(clave, out var proto) ? proto.Acronimo : null;
+                var abrir = _catalogo.Normalizados.TryGetValue(clave, out var proto) ? proto.Acronimo : null;
                 RegistrarNodo(clave, abrir);
             }
             var aristas = new List<(string A, string B, string Etiqueta)>();
@@ -857,7 +814,7 @@ public partial class MainWindow : Window
         }
 
         // 3) Wire format de la cabecera desde F5 (offset/longitud conocidos).
-        if (_camposPorAcronimo.TryGetValue(p.Acronimo, out var campos) && campos.Count > 0)
+        if (_catalogo.Campos.TryGetValue(p.Acronimo, out var campos) && campos.Count > 0)
         {
             var wire = campos
                 .Where(c => c.OffsetBits.HasValue && c.LongitudBits.HasValue)
@@ -936,10 +893,10 @@ public partial class MainWindow : Window
     private void NavegarGrafo(string clave, IReadOnlyDictionary<string, string?> abrirPorClave)
     {
         if (!abrirPorClave.TryGetValue(clave, out var acronimo) || acronimo is null) return;
-        if (!_normalizados.TryGetValue(Normalizar(acronimo), out var proto)) return;
+        if (!_catalogo.Normalizados.TryGetValue(Normalizar(acronimo), out var proto)) return;
         RenderFicha(proto);
         if (IsLoaded)
-            StatusText.Text = $"Grafo: {proto.Acronimo} · {_relaciones.Count} relaciones F4 · zoom {_zoom * 100:0}%";
+            StatusText.Text = $"Grafo: {proto.Acronimo} · {_catalogo.Relaciones.Count} relaciones F4 · zoom {_zoom * 100:0}%";
     }
 
     /// <summary>Exporta los diagramas de la ficha actual al formato elegido (D4-3):
@@ -1086,7 +1043,7 @@ public partial class MainWindow : Window
     {
         CerrarCapturaSiAbierta();
         if (_seleccionado is not null) RenderFicha(_seleccionado);
-        if (IsLoaded) StatusText.Text = $"Captura cerrada · {_protocolos.Count} protocolos · zoom {_zoom * 100:0}%";
+        if (IsLoaded) StatusText.Text = $"Captura cerrada · {_catalogo.Protocolos.Count} protocolos · zoom {_zoom * 100:0}%";
     }
 
     private string ResumenPaquete(int i)
@@ -1144,11 +1101,11 @@ public partial class MainWindow : Window
 
     private IReadOnlyList<Field>? CamposF5De(string acronimoF5)
     {
-        if (_camposPorAcronimo.TryGetValue(acronimoF5, out var campos)) return campos;
-        var clave = _camposPorAcronimo.Keys.FirstOrDefault(k =>
+        if (_catalogo.Campos.TryGetValue(acronimoF5, out var campos)) return campos;
+        var clave = _catalogo.Campos.Keys.FirstOrDefault(k =>
             string.Equals(k, acronimoF5, StringComparison.OrdinalIgnoreCase) ||
             (acronimoF5 == "IPv4" && k.Equals("IP", StringComparison.OrdinalIgnoreCase)));
-        return clave is null ? null : _camposPorAcronimo[clave];
+        return clave is null ? null : _catalogo.Campos[clave];
     }
 
     /// <summary>Servicio IANA agrupado: nombre canónico + sus puertos distintos (puerto, transporte).</summary>
@@ -1157,11 +1114,11 @@ public partial class MainWindow : Window
     private bool MostrarServicioIana(string q)
     {
         var qn = ServiciosDedup.Normalizar(q);
-        var svc = _dedup.Servicios.FirstOrDefault(s => ServiciosDedup.Normalizar(s.Nombre) == qn);
+        var svc = _catalogo.Dedup.Servicios.FirstOrDefault(s => ServiciosDedup.Normalizar(s.Nombre) == qn);
         if (svc is null) return false;
 
         var acronimo = VinculoServicios.AcronimoDe(svc.Nombre);
-        _normalizados.TryGetValue(ServiciosDedup.Normalizar(acronimo ?? svc.Nombre), out var proto);
+        _catalogo.Normalizados.TryGetValue(ServiciosDedup.Normalizar(acronimo ?? svc.Nombre), out var proto);
 
         var sb = new StringBuilder();
         sb.AppendLine($"=== Servicio IANA: {svc.Nombre} ===");
@@ -1192,7 +1149,7 @@ public partial class MainWindow : Window
         const int maxProfundidad = 8;
         for (var i = 0; i < maxProfundidad; i++)
         {
-            var rel = _relaciones.FirstOrDefault(r =>
+            var rel = _catalogo.Relaciones.FirstOrDefault(r =>
                 Normalizar(GrafoRelaciones.EntidadDe(r.Origen.Value)) == Normalizar(actual) &&
                 r.Tipo == RelacionTipo.CorreSobre);
             if (rel is null) break;
@@ -1204,7 +1161,7 @@ public partial class MainWindow : Window
         if (cadena.Count < 2) return null;
 
         // Mostrar nombres legibles (acrónimo F3 si se resuelve; si no, entidad normalizada).
-        var capas = cadena.Select(c => _normalizados.TryGetValue(Normalizar(c), out var pr)
+        var capas = cadena.Select(c => _catalogo.Normalizados.TryGetValue(Normalizar(c), out var pr)
                 ? $"{pr.Acronimo} — {pr.Nombre}"
                 : c)
             .ToList();
@@ -1216,30 +1173,14 @@ public partial class MainWindow : Window
     }
 
     private string EtiquetaNodo(Vecino v)
-        => _normalizados.TryGetValue(Normalizar(v.Nombre), out var proto)
+        => _catalogo.Normalizados.TryGetValue(Normalizar(v.Nombre), out var proto)
             ? $"{proto.Acronimo}"
             : v.Nombre;
 
     /// <summary>Puertos IANA deduplicados y enlazados al protocolo (D2-2): unión de
     /// (a) servicios cuyo nombre normalizado coincide con el acrónimo y (b) servicios cuyo
     /// vínculo curado IANA→F3 apunta al protocolo (p. ej. HTTP recoge http, www-http, http-alt).</summary>
-    private string PuertosDe(string acronimo)
-    {
-        var vistos = new SortedSet<(int Puerto, string Transporte)>();
-        var acrNorm = ServiciosDedup.Normalizar(acronimo);
-        foreach (var s in _dedup.Servicios)
-        {
-            var coincideExacto = ServiciosDedup.Normalizar(s.Nombre) == acrNorm;
-            var vinculado = VinculoServicios.AcronimoDe(s.Nombre);
-            var coincideVinculo = vinculado is not null &&
-                string.Equals(vinculado, acronimo, StringComparison.OrdinalIgnoreCase);
-            if (coincideExacto || coincideVinculo)
-                foreach (var p in s.Puertos) vistos.Add(p);
-        }
-        return vistos.Count == 0
-            ? "—"
-            : string.Join(", ", vistos.Select(v => $"{v.Puerto}/{v.Transporte}"));
-    }
+    private string PuertosDe(string acronimo) => _catalogo.PuertosDe(acronimo);
 
     private void CompararConReferencia()
     {
@@ -1250,7 +1191,7 @@ public partial class MainWindow : Window
         // Referencia elegida por el usuario (ComboBox "Comparar con:"); TCP por defecto,
         // pero cualquier protocolo del catálogo es válido.
         var referencia = CompareTarget.SelectedItem as Protocol
-            ?? _protocolos.Values.FirstOrDefault(p => p.Acronimo == "TCP");
+            ?? _catalogo.Protocolos.Values.FirstOrDefault(p => p.Acronimo == "TCP");
         if (referencia is null) return;
 
         // La comparación es textual: oculta los diagramas individuales del protocolo.
@@ -1263,10 +1204,10 @@ public partial class MainWindow : Window
         var filas = ProtocoloComparador.Comparar(
             new[] { _seleccionado, referencia },
             (nombre, lim) => _servicios.PorNombre(nombre, lim),
-            _pduPorAcronimo,
-            _cifradoPorAcronimo,
-            _fichas,
-            _relaciones);
+            _catalogo.Pdu,
+            _catalogo.Cifrado,
+            _catalogo.Fichas,
+            _catalogo.Relaciones);
 
         const int anchoCelda = 36;
 
@@ -1403,8 +1344,8 @@ public partial class MainWindow : Window
                      .OrderBy(f => f.ToString(), StringComparer.OrdinalIgnoreCase))
         {
             var acronimo = familia.ToString();
-            var descripcion = _familias.TryGetValue(acronimo, out var d) ? d : "[descripción en F3]";
-            var ejemplos = _protocolos.Values
+            var descripcion = _catalogo.Familias.TryGetValue(acronimo, out var d) ? d : "[descripción en F3]";
+            var ejemplos = _catalogo.Protocolos.Values
                 .Where(p => p.Familia == familia)
                 .OrderBy(p => p.Acronimo, StringComparer.OrdinalIgnoreCase)
                 .Take(5)
@@ -1414,7 +1355,7 @@ public partial class MainWindow : Window
         }
 
         sb.AppendLine();
-        sb.AppendLine($"Fuente: catálogo F3 (campo 'familias') · {_protocolos.Count} protocolos en {_familias.Count} familias.");
+        sb.AppendLine($"Fuente: catálogo F3 (campo 'familias') · {_catalogo.Protocolos.Count} protocolos en {_catalogo.Familias.Count} familias.");
         DetailText.Text = sb.ToString();
 
         if (IsLoaded)
@@ -1454,7 +1395,7 @@ public partial class MainWindow : Window
     }
 
     private static string Normalizar(string s)
-        => string.Concat(s.Where(char.IsLetterOrDigit)).ToLowerInvariant();
+        => CatalogoViewModel.Normalizar(s);
 
     /// <summary>Ítem de lista con ajuste de línea: acrónimo · nombre completo envuelto
     /// (sin límite de líneas ni trimming: el texto se ajusta, nunca se recorta).</summary>
@@ -1486,7 +1427,7 @@ public partial class MainWindow : Window
     /// URN contra el catálogo F3 (acrónimo o nombre) y muestra "ACR · Nombre (tipo)".</summary>
     private string EtiquetaVecino(Vecino v)
     {
-        var nombre = _normalizados.TryGetValue(Normalizar(v.Nombre), out var proto)
+        var nombre = _catalogo.Normalizados.TryGetValue(Normalizar(v.Nombre), out var proto)
             ? $"{proto.Acronimo} · {proto.Nombre}"
             : v.Nombre;
         return $"{nombre} ({TipoRelacion(v.Tipo)})";
