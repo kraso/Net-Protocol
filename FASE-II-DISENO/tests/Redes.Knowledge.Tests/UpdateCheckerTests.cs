@@ -44,6 +44,29 @@ public class UpdateCheckerTests
     private const string ReleaseValida =
         """{"tag_name":"v1.0.15","html_url":"https://github.com/kraso/Net-Protocol/releases/tag/v1.0.15"}""";
 
+    private const string ReleaseConAssets =
+        """{"tag_name":"v1.0.15","html_url":"https://github.com/kraso/Net-Protocol/releases/tag/v1.0.15","assets":[{"name":"NetProtocol-1.0.15-win-x64.exe","browser_download_url":"https://dl/win.exe"},{"name":"NetProtocol-1.0.15-linux-x86_64.AppImage","browser_download_url":"https://dl/linux.AppImage"},{"name":"NetProtocol-1.0.15-linux-aarch64.AppImage","browser_download_url":"https://dl/linux-arm.AppImage"},{"name":"NetProtocol-1.0.15-macos-x64.dmg","browser_download_url":"https://dl/mac-x64.dmg"},{"name":"NetProtocol-1.0.15-macos-arm64.dmg","browser_download_url":"https://dl/mac-arm.dmg"}]}""";
+
+    [Fact]
+    public async Task VersionDisponibleConAssets_EligeElDelSistemaEnEjecucion()
+    {
+        var rid = System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier;
+        var nombres = new[]
+        {
+            "NetProtocol-1.0.15-win-x64.exe",
+            "NetProtocol-1.0.15-linux-x86_64.AppImage",
+            "NetProtocol-1.0.15-linux-aarch64.AppImage",
+            "NetProtocol-1.0.15-macos-x64.dmg",
+            "NetProtocol-1.0.15-macos-arm64.dmg"
+        };
+
+        var r = await Con(HttpStatusCode.OK, ReleaseConAssets).CheckAsync(new Version(1, 0, 14));
+
+        Assert.Equal(AssetsActualizacion.Seleccionar(rid, nombres), r.NombreAsset);
+        if (r.NombreAsset is not null)
+            Assert.StartsWith("https://dl/", r.UrlAsset);
+    }
+
     [Fact]
     public async Task VersionPublicadaMayor_DevuelveDisponibleConUrl()
     {

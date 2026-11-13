@@ -67,9 +67,22 @@ public sealed class GitHubUpdateChecker : IUpdateChecker
                 return ResultadoActualizacion.NoComprobado($"tag no interpretable: {release.TagName}");
 
             var texto = publicada.ToString(3);
-            return publicada > versionActual
-                ? ResultadoActualizacion.Disponible(texto, release.HtmlUrl)
-                : ResultadoActualizacion.AlDia(texto);
+            if (publicada <= versionActual)
+                return ResultadoActualizacion.AlDia(texto);
+
+            // Asset del sistema en ejecución: sin él la app no puede verificar ni descargar.
+            var nombres = release.Assets?
+                .Select(a => a.Name)
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Cast<string>()
+                .ToList();
+            var nombreAsset = AssetsActualizacion.Seleccionar(
+                System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier, nombres);
+            var urlAsset = nombreAsset is null
+                ? null
+                : release.Assets!.First(a => a.Name == nombreAsset).Url;
+
+            return ResultadoActualizacion.Disponible(texto, release.HtmlUrl, nombreAsset, urlAsset);
         }
         catch (OperationCanceledException)
         {
@@ -104,5 +117,10 @@ public sealed class GitHubUpdateChecker : IUpdateChecker
 
     private sealed record ReleaseGitHub(
         [property: JsonPropertyName("tag_name")] string? TagName,
-        [property: JsonPropertyName("html_url")] string? HtmlUrl);
+        [property: JsonPropertyName("html_url")] string? HtmlUrl,
+        [property: JsonPropertyName("assets")] AssetGitHub[]? Assets);
+
+    private sealed record AssetGitHub(
+        [property: JsonPropertyName("name")] string? Name,
+        [property: JsonPropertyName("browser_download_url")] string? Url);
 }

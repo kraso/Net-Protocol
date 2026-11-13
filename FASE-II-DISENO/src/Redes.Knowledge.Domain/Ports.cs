@@ -34,7 +34,9 @@ public sealed record ResultadoActualizacion(
     EstadoActualizacion Estado,
     string? VersionDisponible = null,
     string? UrlDescarga = null,
-    string? Detalle = null)
+    string? Detalle = null,
+    string? NombreAsset = null,
+    string? UrlAsset = null)
 {
     public bool HayActualizacion => Estado == EstadoActualizacion.Disponible;
 
@@ -44,8 +46,12 @@ public sealed record ResultadoActualizacion(
     public static ResultadoActualizacion AlDia(string version) =>
         new(EstadoActualizacion.AlDia, VersionDisponible: version);
 
-    public static ResultadoActualizacion Disponible(string version, string? url) =>
-        new(EstadoActualizacion.Disponible, version, url);
+    public static ResultadoActualizacion Disponible(
+        string version,
+        string? url,
+        string? nombreAsset = null,
+        string? urlAsset = null) =>
+        new(EstadoActualizacion.Disponible, version, url, NombreAsset: nombreAsset, UrlAsset: urlAsset);
 }
 
 /// <summary>
