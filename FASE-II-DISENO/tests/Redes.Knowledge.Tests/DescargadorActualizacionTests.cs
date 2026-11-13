@@ -65,6 +65,16 @@ public class DescargadorActualizacionTests
     }
 
     [Fact]
+    public void ElClienteDeDescargaTieneMargenSuficienteYUserAgent()
+    {
+        using var http = DescargadorActualizacion.CrearCliente();
+
+        // Un instalador self-contained no cabe en los 5 s del cliente de metadatos.
+        Assert.True(http.Timeout > TimeSpan.FromMinutes(1));
+        Assert.Contains("NetProtocol", http.DefaultRequestHeaders.UserAgent.ToString());
+    }
+
+    [Fact]
     public async Task DescargarEscribeElArchivoYDevuelveLaRuta()
     {
         var datos = new byte[] { 1, 2, 3, 4, 5 };

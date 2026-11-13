@@ -237,12 +237,22 @@ public partial class MainWindow : Window
         DownloadButton.IsEnabled = false;
         try
         {
-            using var http = GitHubUpdateChecker.CrearCliente();
+            // Cliente propio: el de metadatos corta a los 5 s y el instalador pesa ~100 MB.
+            using var http = DescargadorActualizacion.CrearCliente();
+            UpdateText.Text = Textos.F("estado.descarga.progreso", actualizacion.NombreAsset ?? "");
+            UpdateText.IsVisible = true;
+
             var resultado = await ActualizadorInstalador
                 .DescargarYVerificarAsync(http, actualizacion)
                 .ConfigureAwait(true);
 
             UpdateText.Text = MensajeDescarga(resultado);
+            UpdateText.IsVisible = true;
+        }
+        catch (Exception ex)
+        {
+            // Ningún fallo de una actualización puede tumbar la ventana.
+            UpdateText.Text = Textos.F("estado.descarga.error", ex.Message);
             UpdateText.IsVisible = true;
         }
         finally

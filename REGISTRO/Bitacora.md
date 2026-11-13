@@ -1282,3 +1282,16 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Qué garantiza el hash:** integridad del transporte, no autoría. Sin firma de código, quien controle la release controla también el hash. Queda escrito en `SECURITY.md` y en el propio aviso.
 
 **Verificación:** 142/142 en `Redes.Knowledge.Tests` (siete nuevas: hash correcto, hash manipulado que borra el archivo, sumas sin el asset, release sin asset, red caída, parseo del `SHA256SUMS` con marcador binario y URL hermana) y 56/56 en `App.Tests` (el botón empieza oculto y se traduce). Cobertura 95,04 % líneas / 83,81 % ramas.
+
+### Correcciones de esa misma revisión
+
+Cuatro hallazgos, uno de ellos un defecto real que habría dejado la descarga inservible:
+
+| Hallazgo | Corrección |
+|---|---|
+| `R4-timeout-de-metadatos-para-el-instalador` (**WARNING**) | La descarga reutilizaba `GitHubUpdateChecker.CrearCliente()`, con 5 s de timeout. Un instalador de ~100 MB se habría cancelado siempre. Ahora usa `DescargadorActualizacion.CrearCliente()`, con 10 min y el mismo User-Agent; una prueba fija que el margen sea amplio. |
+| `R3-sin-captura-en-el-manejador` | El manejador async solo tenía `try/finally`: una excepción inesperada se habría llevado el proceso. Se añade `catch` que informa en el aviso. |
+| `R1-mensaje-verificado` | El éxito decía «descargado y verificado», que se lee como «es seguro». Ahora dice que el SHA256 coincide con el publicado, que es lo que realmente se comprobó. |
+| `R2-descarga-sin-progreso` | Antes de descargar, el aviso muestra «Descargando <fichero>…», para que un minuto de descarga no parezca un cuelgue. |
+
+**Verificación:** 143/143 y 56/56.

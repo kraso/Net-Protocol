@@ -11,6 +11,18 @@ public static class DescargadorActualizacion
         Path.Combine(Path.GetTempPath(), "NetProtocol", "actualizaciones");
 
     /// <summary>
+    /// Cliente para descargar instaladores. El de los metadatos usa 5 s, que es correcto para
+    /// un JSON y demasiado poco para un binario de ~100 MB; aquí el margen es amplio y el
+    /// User-Agent sigue siendo obligatorio para GitHub.
+    /// </summary>
+    public static HttpClient CrearCliente(TimeSpan? timeout = null)
+    {
+        var http = new HttpClient { Timeout = timeout ?? TimeSpan.FromMinutes(10) };
+        http.DefaultRequestHeaders.UserAgent.ParseAdd("NetProtocol-UpdateCheck");
+        return http;
+    }
+
+    /// <summary>
     /// Descarga <paramref name="url"/> en la carpeta temporal conservando el nombre del
     /// asset y devuelve la ruta resultante. Lanza si la respuesta no es 2xx o si el nombre
     /// del fichero no es utilizable; el llamador decide cómo informarlo.

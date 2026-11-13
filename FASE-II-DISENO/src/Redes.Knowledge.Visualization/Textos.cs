@@ -173,8 +173,11 @@ public static class Textos
             ["estado.actualizacion"] = ("Versión {0} disponible · {1}", "Version {0} available · {1}"),
             ["boton.descargar"] = ("Descargar instalador", "Download installer"),
             ["estado.descarga.ok"] = (
-                "Instalador descargado y verificado en {0} · ábrelo tú cuando quieras",
-                "Installer downloaded and verified at {0} · open it yourself when ready"),
+                "Instalador descargado · su SHA256 coincide con el publicado en {0}",
+                "Installer downloaded · its SHA256 matches the published one at {0}"),
+            ["estado.descarga.progreso"] = (
+                "Descargando {0}…",
+                "Downloading {0}…"),
             ["estado.descarga.hash"] = (
                 "El instalador no coincide con el SHA256 publicado: se descartó",
                 "The installer does not match the published SHA256: discarded"),
