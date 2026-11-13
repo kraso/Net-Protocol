@@ -27,6 +27,11 @@ opencode.jsonc
 .gentle-ai-default-agent.json
 _prompt_extraido.txt
 
+# Secretos y material criptografico (claves privadas GPG/SSH, nunca al repo)
+*.asc
+*.gpg
+*.key
+
 # Logs y temporales
 *.log
 Thumbs.db
