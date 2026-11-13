@@ -54,6 +54,9 @@
     <None Include="..\..\..\FASE-06-SEGURIDAD\F6-Seguridad-Protocolos.json"
           Link="datos\FASE-06-SEGURIDAD\F6-Seguridad-Protocolos.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\FASE-08-VALIDACION\F8-Fuentes-Fichas.json"
+          Link="datos\FASE-08-VALIDACION\F8-Fuentes-Fichas.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

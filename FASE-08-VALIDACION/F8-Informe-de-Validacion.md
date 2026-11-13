@@ -69,7 +69,7 @@ Vista resumida (detalle en [`F8-Lagunas.json`](F8-Lagunas.json)):
 | L-002 | Fichas de dispositivo: ≥3 en clases no prioritarias | Cobertura | Baja | Mantenimiento continuo |
 | L-003 | Confirmación formal de IDs ATT&CK contra R5 | Verificación | Baja | Pendiente (pipeline) |
 | L-004 | Corpus de capturas PCAP para validar layouts | Validación | Media | Pendiente (fase de producto D6) |
-| L-005 | Asignación de `Source` (nivel 1) a las fichas | Pipeline | Media | Pendiente (pipeline/fase producto) |
+| L-005 | Asignación de `Source` (nivel 1) a las fichas | Pipeline | Media | ✅ **Cerrada (13-11-2026)**: 124 fuentes derivadas del campo 18; 107/113 fichas con nivel 1 (94,69 %, objetivo ≥90 %) |
 
 ## 6. Métricas de cobertura (tras F8)
 
@@ -80,7 +80,7 @@ Vista resumida (detalle en [`F8-Lagunas.json`](F8-Lagunas.json)):
 | Tipos de red (F2) | 16/16 |
 | Inventario de protocolos (F3 v2) | **113** (13 familias) |
 | Dominios especiales (F7) | 10/10 con cobertura semilla o superior |
-| % fichas con fuente primaria | 0 % asignadas por pipeline (L-005; las fichas referencian RFC/estándar con fecha de consulta) |
+| % fichas con fuente primaria | **94,69 %** con `Source` nivel 1 asignada por pipeline (L-005: 107/113; 124 fuentes, 117 nivel 1) |
 | % con wire format documentado | 6 protocolos catalogados en `F5-Campos-PDU.json` |
 | Catálogos machine-readable | 9/9 JSON válidos en ejecución; 11/11 en el repositorio tras F8 |
 | Enlaces internos del repositorio | 0 rotos |

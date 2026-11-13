@@ -1,0 +1,2098 @@
+{
+  "version": "1.0",
+  "fecha_consulta": "2026-08-26",
+  "documento_rector": "F0-Politica-de-Fuentes.md",
+  "fase": "F8 — Validación (laguna L-005: asignación de Source nivel 1)",
+  "nota": "Derivado del campo 18 de F4-Fichas-Prioritarias.json por derivar-fuentes.py. Regenerable; no editar a mano.",
+  "objetivo_cobertura": 90.0,
+  "fuentes": [
+    {
+      "id": "FU-001",
+      "titulo": "RFC 9293",
+      "url": "https://www.rfc-editor.org/rfc/rfc9293.html",
+      "version": "RFC 9293",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-002",
+      "titulo": "IANA — IANA R1 (puertos)",
+      "url": "https://www.iana.org/",
+      "version": "IANA R1 (puertos)",
+      "organismo": "IANA",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-003",
+      "titulo": "RFC 768",
+      "url": "https://www.rfc-editor.org/rfc/rfc768.html",
+      "version": "RFC 768",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-004",
+      "titulo": "RFC 791, 4632, 1918, 1191",
+      "url": "https://www.rfc-editor.org/rfc/rfc791.html",
+      "version": "RFC 791, 4632, 1918, 1191",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-005",
+      "titulo": "IANA — IANA R1",
+      "url": "https://www.iana.org/",
+      "version": "IANA R1",
+      "organismo": "IANA",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-006",
+      "titulo": "RFC 8200, 4862, 8201",
+      "url": "https://www.rfc-editor.org/rfc/rfc8200.html",
+      "version": "RFC 8200, 4862, 8201",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-007",
+      "titulo": "RFC 826",
+      "url": "https://www.rfc-editor.org/rfc/rfc826.html",
+      "version": "RFC 826",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-008",
+      "titulo": "IEEE — IEEE 802 EtherTypes",
+      "url": "https://standards.ieee.org/",
+      "version": "IEEE 802 EtherTypes",
+      "organismo": "IEEE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-009",
+      "titulo": "RFC 1035",
+      "url": "https://www.rfc-editor.org/rfc/rfc1035.html",
+      "version": "RFC 1035",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-010",
+      "titulo": "IANA — IANA R1 (puerto 53)",
+      "url": "https://www.iana.org/",
+      "version": "IANA R1 (puerto 53)",
+      "organismo": "IANA",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-011",
+      "titulo": "RFC 2131, 8415",
+      "url": "https://www.rfc-editor.org/rfc/rfc2131.html",
+      "version": "RFC 2131, 8415",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-012",
+      "titulo": "IANA — IANA R1 (puertos 67/68)",
+      "url": "https://www.iana.org/",
+      "version": "IANA R1 (puertos 67/68)",
+      "organismo": "IANA",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-013",
+      "titulo": "RFC 8446, 5246",
+      "url": "https://www.rfc-editor.org/rfc/rfc8446.html",
+      "version": "RFC 8446, 5246",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-014",
+      "titulo": "RFC 9114, 9000, 9204",
+      "url": "https://www.rfc-editor.org/rfc/rfc9114.html",
+      "version": "RFC 9114, 9000, 9204",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-015",
+      "titulo": "Referencia secundaria — R2",
+      "url": "https://example.invalid/",
+      "version": "R2",
+      "organismo": "Referencia secundaria",
+      "nivel_autoridad": 3,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-016",
+      "titulo": "RFC 4271",
+      "url": "https://www.rfc-editor.org/rfc/rfc4271.html",
+      "version": "RFC 4271",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-017",
+      "titulo": "IANA — IANA R1 (puerto 179)",
+      "url": "https://www.iana.org/",
+      "version": "IANA R1 (puerto 179)",
+      "organismo": "IANA",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-018",
+      "titulo": "RFC 2328, 5340, 5709",
+      "url": "https://www.rfc-editor.org/rfc/rfc2328.html",
+      "version": "RFC 2328, 5340, 5709",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-019",
+      "titulo": "IEEE — IEEE 802.3",
+      "url": "https://standards.ieee.org/",
+      "version": "IEEE 802.3",
+      "organismo": "IEEE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-020",
+      "titulo": "IANA — EtherTypes según IEEE/IANA",
+      "url": "https://www.iana.org/",
+      "version": "EtherTypes según IEEE/IANA",
+      "organismo": "IANA",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-021",
+      "titulo": "RFC 4251, 4254",
+      "url": "https://www.rfc-editor.org/rfc/rfc4251.html",
+      "version": "RFC 4251, 4254",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-022",
+      "titulo": "IANA — IANA R1 (puerto 22)",
+      "url": "https://www.iana.org/",
+      "version": "IANA R1 (puerto 22)",
+      "organismo": "IANA",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-023",
+      "titulo": "RFC 5321, 5322",
+      "url": "https://www.rfc-editor.org/rfc/rfc5321.html",
+      "version": "RFC 5321, 5322",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-024",
+      "titulo": "RFC 959, 2428",
+      "url": "https://www.rfc-editor.org/rfc/rfc959.html",
+      "version": "RFC 959, 2428",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-025",
+      "titulo": "IANA — IANA R1 (puertos 20/21)",
+      "url": "https://www.iana.org/",
+      "version": "IANA R1 (puertos 20/21)",
+      "organismo": "IANA",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-026",
+      "titulo": "RFC 3411, 3418, 1157",
+      "url": "https://www.rfc-editor.org/rfc/rfc3411.html",
+      "version": "RFC 3411, 3418, 1157",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-027",
+      "titulo": "RFC 5905",
+      "url": "https://www.rfc-editor.org/rfc/rfc5905.html",
+      "version": "RFC 5905",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-028",
+      "titulo": "IANA — IANA R1 (puerto 123)",
+      "url": "https://www.iana.org/",
+      "version": "IANA R1 (puerto 123)",
+      "organismo": "IANA",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-029",
+      "titulo": "RFC 9112, 9110",
+      "url": "https://www.rfc-editor.org/rfc/rfc9112.html",
+      "version": "RFC 9112, 9110",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-030",
+      "titulo": "RFC 9113",
+      "url": "https://www.rfc-editor.org/rfc/rfc9113.html",
+      "version": "RFC 9113",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-031",
+      "titulo": "RFC 2453, 1058",
+      "url": "https://www.rfc-editor.org/rfc/rfc2453.html",
+      "version": "RFC 2453, 1058",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-032",
+      "titulo": "RFC 7142",
+      "url": "https://www.rfc-editor.org/rfc/rfc7142.html",
+      "version": "RFC 7142",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-033",
+      "titulo": "RFC 9260",
+      "url": "https://www.rfc-editor.org/rfc/rfc9260.html",
+      "version": "RFC 9260",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-034",
+      "titulo": "RFC 9147, 6347",
+      "url": "https://www.rfc-editor.org/rfc/rfc9147.html",
+      "version": "RFC 9147, 6347",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-035",
+      "titulo": "RFC 4301, 4303",
+      "url": "https://www.rfc-editor.org/rfc/rfc4301.html",
+      "version": "RFC 4301, 4303",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-036",
+      "titulo": "RFC 7296",
+      "url": "https://www.rfc-editor.org/rfc/rfc7296.html",
+      "version": "RFC 7296",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-037",
+      "titulo": "RFC 4120",
+      "url": "https://www.rfc-editor.org/rfc/rfc4120.html",
+      "version": "RFC 4120",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-038",
+      "titulo": "RFC 2865, 2866",
+      "url": "https://www.rfc-editor.org/rfc/rfc2865.html",
+      "version": "RFC 2865, 2866",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-039",
+      "titulo": "OASIS — OASIS MQTT 5.0",
+      "url": "https://www.oasis-open.org/",
+      "version": "OASIS MQTT 5.0",
+      "organismo": "OASIS",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-040",
+      "titulo": "RFC 7252",
+      "url": "https://www.rfc-editor.org/rfc/rfc7252.html",
+      "version": "RFC 7252",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-041",
+      "titulo": "RFC 9000, 9001, 9002",
+      "url": "https://www.rfc-editor.org/rfc/rfc9000.html",
+      "version": "RFC 9000, 9001, 9002",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-042",
+      "titulo": "RFC 3550, 3551",
+      "url": "https://www.rfc-editor.org/rfc/rfc3550.html",
+      "version": "RFC 3550, 3551",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-043",
+      "titulo": "RFC 3550",
+      "url": "https://www.rfc-editor.org/rfc/rfc3550.html",
+      "version": "RFC 3550",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-044",
+      "titulo": "RFC 3261",
+      "url": "https://www.rfc-editor.org/rfc/rfc3261.html",
+      "version": "RFC 3261",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-045",
+      "titulo": "RFC 6120, 6121",
+      "url": "https://www.rfc-editor.org/rfc/rfc6120.html",
+      "version": "RFC 6120, 6121",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-046",
+      "titulo": "RFC 7530, 7862",
+      "url": "https://www.rfc-editor.org/rfc/rfc7530.html",
+      "version": "RFC 7530, 7862",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-047",
+      "titulo": "Microsoft — MS-SMB2 (Open Specifications)",
+      "url": "https://learn.microsoft.com/",
+      "version": "MS-SMB2 (Open Specifications)",
+      "organismo": "Microsoft",
+      "nivel_autoridad": 2,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-048",
+      "titulo": "RFC 7143",
+      "url": "https://www.rfc-editor.org/rfc/rfc7143.html",
+      "version": "RFC 7143",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-049",
+      "titulo": "RFC 3031, 3032",
+      "url": "https://www.rfc-editor.org/rfc/rfc3031.html",
+      "version": "RFC 3031, 3032",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-050",
+      "titulo": "RFC 2784, 7676",
+      "url": "https://www.rfc-editor.org/rfc/rfc2784.html",
+      "version": "RFC 2784, 7676",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-051",
+      "titulo": "RFC 7348",
+      "url": "https://www.rfc-editor.org/rfc/rfc7348.html",
+      "version": "RFC 7348",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-052",
+      "titulo": "RFC 8883",
+      "url": "https://www.rfc-editor.org/rfc/rfc8883.html",
+      "version": "RFC 8883",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-053",
+      "titulo": "3GPP — 3GPP TS 29.281",
+      "url": "https://www.3gpp.org/",
+      "version": "3GPP TS 29.281",
+      "organismo": "3GPP",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-054",
+      "titulo": "Modbus — Modbus TCP especificación",
+      "url": "https://modbus.org/",
+      "version": "Modbus TCP especificación",
+      "organismo": "Modbus",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-055",
+      "titulo": "IANA — IANA R1 (502)",
+      "url": "https://www.iana.org/",
+      "version": "IANA R1 (502)",
+      "organismo": "IANA",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-056",
+      "titulo": "IEEE — IEEE 1815",
+      "url": "https://standards.ieee.org/",
+      "version": "IEEE 1815",
+      "organismo": "IEEE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-057",
+      "titulo": "IEC — IEC 62541",
+      "url": "https://www.iec.ch/",
+      "version": "IEC 62541",
+      "organismo": "IEC",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-058",
+      "titulo": "IEEE — IEEE 802.11",
+      "url": "https://standards.ieee.org/",
+      "version": "IEEE 802.11",
+      "organismo": "IEEE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-059",
+      "titulo": "Wi-Fi Alliance",
+      "url": "https://www.wi-fi.org/",
+      "version": "Wi-Fi Alliance",
+      "organismo": "Wi-Fi Alliance",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-060",
+      "titulo": "RFC 1661",
+      "url": "https://www.rfc-editor.org/rfc/rfc1661.html",
+      "version": "RFC 1661",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-061",
+      "titulo": "IEEE — IEEE 802.1Q",
+      "url": "https://standards.ieee.org/",
+      "version": "IEEE 802.1Q",
+      "organismo": "IEEE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-062",
+      "titulo": "IEEE — IEEE 802.1D",
+      "url": "https://standards.ieee.org/",
+      "version": "IEEE 802.1D",
+      "organismo": "IEEE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-063",
+      "titulo": "IEEE — IEEE 802.1w",
+      "url": "https://standards.ieee.org/",
+      "version": "IEEE 802.1w",
+      "organismo": "IEEE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-064",
+      "titulo": "IEEE — IEEE 802.1s",
+      "url": "https://standards.ieee.org/",
+      "version": "IEEE 802.1s",
+      "organismo": "IEEE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-065",
+      "titulo": "IEEE — IEEE 802.1AX",
+      "url": "https://standards.ieee.org/",
+      "version": "IEEE 802.1AX",
+      "organismo": "IEEE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-066",
+      "titulo": "RFC 4861",
+      "url": "https://www.rfc-editor.org/rfc/rfc4861.html",
+      "version": "RFC 4861",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-067",
+      "titulo": "RFC 6762",
+      "url": "https://www.rfc-editor.org/rfc/rfc6762.html",
+      "version": "RFC 6762",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-068",
+      "titulo": "RFC 3376",
+      "url": "https://www.rfc-editor.org/rfc/rfc3376.html",
+      "version": "RFC 3376",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-069",
+      "titulo": "RFC 7761",
+      "url": "https://www.rfc-editor.org/rfc/rfc7761.html",
+      "version": "RFC 7761",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-070",
+      "titulo": "RFC 5798",
+      "url": "https://www.rfc-editor.org/rfc/rfc5798.html",
+      "version": "RFC 5798",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-071",
+      "titulo": "RFC 5340",
+      "url": "https://www.rfc-editor.org/rfc/rfc5340.html",
+      "version": "RFC 5340",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-072",
+      "titulo": "RFC 4340",
+      "url": "https://www.rfc-editor.org/rfc/rfc4340.html",
+      "version": "RFC 4340",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-073",
+      "titulo": "RFC 854",
+      "url": "https://www.rfc-editor.org/rfc/rfc854.html",
+      "version": "RFC 854",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-074",
+      "titulo": "RFC 6241, 6242",
+      "url": "https://www.rfc-editor.org/rfc/rfc6241.html",
+      "version": "RFC 6241, 6242",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-075",
+      "titulo": "RFC 5424",
+      "url": "https://www.rfc-editor.org/rfc/rfc5424.html",
+      "version": "RFC 5424",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-076",
+      "titulo": "RFC 8907",
+      "url": "https://www.rfc-editor.org/rfc/rfc8907.html",
+      "version": "RFC 8907",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-077",
+      "titulo": "IEEE — IEEE 1588-2019",
+      "url": "https://standards.ieee.org/",
+      "version": "IEEE 1588-2019",
+      "organismo": "IEEE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-078",
+      "titulo": "INCITS/T11 — T11/INCITS",
+      "url": "https://www.incits.org/",
+      "version": "T11/INCITS",
+      "organismo": "INCITS/T11",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-079",
+      "titulo": "RFC 3748, 9190",
+      "url": "https://www.rfc-editor.org/rfc/rfc3748.html",
+      "version": "RFC 3748, 9190",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-080",
+      "titulo": "RFC 4033, 4035",
+      "url": "https://www.rfc-editor.org/rfc/rfc4033.html",
+      "version": "RFC 4033, 4035",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-081",
+      "titulo": "IEC — IEC 61158",
+      "url": "https://www.iec.ch/",
+      "version": "IEC 61158",
+      "organismo": "IEC",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-082",
+      "titulo": "ETSI — ETSI EN 302 307",
+      "url": "https://www.etsi.org/",
+      "version": "ETSI EN 302 307",
+      "organismo": "ETSI",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-083",
+      "titulo": "RFC 3931, 2661",
+      "url": "https://www.rfc-editor.org/rfc/rfc3931.html",
+      "version": "RFC 3931, 2661",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-084",
+      "titulo": "RFC 4795",
+      "url": "https://www.rfc-editor.org/rfc/rfc4795.html",
+      "version": "RFC 4795",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-085",
+      "titulo": "RFC 1001, 1002",
+      "url": "https://www.rfc-editor.org/rfc/rfc1001.html",
+      "version": "RFC 1001, 1002",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-086",
+      "titulo": "RFC 2453",
+      "url": "https://www.rfc-editor.org/rfc/rfc2453.html",
+      "version": "RFC 2453",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-087",
+      "titulo": "RFC 8402, 8660",
+      "url": "https://www.rfc-editor.org/rfc/rfc8402.html",
+      "version": "RFC 8402, 8660",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-088",
+      "titulo": "RFC 5944",
+      "url": "https://www.rfc-editor.org/rfc/rfc5944.html",
+      "version": "RFC 5944",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-089",
+      "titulo": "RFC 6275",
+      "url": "https://www.rfc-editor.org/rfc/rfc6275.html",
+      "version": "RFC 6275",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-090",
+      "titulo": "RFC 9300",
+      "url": "https://www.rfc-editor.org/rfc/rfc9300.html",
+      "version": "RFC 9300",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-091",
+      "titulo": "RFC 8040",
+      "url": "https://www.rfc-editor.org/rfc/rfc8040.html",
+      "version": "RFC 8040",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-092",
+      "titulo": "CNCF — gRPC spec / gNMI (CNCF)",
+      "url": "https://www.cncf.io/",
+      "version": "gRPC spec / gNMI (CNCF)",
+      "organismo": "CNCF",
+      "nivel_autoridad": 2,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-093",
+      "titulo": "RFC 7011, 7012",
+      "url": "https://www.rfc-editor.org/rfc/rfc7011.html",
+      "version": "RFC 7011, 7012",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-094",
+      "titulo": "Cisco — Cisco NetFlow (documentación)",
+      "url": "https://www.cisco.com/",
+      "version": "Cisco NetFlow (documentación)",
+      "organismo": "Cisco",
+      "nivel_autoridad": 2,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-095",
+      "titulo": "RFC 792",
+      "url": "https://www.rfc-editor.org/rfc/rfc792.html",
+      "version": "RFC 792",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-096",
+      "titulo": "RFC 4443",
+      "url": "https://www.rfc-editor.org/rfc/rfc4443.html",
+      "version": "RFC 4443",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-097",
+      "titulo": "INCITS/T11 — FC-BB-5 (T11)",
+      "url": "https://www.incits.org/",
+      "version": "FC-BB-5 (T11)",
+      "organismo": "INCITS/T11",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-098",
+      "titulo": "NVM Express — NVMe-oF spec",
+      "url": "https://nvmexpress.org/",
+      "version": "NVMe-oF spec",
+      "organismo": "NVM Express",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-099",
+      "titulo": "IEEE — IEEE 802.1X",
+      "url": "https://standards.ieee.org/",
+      "version": "IEEE 802.1X",
+      "organismo": "IEEE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-100",
+      "titulo": "LoRa Alliance — LoRaWAN spec",
+      "url": "https://lora-alliance.org/",
+      "version": "LoRaWAN spec",
+      "organismo": "LoRa Alliance",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-101",
+      "titulo": "IEEE — IEEE 802.15.4",
+      "url": "https://standards.ieee.org/",
+      "version": "IEEE 802.15.4",
+      "organismo": "IEEE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-102",
+      "titulo": "ASHRAE — ASHRAE 135",
+      "url": "https://www.ashrae.org/",
+      "version": "ASHRAE 135",
+      "organismo": "ASHRAE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-103",
+      "titulo": "3GPP — 3GPP TS 45.x/44.x",
+      "url": "https://www.3gpp.org/",
+      "version": "3GPP TS 45.x/44.x",
+      "organismo": "3GPP",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-104",
+      "titulo": "3GPP — 3GPP TS 25.x",
+      "url": "https://www.3gpp.org/",
+      "version": "3GPP TS 25.x",
+      "organismo": "3GPP",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-105",
+      "titulo": "3GPP — 3GPP TS 36.x",
+      "url": "https://www.3gpp.org/",
+      "version": "3GPP TS 36.x",
+      "organismo": "3GPP",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-106",
+      "titulo": "3GPP — 3GPP TS 38.x",
+      "url": "https://www.3gpp.org/",
+      "version": "3GPP TS 38.x",
+      "organismo": "3GPP",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-107",
+      "titulo": "ETSI — ETSI EN 300 392",
+      "url": "https://www.etsi.org/",
+      "version": "ETSI EN 300 392",
+      "organismo": "ETSI",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-108",
+      "titulo": "ETSI — ETSI TS 102 361",
+      "url": "https://www.etsi.org/",
+      "version": "ETSI TS 102 361",
+      "organismo": "ETSI",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-109",
+      "titulo": "DoD — MIL-STD-6016",
+      "url": "https://quicksearch.dla.mil/",
+      "version": "MIL-STD-6016",
+      "organismo": "DoD",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-110",
+      "titulo": "DoD — MIL-STD-6011",
+      "url": "https://quicksearch.dla.mil/",
+      "version": "MIL-STD-6011",
+      "organismo": "DoD",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-111",
+      "titulo": "IEEE — ETSI EN 303 613 / IEEE 802.11p",
+      "url": "https://standards.ieee.org/",
+      "version": "ETSI EN 303 613 / IEEE 802.11p",
+      "organismo": "IEEE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-112",
+      "titulo": "3GPP — 3GPP TS 23.285",
+      "url": "https://www.3gpp.org/",
+      "version": "3GPP TS 23.285",
+      "organismo": "3GPP",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-113",
+      "titulo": "ITU-T — ITU-T X.25",
+      "url": "https://www.itu.int/",
+      "version": "ITU-T X.25",
+      "organismo": "ITU-T",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-114",
+      "titulo": "ITU-T — ITU-T Q.922",
+      "url": "https://www.itu.int/",
+      "version": "ITU-T Q.922",
+      "organismo": "ITU-T",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-115",
+      "titulo": "ITU-T — ITU-T I.361",
+      "url": "https://www.itu.int/",
+      "version": "ITU-T I.361",
+      "organismo": "ITU-T",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-116",
+      "titulo": "IEEE — IEEE 802.5",
+      "url": "https://standards.ieee.org/",
+      "version": "IEEE 802.5",
+      "organismo": "IEEE",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-117",
+      "titulo": "ANSI — ANSI X3.166",
+      "url": "https://www.ansi.org/",
+      "version": "ANSI X3.166",
+      "organismo": "ANSI",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-118",
+      "titulo": "Microsoft — Microsoft NetBEUI (doc legacy)",
+      "url": "https://learn.microsoft.com/",
+      "version": "Microsoft NetBEUI (doc legacy)",
+      "organismo": "Microsoft",
+      "nivel_autoridad": 2,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-119",
+      "titulo": "Novell — Novell IPX/SPX",
+      "url": "https://www.novell.com/",
+      "version": "Novell IPX/SPX",
+      "organismo": "Novell",
+      "nivel_autoridad": 2,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-120",
+      "titulo": "Apple — AppleTalk (apple spec legacy)",
+      "url": "https://developer.apple.com/",
+      "version": "AppleTalk (apple spec legacy)",
+      "organismo": "Apple",
+      "nivel_autoridad": 2,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-121",
+      "titulo": "ANSI — ANSI/ATA 878.1",
+      "url": "https://www.ansi.org/",
+      "version": "ANSI/ATA 878.1",
+      "organismo": "ANSI",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-122",
+      "titulo": "ITU-T — ITU-T G.707",
+      "url": "https://www.itu.int/",
+      "version": "ITU-T G.707",
+      "organismo": "ITU-T",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-123",
+      "titulo": "ITU-T — ITU-T Q.931",
+      "url": "https://www.itu.int/",
+      "version": "ITU-T Q.931",
+      "organismo": "ITU-T",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    },
+    {
+      "id": "FU-124",
+      "titulo": "RFC 7868",
+      "url": "https://www.rfc-editor.org/rfc/rfc7868.html",
+      "version": "RFC 7868",
+      "organismo": "IETF / RFC Editor",
+      "nivel_autoridad": 1,
+      "fecha_consulta": "2026-08-26"
+    }
+  ],
+  "asignaciones": [
+    {
+      "ficha": "F-01",
+      "acronimo": "TCP",
+      "fuentes": [
+        "FU-001",
+        "FU-002"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-02",
+      "acronimo": "UDP",
+      "fuentes": [
+        "FU-003",
+        "FU-002"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-03",
+      "acronimo": "IPv4",
+      "fuentes": [
+        "FU-004",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-04",
+      "acronimo": "IPv6",
+      "fuentes": [
+        "FU-006",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-05",
+      "acronimo": "ARP",
+      "fuentes": [
+        "FU-007",
+        "FU-008"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-06",
+      "acronimo": "DNS",
+      "fuentes": [
+        "FU-009",
+        "FU-010"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-07",
+      "acronimo": "DHCP",
+      "fuentes": [
+        "FU-011",
+        "FU-012"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-08",
+      "acronimo": "TLS",
+      "fuentes": [
+        "FU-013",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-09",
+      "acronimo": "HTTP/3",
+      "fuentes": [
+        "FU-014",
+        "FU-015"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-10",
+      "acronimo": "BGP",
+      "fuentes": [
+        "FU-016",
+        "FU-017"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-11",
+      "acronimo": "OSPF",
+      "fuentes": [
+        "FU-018"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-12",
+      "acronimo": "ETH",
+      "fuentes": [
+        "FU-019",
+        "FU-020"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-13",
+      "acronimo": "SSH",
+      "fuentes": [
+        "FU-021",
+        "FU-022"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-14",
+      "acronimo": "SMTP",
+      "fuentes": [
+        "FU-023",
+        "FU-002"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-15",
+      "acronimo": "FTP",
+      "fuentes": [
+        "FU-024",
+        "FU-025"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-16",
+      "acronimo": "SNMP",
+      "fuentes": [
+        "FU-026",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-17",
+      "acronimo": "NTP",
+      "fuentes": [
+        "FU-027",
+        "FU-028"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-18",
+      "acronimo": "HTTP/1.1",
+      "fuentes": [
+        "FU-029",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-19",
+      "acronimo": "HTTP/2",
+      "fuentes": [
+        "FU-030",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-20",
+      "acronimo": "RIP",
+      "fuentes": [
+        "FU-031",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-21",
+      "acronimo": "IS-IS",
+      "fuentes": [
+        "FU-032"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-22",
+      "acronimo": "SCTP",
+      "fuentes": [
+        "FU-033",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-23",
+      "acronimo": "DTLS",
+      "fuentes": [
+        "FU-034"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-24",
+      "acronimo": "IPsec",
+      "fuentes": [
+        "FU-035",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-25",
+      "acronimo": "IKE",
+      "fuentes": [
+        "FU-036",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-26",
+      "acronimo": "Kerberos",
+      "fuentes": [
+        "FU-037",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-27",
+      "acronimo": "RADIUS",
+      "fuentes": [
+        "FU-038",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-28",
+      "acronimo": "MQTT",
+      "fuentes": [
+        "FU-039",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-29",
+      "acronimo": "CoAP",
+      "fuentes": [
+        "FU-040",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-30",
+      "acronimo": "QUIC",
+      "fuentes": [
+        "FU-041",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-31",
+      "acronimo": "RTP",
+      "fuentes": [
+        "FU-042"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-32",
+      "acronimo": "RTCP",
+      "fuentes": [
+        "FU-043"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-33",
+      "acronimo": "SIP",
+      "fuentes": [
+        "FU-044",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-34",
+      "acronimo": "XMPP",
+      "fuentes": [
+        "FU-045",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-35",
+      "acronimo": "NFS",
+      "fuentes": [
+        "FU-046",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-36",
+      "acronimo": "SMB",
+      "fuentes": [
+        "FU-047"
+      ],
+      "nivel1": false
+    },
+    {
+      "ficha": "F-37",
+      "acronimo": "iSCSI",
+      "fuentes": [
+        "FU-048",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-38",
+      "acronimo": "MPLS",
+      "fuentes": [
+        "FU-049"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-39",
+      "acronimo": "GRE",
+      "fuentes": [
+        "FU-050"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-40",
+      "acronimo": "VXLAN",
+      "fuentes": [
+        "FU-051",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-41",
+      "acronimo": "WireGuard",
+      "fuentes": [
+        "FU-052"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-42",
+      "acronimo": "GTP",
+      "fuentes": [
+        "FU-053",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-43",
+      "acronimo": "Modbus",
+      "fuentes": [
+        "FU-054",
+        "FU-055"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-44",
+      "acronimo": "DNP3",
+      "fuentes": [
+        "FU-056",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-45",
+      "acronimo": "OPC UA",
+      "fuentes": [
+        "FU-057",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-46",
+      "acronimo": "WIFI",
+      "fuentes": [
+        "FU-058",
+        "FU-059"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-47",
+      "acronimo": "PPP",
+      "fuentes": [
+        "FU-060"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-48",
+      "acronimo": "802.1Q",
+      "fuentes": [
+        "FU-061"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-49",
+      "acronimo": "STP",
+      "fuentes": [
+        "FU-062"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-50",
+      "acronimo": "RSTP",
+      "fuentes": [
+        "FU-063"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-51",
+      "acronimo": "MSTP",
+      "fuentes": [
+        "FU-064"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-52",
+      "acronimo": "LACP",
+      "fuentes": [
+        "FU-065"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-53",
+      "acronimo": "NDP",
+      "fuentes": [
+        "FU-066"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-54",
+      "acronimo": "mDNS",
+      "fuentes": [
+        "FU-067",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-55",
+      "acronimo": "IGMP",
+      "fuentes": [
+        "FU-068",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-56",
+      "acronimo": "PIM",
+      "fuentes": [
+        "FU-069",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-57",
+      "acronimo": "VRRP",
+      "fuentes": [
+        "FU-070",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-58",
+      "acronimo": "OSPFv3",
+      "fuentes": [
+        "FU-071",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-59",
+      "acronimo": "DCCP",
+      "fuentes": [
+        "FU-072",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-60",
+      "acronimo": "Telnet",
+      "fuentes": [
+        "FU-073",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-61",
+      "acronimo": "NETCONF",
+      "fuentes": [
+        "FU-074",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-62",
+      "acronimo": "Syslog",
+      "fuentes": [
+        "FU-075",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-63",
+      "acronimo": "TACACS+",
+      "fuentes": [
+        "FU-076",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-64",
+      "acronimo": "PTP",
+      "fuentes": [
+        "FU-077"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-65",
+      "acronimo": "FC",
+      "fuentes": [
+        "FU-078"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-66",
+      "acronimo": "EAP",
+      "fuentes": [
+        "FU-079"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-67",
+      "acronimo": "DNSSEC",
+      "fuentes": [
+        "FU-080"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-68",
+      "acronimo": "PROFINET",
+      "fuentes": [
+        "FU-081"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-69",
+      "acronimo": "DVB-S2",
+      "fuentes": [
+        "FU-082"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-70",
+      "acronimo": "L2TP",
+      "fuentes": [
+        "FU-083",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-71",
+      "acronimo": "CSMA/CD",
+      "fuentes": [
+        "FU-019"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-72",
+      "acronimo": "LLMNR",
+      "fuentes": [
+        "FU-084",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-73",
+      "acronimo": "NetBIOS",
+      "fuentes": [
+        "FU-085",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-74",
+      "acronimo": "RIPv2",
+      "fuentes": [
+        "FU-086",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-75",
+      "acronimo": "SR",
+      "fuentes": [
+        "FU-087"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-76",
+      "acronimo": "MIP",
+      "fuentes": [
+        "FU-088",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-77",
+      "acronimo": "MIPv6",
+      "fuentes": [
+        "FU-089"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-78",
+      "acronimo": "LISP",
+      "fuentes": [
+        "FU-090",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-79",
+      "acronimo": "RESTCONF",
+      "fuentes": [
+        "FU-091"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-80",
+      "acronimo": "gRPC",
+      "fuentes": [
+        "FU-092"
+      ],
+      "nivel1": false
+    },
+    {
+      "ficha": "F-81",
+      "acronimo": "IPFIX",
+      "fuentes": [
+        "FU-093",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-82",
+      "acronimo": "NetFlow",
+      "fuentes": [
+        "FU-094"
+      ],
+      "nivel1": false
+    },
+    {
+      "ficha": "F-83",
+      "acronimo": "ICMP",
+      "fuentes": [
+        "FU-095",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-84",
+      "acronimo": "ICMPv6",
+      "fuentes": [
+        "FU-096",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-85",
+      "acronimo": "FCoE",
+      "fuentes": [
+        "FU-097"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-86",
+      "acronimo": "NVMe-oF",
+      "fuentes": [
+        "FU-098",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-87",
+      "acronimo": "802.1X",
+      "fuentes": [
+        "FU-099"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-88",
+      "acronimo": "EtherCAT",
+      "fuentes": [
+        "FU-081"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-89",
+      "acronimo": "LoRaWAN",
+      "fuentes": [
+        "FU-100"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-90",
+      "acronimo": "Zigbee",
+      "fuentes": [
+        "FU-101"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-91",
+      "acronimo": "BACnet",
+      "fuentes": [
+        "FU-102",
+        "FU-005"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-92",
+      "acronimo": "GSM",
+      "fuentes": [
+        "FU-103"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-93",
+      "acronimo": "UMTS",
+      "fuentes": [
+        "FU-104"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-94",
+      "acronimo": "LTE",
+      "fuentes": [
+        "FU-105"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-95",
+      "acronimo": "5G NR",
+      "fuentes": [
+        "FU-106"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-96",
+      "acronimo": "TETRA",
+      "fuentes": [
+        "FU-107"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-97",
+      "acronimo": "DMR",
+      "fuentes": [
+        "FU-108"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-98",
+      "acronimo": "Link 16",
+      "fuentes": [
+        "FU-109"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-99",
+      "acronimo": "Link 11",
+      "fuentes": [
+        "FU-110"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-100",
+      "acronimo": "ITS-G5",
+      "fuentes": [
+        "FU-111"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-101",
+      "acronimo": "C-V2X",
+      "fuentes": [
+        "FU-112"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-102",
+      "acronimo": "X.25",
+      "fuentes": [
+        "FU-113"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-103",
+      "acronimo": "FR",
+      "fuentes": [
+        "FU-114"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-104",
+      "acronimo": "ATM",
+      "fuentes": [
+        "FU-115"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-105",
+      "acronimo": "Token Ring",
+      "fuentes": [
+        "FU-116"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-106",
+      "acronimo": "FDDI",
+      "fuentes": [
+        "FU-117"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-107",
+      "acronimo": "NetBEUI",
+      "fuentes": [
+        "FU-118"
+      ],
+      "nivel1": false
+    },
+    {
+      "ficha": "F-108",
+      "acronimo": "IPX/SPX",
+      "fuentes": [
+        "FU-119"
+      ],
+      "nivel1": false
+    },
+    {
+      "ficha": "F-109",
+      "acronimo": "AppleTalk",
+      "fuentes": [
+        "FU-120"
+      ],
+      "nivel1": false
+    },
+    {
+      "ficha": "F-110",
+      "acronimo": "ARCNET",
+      "fuentes": [
+        "FU-121"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-111",
+      "acronimo": "SONET/SDH",
+      "fuentes": [
+        "FU-122"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-112",
+      "acronimo": "ISDN",
+      "fuentes": [
+        "FU-123"
+      ],
+      "nivel1": true
+    },
+    {
+      "ficha": "F-113",
+      "acronimo": "EIGRP",
+      "fuentes": [
+        "FU-124"
+      ],
+      "nivel1": true
+    }
+  ],
+  "metricas": {
+    "fichas_totales": 113,
+    "fichas_con_fuente": 113,
+    "fichas_con_nivel1": 107,
+    "cobertura_nivel1_pct": 94.69,
+    "objetivo_cumplido": true,
+    "fuentes_distintas": 124
+  }
+}

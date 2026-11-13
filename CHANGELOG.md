@@ -8,6 +8,10 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
 
 ### Añadido
 - `LICENSE` (MIT), `SECURITY.md` y este `CHANGELOG.md`.
+- `FASE-08-VALIDACION/derivar-fuentes.py` y `F8-Fuentes-Fichas.json`: catálogo de fuentes
+  derivado del campo 18 de las fichas F4, con cobertura por registro (L-005).
+- `FuentesFichas` en Infrastructure y `FuentesDe`/`FuentesNivel1De`/`CoberturaFuentes` en
+  `CatalogoViewModel`.
 - Soporte **arm64**: `linux-arm64` y `osx-arm64` en la matriz de build, y empaquetado `.deb` `arm64`,
   `.rpm` `aarch64`, AppImage `aarch64` y `.dmg` `arm64` en los jobs de release.
 - Comprobación de actualizaciones: `IUpdateChecker` en el dominio, `GitHubUpdateChecker` en infraestructura
@@ -31,6 +35,8 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
 - El glob de las pruebas doradas pasa de `Golden\**` a `Golden/**`, para que también resuelva en Linux.
 
 ### Corregido
+- **L-005 cerrada**: 107/113 fichas con `Source` de nivel 1 (94,69 %, objetivo ≥90 %); el job
+  `quality` verifica con `derivar-fuentes.py --check` que el catálogo no derive del campo 18.
 - `SECURITY.md` ya no compromete un plazo de acuse de recibo que el proyecto no puede garantizar, y
   ofrece una ruta alternativa si el reporte privado de GitHub no está disponible.
 - `SECURITY.md` y README advierten de que la firma GPG de los instaladores Linux es opcional: si faltan

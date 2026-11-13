@@ -27,6 +27,8 @@ jobs:
           --results-directory coverage
       - name: Umbral de cobertura (línea ≥ 90 %, rama ≥ 75 %)
         run: python3 FASE-II-DISENO/ci/check-coverage.py coverage --lineas 90 --ramas 75
+      - name: Catálogo de fuentes al día (L-005)
+        run: python3 FASE-08-VALIDACION/derivar-fuentes.py --check
       - name: Publicar informe de cobertura
         if: always()
         uses: actions/upload-artifact@v4

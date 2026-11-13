@@ -24,6 +24,23 @@ public class CatalogoViewModelTests
             ProtocolosDePrueba(),
             servicios ?? Array.Empty<IanaServiceEntry>());
 
+    [Fact]
+    public void Cargar_Asigna_Fuentes_Nivel1_Del_Catalogo_F8()
+    {
+        var vm = Cargar();
+
+        Assert.True(vm.CoberturaFuentes.FichasTotales > 0);
+        Assert.True(vm.CoberturaFuentes.ObjetivoCumplido);
+        Assert.True(vm.CoberturaFuentes.CoberturaNivel1Pct >= 90.0);
+
+        var tcp = vm.FuentesDe("TCP");
+        Assert.NotEmpty(tcp);
+        Assert.Contains(tcp, f => f.Nivel == NivelAutoridad.PrimariaNormativa && f.Version.Contains("9293"));
+        Assert.All(vm.FuentesNivel1De("TCP"), f => Assert.Equal(NivelAutoridad.PrimariaNormativa, f.Nivel));
+
+        Assert.Empty(vm.FuentesDe("NO-EXISTE"));
+    }
+
     /// <summary>Catálogo mínimo con los acrónimos que usan las pruebas.</summary>
     private static IEnumerable<Protocol> ProtocolosDePrueba()
     {

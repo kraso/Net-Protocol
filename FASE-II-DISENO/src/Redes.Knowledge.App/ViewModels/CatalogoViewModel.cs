@@ -22,6 +22,7 @@ public sealed class CatalogoViewModel
     private readonly Dictionary<string, CatalogJson.NotaFuente> _notas = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, FichaPrioritaria> _fichas = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> _familias = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, IReadOnlyList<FuenteFicha>> _fuentes = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<Relationship> _relaciones = new();
 
     /// <summary>Protocolos indexados por su identificador de catálogo.</summary>
@@ -50,6 +51,9 @@ public sealed class CatalogoViewModel
 
     /// <summary>Relaciones de encapsulación y dependencia (F4).</summary>
     public IReadOnlyList<Relationship> Relaciones => _relaciones;
+
+    /// <summary>Cobertura de fuentes nivel 1 por ficha (L-005).</summary>
+    public CoberturaFuentes CoberturaFuentes { get; private set; } = new();
 
     /// <summary>Deduplicación fina IANA (D2-2): sinónimos agrupados y vínculos al catálogo.</summary>
     public ResultadoDedup Dedup { get; private set; } =
@@ -104,6 +108,15 @@ public sealed class CatalogoViewModel
             vm._fichas[kv.Key] = kv.Value;
 
         vm.Dedup = ServiciosDedup.Agrupar(servicios);
+
+        var f8 = Path.Combine(raiz, "FASE-08-VALIDACION", "F8-Fuentes-Fichas.json");
+        if (File.Exists(f8))
+        {
+            var (porAcronimo, cobertura) = FuentesFichas.Cargar(f8);
+            foreach (var kv in porAcronimo) vm._fuentes[kv.Key] = kv.Value;
+            vm.CoberturaFuentes = cobertura;
+        }
+
         return vm;
     }
 
@@ -151,6 +164,14 @@ public sealed class CatalogoViewModel
     /// <summary>Vecinos a un salto en el grafo F4.</summary>
     public IReadOnlyList<Vecino> VecinosDe(string acronimo)
         => GrafoRelaciones.Vecinos1Salto(acronimo, _relaciones);
+
+    /// <summary>Fuentes asignadas a la ficha del protocolo (L-005); vacío si no tiene.</summary>
+    public IReadOnlyList<FuenteFicha> FuentesDe(string acronimo)
+        => _fuentes.TryGetValue(acronimo, out var v) ? v : Array.Empty<FuenteFicha>();
+
+    /// <summary>Fuentes de nivel 1 (primaria normativa) asignadas al protocolo.</summary>
+    public IReadOnlyList<FuenteFicha> FuentesNivel1De(string acronimo)
+        => FuentesDe(acronimo).Where(f => f.Nivel == NivelAutoridad.PrimariaNormativa).ToArray();
 
     /// <summary>
     /// Puertos IANA deduplicados y enlazados al protocolo (D2-2): unión de (a) servicios

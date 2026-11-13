@@ -1076,3 +1076,15 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Regresión detectada y corregida durante el incremento:** la primera versión del ViewModel arrancaba `FuenteBase`/`TituloBase` en 0, y `RenderDiagramas` asignaba `FontSize = 0` al construir la ventana, lo que Avalonia rechaza con `ArgumentException: 0 is not a valid value for 'FontSize'`. Se restauraron los valores provisionales 13/14 del código original, que `FijarBases` sobrescribe al abrir. Las pruebas headless lo detectaron antes del commit.
 
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 101/101 y 32/32, 0 errores. Puerta de cobertura: 94,40 % líneas y 84,52 % ramas. Las siete pruebas de caracterización siguen pasando sin tocar las doradas.
+
+## 13-11-2026 — L-005 cerrada: asignación formal de fuentes nivel 1 a las fichas
+
+**Motivo:** L-005 quedaba abierta con la métrica «% fichas con fuente primaria» a 0 % asignado por pipeline. El objetivo declarado era ≥90 %.
+
+**Pipeline:** `FASE-08-VALIDACION/derivar-fuentes.py` (solo stdlib) interpreta el campo 18 de `F4-Fichas-Prioritarias.json`, clasifica cada segmento por organismo y nivel de autoridad según `F0-Politica-de-Fuentes.md` §1, deduplica por (organismo, versión) y emite `F8-Fuentes-Fichas.json`. Es idempotente y `--check` falla si el JSON del repositorio no coincide con lo derivado.
+
+**Resultado:** 124 fuentes distintas (117 nivel 1, 6 nivel 2, 1 nivel 3) y **107/113 fichas con fuente nivel 1 = 94,69 %**, objetivo cumplido. Las seis fichas sin nivel 1 son SMB, gRPC, NetFlow, NetBEUI, IPX/SPX y AppleTalk: solo tienen documentación de fabricante o proyecto, que la política clasifica como nivel 2.
+
+**Consumo en la aplicación:** `FuentesFichas.Cargar` (Infrastructure) proyecta cada fuente a `Source` de dominio y `CatalogoViewModel` expone `FuentesDe`, `FuentesNivel1De` y `CoberturaFuentes`.
+
+**Verificación:** 109/109 pruebas en `Redes.Knowledge.Tests` (8 nuevas en `FuentesFichasTests`, incluida la validación de cada fuente con `SourceValidator` y la lista exacta de fichas sin nivel 1) y 32/32 en `App.Tests`. Cobertura 94,60 % líneas / 83,99 % ramas. El job `quality` ejecuta ahora `derivar-fuentes.py --check` para impedir que el catálogo derive del campo 18 sin que nadie lo note.
