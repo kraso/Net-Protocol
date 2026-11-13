@@ -1088,3 +1088,13 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Consumo en la aplicación:** `FuentesFichas.Cargar` (Infrastructure) proyecta cada fuente a `Source` de dominio y `CatalogoViewModel` expone `FuentesDe`, `FuentesNivel1De` y `CoberturaFuentes`.
 
 **Verificación:** 109/109 pruebas en `Redes.Knowledge.Tests` (8 nuevas en `FuentesFichasTests`, incluida la validación de cada fuente con `SourceValidator` y la lista exacta de fichas sin nivel 1) y 32/32 en `App.Tests`. Cobertura 94,60 % líneas / 83,99 % ramas. El job `quality` ejecuta ahora `derivar-fuentes.py --check` para impedir que el catálogo derive del campo 18 sin que nadie lo note.
+
+## 13-11-2026 — i18n es/en: catálogo de textos puro y conmutador en la barra
+
+**Motivo:** toda la interfaz estaba en español con las cadenas incrustadas en el axaml y en el code-behind, sin forma de cambiar de idioma ni de probar los textos.
+
+**Catálogo:** `Textos` en `Redes.Knowledge.Visualization` (sin Avalonia) reúne ~50 claves con su par es/en: chrome de la ventana, barra de estado, leyenda de familias y «Acerca de». `T` devuelve el texto del idioma activo con reserva a español y, si la clave no existe, la propia clave; `F` aplica formato con cultura invariante; `Alternar` conmuta y devuelve el idioma. `Detectar` resuelve el idioma inicial desde `NETPROTOCOL_IDIOMA` y, si no está, desde `LANG`/`LC_ALL`/`LC_MESSAGES` con prefijo `en`; cualquier otro valor deja español.
+
+**Ventana:** `AplicarIdioma` vuelca el catálogo en los controles con nombre (se añadieron `LblProtocolo`, `LblComparar`, `LblFamilia`, `LblEstado`, `LblExportar`, `LblAcciones`, `LblTema`, `LblLeyenda`, `LblAcerca`), y el botón `LanguageButton` alterna idioma, reaplica el chrome y repinta la ficha; con una captura abierta solo cambia el chrome, porque la captura es una vista de datos. Las 22 cadenas de estado y los bloques de leyenda y «Acerca de» pasan a `Textos.F`/`Textos.T`.
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 117/117 en `Redes.Knowledge.Tests` (8 nuevas en `TextosTests`: cobertura de claves en ambos idiomas, clave desconocida, `Fijar` con valor inválido, `Alternar`, `Detectar` por entorno, formato con argumentos y cultura invariante) y 33/33 en `App.Tests`. Puerta de cobertura: 94,47 % líneas y 83,48 % ramas. Las siete pruebas de caracterización siguen pasando sin tocar las doradas.

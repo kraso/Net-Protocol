@@ -53,6 +53,11 @@ public partial class MainWindow : Window
     // Evita recursión al sincronizar el selector de protocolo con RenderFicha.
     private bool _sincronizandoSelector;
 
+    /// <summary>Vista textual en pantalla: el cambio de idioma la repinta en vez de navegar.</summary>
+    private enum Vista { Ficha, Leyenda, Acerca, Comparacion }
+
+    private Vista _vista = Vista.Ficha;
+
     // Última posición del puntero (coordenadas de la ventana) para el cierre por geometría
     // de los popups de información (sin parpadeo).
     private Point _ultimaPosPuntero = new(-1, -1);
@@ -78,6 +83,11 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        // Idioma de la interfaz: NETPROTOCOL_IDIOMA manda; si no, LANG/LC_ALL; español
+        // por defecto. AplicarIdioma vuelca el catálogo en los controles con nombre.
+        Textos.Detectar();
+        AplicarIdioma();
 
         // Logo de la aplicación (embebido): icono de ventana/taskbar.
         try
@@ -125,12 +135,12 @@ public partial class MainWindow : Window
                 .FirstOrDefault();
         RenderFicha(inicial);
 
-        StatusText.Text = $"Dataset: {_catalogo.Protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · " +
-                          $"{_catalogo.Relaciones.Count} relaciones F4 · importados: {importados} · zoom {_presentacion.ZoomTexto} (Ctrl+Scroll)";
+        StatusText.Text = Textos.F("estado.dataset", _catalogo.Protocolos.Count, _servicios.Contar(), _catalogo.Relaciones.Count, importados, _presentacion.ZoomTexto);
 
         SearchButton.Click += (_, _) => EjecutarBusqueda();
         SearchBox.KeyDown += (_, e) => { if (e.Key == Key.Enter) EjecutarBusqueda(); };
         ThemeButton.Click += (_, _) => AlternarTema();
+        LanguageButton.Click += (_, _) => AlternarIdioma();
         CompareButton.Click += (_, _) => CompararConReferencia();
         VolverFichaButton.Click += (_, _) => VolverALaFicha();
         LegendButton.Click += (_, _) => MostrarLeyenda();
@@ -191,7 +201,7 @@ public partial class MainWindow : Window
                 if ((e.KeyModifiers & KeyModifiers.Control) == 0) return;
                 _presentacion.AplicarZoom(e.Delta.Y > 0 ? PresentacionViewModel.ZoomPaso : -PresentacionViewModel.ZoomPaso);
                 AplicarZoomContenido();
-                StatusText.Text = $"Zoom del contenido: {_presentacion.ZoomTexto} — Ctrl+Scroll ajusta el tamaño de letra (reflow, sin desbordes)";
+                StatusText.Text = Textos.F("estado.zoom", _presentacion.ZoomTexto);
                 e.Handled = true;
             },
             RoutingStrategies.Bubble,
@@ -204,7 +214,7 @@ public partial class MainWindow : Window
         {
             _presentacion.FijarBases(DetailText.FontSize, DiagramTitle.FontSize);
             AplicarZoomContenido();
-            if (IsLoaded) StatusText.Text = $"Dataset: {_catalogo.Protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · zoom del contenido {_presentacion.ZoomTexto} (Ctrl+Scroll)";
+            if (IsLoaded) StatusText.Text = Textos.F("estado.dataset.zoom", _catalogo.Protocolos.Count, _servicios.Contar(), _presentacion.ZoomTexto);
             _ = ComprobarActualizacionesAsync();
         };
 
@@ -229,7 +239,7 @@ public partial class MainWindow : Window
             using var http = GitHubUpdateChecker.CrearCliente();
             var resultado = await new GitHubUpdateChecker(http).CheckAsync(version).ConfigureAwait(true);
             if (!resultado.HayActualizacion) return;
-            UpdateText.Text = $"Versión {resultado.VersionDisponible} disponible · {resultado.UrlDescarga}";
+            UpdateText.Text = Textos.F("estado.actualizacion", resultado.VersionDisponible, resultado.UrlDescarga);
             UpdateText.IsVisible = true;
         }
         catch
@@ -455,7 +465,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            if (IsLoaded) StatusText.Text = $"No se pudo abrir el explorador: {ex.Message}";
+            if (IsLoaded) StatusText.Text = Textos.F("estado.explorador.error", ex.Message);
         }
     }
 
@@ -635,7 +645,7 @@ public partial class MainWindow : Window
         _cargando = false;
 
         if (IsLoaded)
-            StatusText.Text = $"Visible: {Activos.Count()} de {_catalogo.Protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · zoom {_presentacion.ZoomTexto}";
+            StatusText.Text = Textos.F("estado.visible", Activos.Count(), _catalogo.Protocolos.Count, _servicios.Contar(), _presentacion.ZoomTexto);
     }
 
     private static void CerrarOtros(Expander abierto, IEnumerable<Expander> todos)
@@ -661,8 +671,8 @@ public partial class MainWindow : Window
         {
             // D2-2: el término puede ser un nombre de servicio IANA (con sinónimos agrupados).
             if (MostrarServicioIana(q)) return;
-            DetailText.Text = "Sin resultados para la búsqueda.";
-            StatusText.Text = $"Búsqueda \"{q}\": 0 resultados.";
+            DetailText.Text = Textos.T("estado.sin.resultados");
+            StatusText.Text = Textos.F("estado.busqueda.cero", q);
             return;
         }
 
@@ -683,20 +693,21 @@ public partial class MainWindow : Window
             Margin = new Thickness(0, 0, 0, 6),
             Padding = new Thickness(4)
         });
-        StatusText.Text = $"Búsqueda \"{q}\": {encontrados.Count} resultados · zoom {_presentacion.ZoomTexto}";
+        StatusText.Text = Textos.F("estado.busqueda", q, encontrados.Count, _presentacion.ZoomTexto);
         RenderFicha(encontrados[0]);
     }
 
     private void RenderFicha(Protocol? p)
     {
         _presentacion.Seleccionar(p);
+        _vista = Vista.Ficha;
 
         // Navegar a un protocolo (búsqueda, selector, sidebar, grafo…) cierra la captura
         // en pantalla: la ficha vuelve a ocupar el panel central y no queda texto de
         // captura mezclado bajo los diagramas.
         CerrarCapturaSiAbierta();
 
-        if (p is null) { DetailText.Text = "Seleccione un protocolo."; return; }
+        if (p is null) { DetailText.Text = Textos.T("estado.seleccione"); return; }
 
         // Sincroniza el selector de la barra superior con el protocolo en pantalla (navegues
         // como navegues: sidebar, búsqueda, grafo, comparador). El flag evita que este set
@@ -885,7 +896,7 @@ public partial class MainWindow : Window
         if (!_catalogo.Normalizados.TryGetValue(Normalizar(acronimo), out var proto)) return;
         RenderFicha(proto);
         if (IsLoaded)
-            StatusText.Text = $"Grafo: {proto.Acronimo} · {_catalogo.Relaciones.Count} relaciones F4 · zoom {_presentacion.ZoomTexto}";
+            StatusText.Text = Textos.F("estado.grafo", proto.Acronimo, _catalogo.Relaciones.Count, _presentacion.ZoomTexto);
     }
 
     /// <summary>Exporta los diagramas de la ficha actual al formato elegido (D4-3):
@@ -895,7 +906,7 @@ public partial class MainWindow : Window
     {
         if (_presentacion.Seleccionado is null || _docsActuales.Count == 0)
         {
-            if (IsLoaded) StatusText.Text = "Nada que exportar: abre la ficha de un protocolo con diagramas.";
+            if (IsLoaded) StatusText.Text = Textos.T("estado.nada.exportar");
             return;
         }
 
@@ -925,7 +936,7 @@ public partial class MainWindow : Window
                         var png = DiagramExporter.Png(doc, 2.0);
                         if (!DiagramExporter.EsPngValido(png))
                         {
-                            if (IsLoaded) StatusText.Text = $"Exportación PNG inválida para {nombre}.";
+                            if (IsLoaded) StatusText.Text = Textos.F("estado.export.png.invalida", nombre);
                             return;
                         }
                         await File.WriteAllBytesAsync(ruta, png);
@@ -941,12 +952,12 @@ public partial class MainWindow : Window
             }
             catch (Exception ex)
             {
-                if (IsLoaded) StatusText.Text = $"Error exportando {nombre}: {ex.Message}";
+                if (IsLoaded) StatusText.Text = Textos.F("estado.export.error", nombre, ex.Message);
                 return;
             }
         }
         if (IsLoaded)
-            StatusText.Text = $"Exportados {ok} diagrama(s) de {acronimo} como {formato} en {carpeta}";
+            StatusText.Text = Textos.F("estado.export.ok", ok, acronimo, formato, carpeta);
     }
 
     /// <summary>Nombre de archivo seguro (solo letras, dígitos, '-', '_' y '.').</summary>
@@ -969,7 +980,7 @@ public partial class MainWindow : Window
         var archivos = await StorageProvider.OpenFilePickerAsync(opciones);
         if (archivos.Count == 0 || archivos[0].Path is not { } uri) return;
         try { MostrarCaptura(PcapCaptureReader.Abrir(uri.LocalPath), uri.LocalPath); }
-        catch (Exception ex) { if (IsLoaded) StatusText.Text = $"No se pudo abrir la captura: {ex.Message}"; }
+        catch (Exception ex) { if (IsLoaded) StatusText.Text = Textos.F("estado.captura.error", ex.Message); }
     }
 
     /// <summary>Genera una muestra sintética determinista (F5) y la vuelca a un .pcap (D6).</summary>
@@ -986,11 +997,11 @@ public partial class MainWindow : Window
             PcapWriter.EscribirAArchivo(ruta, captura);
             MostrarCaptura(captura, ruta);
             if (IsLoaded)
-                StatusText.Text = $"Muestra sintética (ETH/IPv4/IPv6/TCP/UDP/DNS/ICMP) volcada en {ruta} · click en un paquete para su detalle F5";
+                StatusText.Text = Textos.F("estado.muestra.ok", ruta);
         }
         catch (Exception ex)
         {
-            if (IsLoaded) StatusText.Text = $"No se pudo volcar la muestra: {ex.Message}";
+            if (IsLoaded) StatusText.Text = Textos.F("estado.muestra.error", ex.Message);
         }
     }
 
@@ -1030,7 +1041,7 @@ public partial class MainWindow : Window
     {
         CerrarCapturaSiAbierta();
         if (_presentacion.Seleccionado is not null) RenderFicha(_presentacion.Seleccionado);
-        if (IsLoaded) StatusText.Text = $"Captura cerrada · {_catalogo.Protocolos.Count} protocolos · zoom {_presentacion.ZoomTexto}";
+        if (IsLoaded) StatusText.Text = Textos.F("estado.captura.cerrada", _catalogo.Protocolos.Count, _presentacion.ZoomTexto);
     }
 
     private string ResumenPaquete(int i)
@@ -1119,7 +1130,7 @@ public partial class MainWindow : Window
         DiagramPanel.Children.Clear();
         if (proto is not null) RenderFicha(proto);
         if (IsLoaded)
-            StatusText.Text = $"Servicio IANA \"{q}\" → {svc.Nombre} · {svc.Puertos.Count} puerto(s)";
+            StatusText.Text = Textos.F("estado.iana", q, svc.Nombre, svc.Puertos.Count);
         return true;
     }
 
@@ -1174,6 +1185,7 @@ public partial class MainWindow : Window
         // Restaura la alineación izquierda por si "Acerca de" la dejó centrada.
         DetailText.TextAlignment = TextAlignment.Left;
         CerrarCapturaSiAbierta(); // la comparación es una vista de ficha: sale de la captura
+        _vista = Vista.Comparacion;
         if (_presentacion.Seleccionado is null) return;
         // Referencia elegida por el usuario (ComboBox "Comparar con:"); TCP por defecto,
         // pero cualquier protocolo del catálogo es válido.
@@ -1254,7 +1266,7 @@ public partial class MainWindow : Window
             RenderFicha(_presentacion.Seleccionado); // vuelve a la ficha del protocolo que se comparaba
         else
         {
-            DetailText.Text = "Seleccione un protocolo.";
+            DetailText.Text = Textos.T("estado.seleccione");
             DiagramPanel.IsVisible = true;
         }
         // RenderFicha ya oculta el botón; por si _presentacion.Seleccionado fuera null, se oculta aquí.
@@ -1294,6 +1306,48 @@ public partial class MainWindow : Window
 
     private void Close_Click(object? sender, RoutedEventArgs e) => Close();
 
+    /// <summary>Vuelca el catálogo de textos en los controles con nombre (chrome de la ventana).</summary>
+    private void AplicarIdioma()
+    {
+        Title = Textos.T("app.titulo");
+        SearchBox.PlaceholderText = Textos.T("buscar.placeholder");
+        SearchButton.Content = Textos.T("buscar.boton");
+        LblProtocolo.Text = Textos.T("etiqueta.protocolo");
+        LblComparar.Text = Textos.T("etiqueta.comparar");
+        CompareButton.Content = Textos.T("boton.comparar");
+        VolverFichaButton.Content = Textos.T("boton.volver.ficha");
+        LblFamilia.Text = Textos.T("etiqueta.familia");
+        LblEstado.Text = Textos.T("etiqueta.estado");
+        LblExportar.Text = Textos.T("etiqueta.exportar");
+        ExportButton.Content = Textos.T("boton.exportar");
+        AbrirCapturaButton.Content = Textos.T("boton.abrir.captura");
+        MuestraButton.Content = Textos.T("boton.muestra");
+        LanguageButton.Content = Textos.T("boton.idioma");
+        NavFilter.PlaceholderText = Textos.T("nav.filtro");
+        LblAcciones.Text = Textos.T("sidebar.acciones");
+        LblTema.Text = Textos.T("sidebar.tema");
+        LblLeyenda.Text = Textos.T("sidebar.leyenda");
+        LblAcerca.Text = Textos.T("sidebar.acerca");
+        DiagramTitle.Text = Textos.T("diagramas.titulo");
+        CerrarCapturaButton.Content = Textos.T("boton.cerrar.captura");
+    }
+
+    /// <summary>Alterna es/en, reaplica el chrome y repinta la MISMA vista en pantalla.</summary>
+    private void AlternarIdioma()
+    {
+        Textos.Alternar();
+        AplicarIdioma();
+        // La captura abierta es una vista de datos: se deja tal cual y solo cambia el chrome.
+        if (PanelCaptura.IsVisible) return;
+        switch (_vista)
+        {
+            case Vista.Leyenda: MostrarLeyenda(); break;
+            case Vista.Acerca: MostrarAcercaDe(); break;
+            case Vista.Comparacion: CompararConReferencia(); break;
+            default: RenderFicha(_presentacion.Seleccionado); break;
+        }
+    }
+
     private void AlternarTema()
     {
         var app = Application.Current;
@@ -1313,6 +1367,7 @@ public partial class MainWindow : Window
         // Alineación izquierda siempre: "Acerca de" centra el texto y hay que restaurarla.
         DetailText.TextAlignment = TextAlignment.Left;
         CerrarCapturaSiAbierta(); // la leyenda es una vista de ficha: sale de la captura
+        _vista = Vista.Leyenda;
         // Visto textual: oculta los diagramas del protocolo previamente seleccionado.
         DiagramPanel.Children.Clear();
         _docsActuales.Clear();
@@ -1321,9 +1376,9 @@ public partial class MainWindow : Window
         VolverFichaButton.IsVisible = false; // la leyenda no es una comparación
 
         var sb = new StringBuilder();
-        sb.AppendLine("=== Leyenda de familias de protocolos ===");
+        sb.AppendLine(Textos.T("leyenda.titulo"));
         sb.AppendLine();
-        sb.AppendLine("Cada familia agrupa protocolos con un propósito/ámbito común. Acrónimo — descripción (ejemplos del catálogo):");
+        sb.AppendLine(Textos.T("leyenda.intro"));
         sb.AppendLine();
 
         foreach (var familia in Enum.GetValues<FamiliaProtocolo>()
@@ -1337,16 +1392,16 @@ public partial class MainWindow : Window
                 .OrderBy(p => p.Acronimo, StringComparer.OrdinalIgnoreCase)
                 .Take(5)
                 .Select(p => p.Acronimo);
-            var ejemploTexto = ejemplos.Count() == 0 ? "" : $" — ej.: {string.Join(", ", ejemplos)}";
+            var ejemploTexto = ejemplos.Count() == 0 ? "" : Textos.F("leyenda.ejemplos", string.Join(", ", ejemplos));
             sb.AppendLine($"  {acronimo}: {descripcion}{ejemploTexto}");
         }
 
         sb.AppendLine();
-        sb.AppendLine($"Fuente: catálogo F3 (campo 'familias') · {_catalogo.Protocolos.Count} protocolos en {_catalogo.Familias.Count} familias.");
+        sb.AppendLine(Textos.F("leyenda.fuente", _catalogo.Protocolos.Count, _catalogo.Familias.Count));
         DetailText.Text = sb.ToString();
 
         if (IsLoaded)
-            StatusText.Text = $"Leyenda de familias · zoom {_presentacion.ZoomTexto}";
+            StatusText.Text = Textos.F("estado.leyenda", _presentacion.ZoomTexto);
     }
 
     /// <summary>Sección "Acerca de" con los datos de la aplicación, centrados y formateados.</summary>
@@ -1354,6 +1409,7 @@ public partial class MainWindow : Window
     {
         // Visto textual: oculta los diagramas del protocolo previamente seleccionado.
         CerrarCapturaSiAbierta(); // "Acerca de" es una vista de ficha: sale de la captura
+        _vista = Vista.Acerca;
         DiagramPanel.Children.Clear();
         _docsActuales.Clear();
         DiagramTitle.IsVisible = false;
@@ -1362,23 +1418,23 @@ public partial class MainWindow : Window
 
         var sb = new StringBuilder();
         sb.AppendLine();
-        sb.AppendLine("=== Acerca de ===");
+        sb.AppendLine(Textos.T("acerca.titulo"));
         sb.AppendLine();
-        sb.AppendLine("Nombre de la aplicación: Net Protocol");
+        sb.AppendLine(Textos.T("acerca.nombre"));
         sb.AppendLine();
-        sb.AppendLine("Versión: " + (Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0"));
+        sb.AppendLine(Textos.F("acerca.version", Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0"));
         sb.AppendLine();
-        sb.AppendLine("Autor: Marcos Calabrés Ibáñez");
+        sb.AppendLine(Textos.T("acerca.autor"));
         sb.AppendLine();
-        sb.AppendLine("Email: marcoscalabresibaniez@gmail.com");
+        sb.AppendLine(Textos.T("acerca.email"));
         sb.AppendLine();
         sb.AppendLine();
-        sb.AppendLine("© Todos los derechos reservados");
+        sb.AppendLine(Textos.T("acerca.derechos"));
         DetailText.Text = sb.ToString();
         DetailText.TextAlignment = TextAlignment.Center;
 
         if (IsLoaded)
-            StatusText.Text = "Acerca de · zoom " + $"{_presentacion.ZoomTexto}";
+            StatusText.Text = Textos.F("estado.acerca", _presentacion.ZoomTexto);
     }
 
     private static string Normalizar(string s)
