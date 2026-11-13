@@ -446,6 +446,21 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
+      - name: Checksums SHA256 de los instaladores
+        run: |
+          set -euo pipefail
+          # Hash por instalador con el nombre PLANO (sin la carpeta del artefacto), que es el
+          # que la app busca en la release para verificar la descarga.
+          cd dist
+          : > SHA256SUMS
+          find . -type f -path './setup-*/*' | sort | while read -r f; do
+            sha256sum "$f" | sed -E 's#^([0-9a-f]+)  \./setup-[^/]+/(.*)$#\1  \2#' >> SHA256SUMS
+          done
+          test -s SHA256SUMS
+          # Toda línea debe ser "<64 hex>  <nombre>"; si el formato se rompe, el job falla aquí
+          # en vez de publicar un SHA256SUMS que la app no sabría leer.
+          awk 'NF != 2 || $1 !~ /^[0-9a-f]{64}$/ { print "linea inesperada: " $0; exit 1 }' SHA256SUMS
+          cat SHA256SUMS
       - name: Publicar release en GitHub
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -456,6 +471,9 @@ jobs:
           # Net Protocol ${VER} — instaladores oficiales
 
           Instaladores **self-contained**: no necesitan tener .NET instalado en el equipo. Disponibles para **Windows** (x64), **Linux** (x64 y arm64) y **macOS** (Intel x64 y Apple Silicon arm64).
+
+          Cada instalador tiene su hash SHA256 en \`SHA256SUMS\`: descárgalo junto al binario y comprueba con
+          \`sha256sum -c SHA256SUMS\` (en Windows, \`certutil -hashfile <archivo> SHA256\`).
 
           ## Novedades en esta versión
 
@@ -561,7 +579,7 @@ jobs:
           - **Linux**: la huella de la clave se ve con \`gpg --with-fingerprint NetProtocol-gpg-pubkey.asc\`.
           - Los artefactos de esta release se generan automáticamente por GitHub Actions desde el tag \`v${VER}\` (jobs \`package-win\`, \`package-linux\`, \`package-macos\`).
           EOF
-          gh release create "$GITHUB_REF_NAME" dist/setup-*/* \
+          gh release create "$GITHUB_REF_NAME" dist/setup-*/* dist/SHA256SUMS \
             --title "Net Protocol ${VER}" \
             --notes-file RELEASE_NOTES.md
 

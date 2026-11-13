@@ -1238,3 +1238,13 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Un dato que conviene saber:** los servicios IANA **no** se importan en el arranque, así que la tabla `Services` puede estar vacía en una base nueva. La prueba se ajustó a eso en vez de exigir un dato que el arranque no produce.
 
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 124/124 y 55/55. Cobertura 94,79 % / 83,26 %. Build sin advertencias.
+
+## 13-11-2026 — v1.1 definido y T1 hecho
+
+**Alcance:** el plan vive en `FASE-09-PRODUCTO/F9-Plan-v1.1.md`. Tres decisiones: v1.1 = datos + actualizador; sin firma de código ni notarización; el actualizador descarga, verifica SHA256 y **nunca instala solo**. Specs S1–S5 y tareas T1–T6; T5 (capturas reales) y T6 (fichas por clase) quedan bloqueadas a la decisión de fuentes.
+
+**T1 hecho:** el job `release` genera `dist/SHA256SUMS` con el hash y el nombre plano de cada instalador, valida el formato con `awk` (falla si una línea no es `<64 hex>  <nombre>`) y lo adjunta a la release junto a los binarios. Así la app podrá verificar la descarga antes de ofrecer el instalador.
+
+**Verificación local:** con un `dist/` sintético y los assets aplanados como los deja una release, `sha256sum -c SHA256SUMS` devuelve `OK` en los dos ficheros de prueba. El YAML parsea y el job `release` queda con cuatro pasos.
+
+**No verificado:** la ejecución real del job, que solo corre con un tag `v*`; hasta el próximo tag no hay evidencia de runner.

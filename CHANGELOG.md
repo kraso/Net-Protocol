@@ -27,6 +27,8 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
 - Proyecto `tests/Redes.Knowledge.App.Tests` con pruebas de UI headless (`Avalonia.Headless.XUnit`).
 - `FASE-II-DISENO/ci/check-coverage.py`: puerta de cobertura (90 % líneas, 75 % ramas) sobre el XML
   de Cobertura.
+- `SHA256SUMS` en cada release con el hash y el nombre plano de todos los instaladores, para que la
+  app pueda verificar la descarga antes de ofrecer el instalador (v1.1, S1).
 
 ### Cambiado
 - `on.push` acotado a `main` y tags `v*`: la matriz ya no se lanza en cada rama.
