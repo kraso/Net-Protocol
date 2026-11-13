@@ -1297,51 +1297,28 @@ public partial class MainWindow : Window
             _catalogo.Fichas,
             _catalogo.Relaciones);
 
-        const int anchoCelda = 36;
-
-        // Celda de ancho fijo: trunca con "…" si el valor no cabe (la tabla nunca desborda).
-        static string Celda(string s, int ancho)
-            => s.Length <= ancho ? s.PadRight(ancho) : s[..(ancho - 1)] + "…";
-
         // Tabla transpuesta: filas = aspectos cortos, columnas = protocolos.
         var a = filas.First(f => f.Protocolo == _presentacion.Seleccionado.Acronimo);
         var b = filas.First(f => f.Protocolo == referencia.Acronimo);
-        var cortos = new[]
+        var cortas = new[]
         {
-            (Textos.T("cmp.familia"), a.Familia, b.Familia),
-            (Textos.T("cmp.estado"), Textos.Estado(a.Estado), Textos.Estado(b.Estado)),
-            (Textos.T("cmp.capas"), a.Capas, b.Capas),
-            (Textos.T("cmp.pdu"), a.Pdu, b.Pdu),
-            (Textos.T("cmp.puertos"), a.Puertos, b.Puertos),
-            (Textos.T("cmp.cifrado"), a.Cifrado, b.Cifrado)
+            new ComparadorTexto.Fila(Textos.T("cmp.familia"), a.Familia, b.Familia),
+            new ComparadorTexto.Fila(Textos.T("cmp.estado"), Textos.Estado(a.Estado), Textos.Estado(b.Estado)),
+            new ComparadorTexto.Fila(Textos.T("cmp.capas"), a.Capas, b.Capas),
+            new ComparadorTexto.Fila(Textos.T("cmp.pdu"), a.Pdu, b.Pdu),
+            new ComparadorTexto.Fila(Textos.T("cmp.puertos"), a.Puertos, b.Puertos),
+            new ComparadorTexto.Fila(Textos.T("cmp.cifrado"), a.Cifrado, b.Cifrado)
         };
         // Campos largos: fuera de la tabla, en líneas envueltas por protocolo.
-        var largos = new[]
+        var largas = new[]
         {
-            (Textos.T("cmp.finalidad"), Acortar(a.Finalidad), Acortar(b.Finalidad)),
-            (Textos.T("cmp.encapsulacion"), Acortar(a.Encapsulacion), Acortar(b.Encapsulacion))
+            new ComparadorTexto.Fila(Textos.T("cmp.finalidad"),
+                ComparadorTexto.Acortar(a.Finalidad), ComparadorTexto.Acortar(b.Finalidad)),
+            new ComparadorTexto.Fila(Textos.T("cmp.encapsulacion"),
+                ComparadorTexto.Acortar(a.Encapsulacion), ComparadorTexto.Acortar(b.Encapsulacion))
         };
 
-        var sb = new StringBuilder();
-        sb.AppendLine(Textos.F("cmp.titulo", a.Protocolo, b.Protocolo));
-        sb.AppendLine();
-        sb.AppendLine($"{Textos.T("cmp.aspecto"),-16}| {Celda(a.Protocolo, anchoCelda)} | {Celda(b.Protocolo, anchoCelda)}");
-        sb.AppendLine(new string('-', 17 + 3 + anchoCelda + 3 + anchoCelda));
-        foreach (var (nombre, va, vb) in cortos)
-        {
-            sb.Append($"{nombre,-16}| {Celda(va, anchoCelda)} | {Celda(vb, anchoCelda)}");
-            if (va == vb && va != "—") sb.AppendLine(Textos.T("cmp.igual"));
-            else sb.AppendLine();
-        }
-        sb.AppendLine();
-        foreach (var (nombre, va, vb) in largos)
-        {
-            sb.AppendLine($"{nombre} — {a.Protocolo}: {va ?? "—"}");
-            sb.AppendLine($"{nombre} — {b.Protocolo}: {vb ?? "—"}");
-            sb.AppendLine();
-        }
-        sb.AppendLine(Textos.T("cmp.fuentes"));
-        DetailText.Text = sb.ToString();
+        DetailText.Text = ComparadorTexto.Construir(a.Protocolo, b.Protocolo, cortas, largas);
     }
 
     /// <summary>Salida explícita de la vista de comparación: restaura la ficha del
@@ -1673,13 +1650,6 @@ public partial class MainWindow : Window
         });
         return panel;
     }
-
-    /// <summary>Acorta un valor largo para las líneas de comparación (los campos
-    /// largos se muestran por protocolo, envueltos, sin desbordar la pantalla).</summary>
-    private static string? Acortar(string? s) =>
-        string.IsNullOrWhiteSpace(s) || s == "—" ? null
-        : s.Length <= 180 ? s
-        : s[..177] + "…";
 
     /// <summary>Nombre legible de un vecino del grafo F4: resuelve la entidad normalizada de la
     /// URN contra el catálogo F3 (acrónimo o nombre) y muestra "ACR · Nombre (tipo)".</summary>

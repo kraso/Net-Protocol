@@ -52,6 +52,9 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
   el valor del enum viaja en `Tag`, así que el filtro sigue comparando el mismo dato.
 - El aviso de búsqueda sin resultados se conserva al cambiar de idioma (se repinta en su sitio) y los
   ítems de navegación y captura exponen nombre accesible explícito.
+- El comparador de protocolos sale del code-behind a `ComparadorTexto` en `Redes.Knowledge.Visualization`
+  con seis pruebas puras: ancho fijo, marca de igualdad, campos largos, truncado y versión inglesa.
+  La salida en español no cambia (la fija la prueba dorada).
 
 ### Corregido
 - **L-005 cerrada**: 107/113 fichas con `Source` de nivel 1 (94,69 %, objetivo ≥90 %); el job

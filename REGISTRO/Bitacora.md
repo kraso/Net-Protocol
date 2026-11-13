@@ -1182,3 +1182,15 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Ya resueltos por el trabajo posterior:** `R3-idioma-parcial` (la i18n ya cubre ficha, comparador, captura, navegación y popups), `R3-deteccion-por-entorno` (`PruebasAppBuilder` fija `NETPROTOCOL_IDIOMA=es` antes de construir ventanas) y `R3-ayuda-vs-popup` (los popups se refrescan con el idioma).
 
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 118/118 en `Redes.Knowledge.Tests` y 49/49 en `App.Tests`. Cobertura 94,74 % líneas / 83,26 % ramas. Las siete doradas siguen intactas.
+
+## 13-11-2026 — El comparador sale del code-behind
+
+**Motivo:** era el último bloque de formateo puro que quedaba dentro de `MainWindow`: tabla transpuesta, truncado de celdas y acortado de campos largos, unas 45 líneas que no se podían probar sin Avalonia.
+
+**Cambio:** `ComparadorTexto` en `Redes.Knowledge.Visualization` recibe las filas ya resueltas como `Fila(etiqueta, a, b)` y no conoce el catálogo. `Celda` y `Acortar` se mudan con el formateador. `CompararConReferencia` queda en resolver la referencia, proyectar las dos listas y asignar el texto.
+
+**Pruebas:** seis nuevas en `ComparadorTextoTests` — ancho fijo de línea y de celda, marca `(= igual)` solo cuando ambos valores coinciden y no son vacíos, campos largos fuera de la tabla, truncado con «…», acortado y cabecera en inglés.
+
+**Aparte:** `CorpusL004` capturaba `Exception ex` sin usar la variable; ahora es `catch (Exception)` y el build queda con 0 avisos.
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 124/124 en `Redes.Knowledge.Tests` y 49/49 en `App.Tests`. Cobertura 94,79 % líneas / 83,26 % ramas. La dorada del comparador pasa sin tocarla, así que el español no cambió.
