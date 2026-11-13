@@ -916,3 +916,40 @@ Con esto, **un futuro rename del repositorio adecúa solo la URL de los paquetes
 ## 30-08-2026 — Publicación v1.0.10 (CI verde, run 33293059933) — UX colorida
 
 **Release publicado:** https://github.com/kraso/Net-Protocol/releases/tag/v1.0.10 con 6 assets (`NetProtocol-Setup-1.0.10.exe`, `NetProtocol-1.0.10-amd64.deb` + `.asc`, `NetProtocol-1.0.10-x86_64.rpm`, `NetProtocol-1.0.10-macos.dmg`, `NetProtocol-gpg-pubkey.asc`). Contenido: **paleta por tema y tokens** (gradiente "cristal pizarra" — los botones de ventana dejan de ser blancos sobre blanco; selección/foco con `tSeleccionFondo`/`tAcento`; divisores dinámicos; diagramas adaptativos al modo oscuro). Commit `18f1fc7` (UX) + `92ab393` (bump 1.0.10). Pendiente: verificación visual del responsable (posible afinado del overlay de selección Fluent).
+## 10-09-2026 — v1.0.11: instaladores sin dependencias nativas y patrón de nombres unificado
+
+**Motivo:** los instaladores arrastraban dependencias nativas del runtime de diagnóstico de .NET (`liblttng-ust`, `liburcu`) que no están presentes en todas las distribuciones y rompían la instalación en Fedora.
+
+**Cambios:** `DOTNET_EnableDiagnostics=0` en la publicación self-contained (elimina la necesidad de esas librerías); patrón de nombres unificado `NetProtocol-<versión>-<SO>-<arquitectura>.<extensión>` para todos los instaladores y `<instalador>.asc` para las firmas Linux; `packaging/README.md` y el README raíz actualizados con la tabla de instalación por SO. **CI verde · release v1.0.11 publicada.**
+
+## 10-09-2026 — v1.0.12: auto-cierre de tooltips y RPM compatible con Fedora
+
+**Síntoma:** en Linux/X11 los popups de información de los botones de acción quedaban abiertos indefinidamente; el cierre por geometría del puntero no funcionaba porque los eventos del overlay no llegan de forma fiable.
+
+**Cambios:** auto-cierre por tiempo (6 s) programado al abrir el popup, independiente de flags y geometría, con una gracia anti-reabrir que absorbe los re-enters espurios que X11 emite al desmapear el overlay. En paquetería, el spec del RPM excluye los auto-Requires `liblttng-ust`/`liburcu` que rompían la instalación en Fedora. **CI verde · release v1.0.12 publicada.**
+
+## 10-09-2026 — v1.0.13: cierre incondicional de tooltips (6 s)
+
+**Síntoma:** la v1.0.12 seguía dejando popups abiertos de forma errática: el temporizador por-popup se reiniciaba con los re-enters espurios de X11.
+
+**Cambios:** el cierre pasa a ser incondicional por tiempo y no depende de ningún flag ni de la geometría; se mantiene la gracia anti-reabrir. **CI verde · release v1.0.13 publicada.**
+
+## 10-09-2026 — v1.0.14: cierre por deadline con supervisor global
+
+**Síntoma:** persistían reaperturas espurias; un temporizador por-popup no bastaba porque cada re-enter volvía a armarlo.
+
+**Fix definitivo:** un **supervisor global** (`DispatcherTimer` de 500 ms) vigila todos los popups de información y cierra cada uno cuando se cumple su **deadline de 5 s desde que se abrió**. La deadline solo se fija en la transición cerrado→abierto, así que los re-enters de X11 no pueden reiniciarla; al cerrar se aplica una gracia de 1,2 s antes de permitir reabrir. **Build 0 errores · 78/78 tests · CI verde · release v1.0.14 publicada** (última versión a la fecha de esta entrada).
+
+## 11-09-2026 — Nota de troubleshooting del `.deb`: aviso del usuario `_apt`
+
+**Documentado en `FASE-II-DISENO/packaging/README.md`:** al instalar el `.deb` local con `sudo apt install ./NetProtocol-<versión>-linux-amd64.deb` puede aparecer un aviso sobre el usuario `_apt`. **No es un defecto del paquete**: `_apt` es el usuario sin privilegios con el que APT ejecuta la descarga y la verificación, y el aviso se debe a que el `HOME` del equipo tiene permisos `700`, de modo que `_apt` no puede leer el directorio temporal de trabajo. El paquete se instala correctamente; si se quiere silenciar, basta con dar permiso de lectura/travesía al `HOME` o instalar con `dpkg -i` seguido de `apt-get -f install`.
+
+## 11-09-2026 — `.gitignore`: exclusión de `.atl/`
+
+Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista de artefactos de entorno ignorados, junto a `.claude/`, `.cursor/`, `.gemini/` y `.codegraph/`. El árbol de trabajo queda limpio sin trackear ficheros generados.
+
+## 13-11-2026 — Sincronización documental con la realidad publicada (P0)
+
+**Motivo:** el README, el registro de fases y el plan de Fase II seguían describiendo el proyecto como "en curso / pendiente de aprobación" cuando hay 14 releases publicadas; la bitácora terminaba en v1.0.10 y la plantilla de CI de `FASE-II-DISENO/ci/` había quedado obsoleta frente al workflow real.
+
+**Cambios:** README (estado, tabla de releases v1.0.11–v1.0.14, licencia y seguridad), `REGISTRO/Estado-de-Fases.md` (observaciones y fecha), `F2I-Diseno-de-Software.md` (versión 1.0, estado aprobado y ejecutado), esta bitácora (entradas v1.0.11–v1.0.14 y notas de paquetería) y `FASE-II-DISENO/ci/` (la plantilla se sustituye por un puntero al workflow real, única fuente de verdad). Se añaden `LICENSE` (MIT), `SECURITY.md` y `CHANGELOG.md`. **Verificado: `dotnet test -c Release` → 78/78, 0 errores.**

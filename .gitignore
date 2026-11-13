@@ -19,6 +19,7 @@ FASE-II-DISENO/dist/
 .cursor/
 .gemini/
 .codegraph/
+.atl/
 .mcp.json
 AGENTS.md
 GEMINI.md

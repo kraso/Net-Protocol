@@ -9,6 +9,8 @@ Aplicación de escritorio profesional, multiplataforma y **local-first** para el
 
 ## Estado del proyecto
 
+**Versión publicada: v1.0.14** (10-09-2026) · **78/78 pruebas** en verde · CI activo en `main` y en cada tag `v*`.
+
 ### Fase I — Investigación y documentación (✅ CERRADA el 26-08-2026)
 
 | Fase | Título | Estado |
@@ -24,11 +26,19 @@ Aplicación de escritorio profesional, multiplataforma y **local-first** para el
 | F8 | Validación | ✅ **Completada** (26-08-2026) · compuerta de calidad |
 | F9 | Especificación de producto | ✅ **Completada** (26-08-2026) · cierre de la Fase I |
 
-### Fase II — Diseño y generación de software (🔶 En curso)
+### Fase II — Diseño y generación de software (✅ CERRADA · D0–D7 + iteración 1.1)
 
-Plan de Fase II generado el 26-08-2026 (arquitectura, UX/UI, módulos, pruebas, distribución, backlog D0–D7). Pendiente de revisión/aprobación; **la programación comienza tras la aprobación y la épica D0 (spikes + ADR)**. Entorno: **VS 2022 Enterprise 17.14 + .NET SDK 9.0.316**.
+Las 8 épicas (D0–D7) se completaron el 26-08-2026 y la **iteración 1.1** el 30-08-2026 (grafo navegable, exportación SVG/PNG/PDF con PNG 2×, vista de capturas con muestras deterministas, deduplicación fina + entity-linking IANA y cierre de L-004 con corpus real). La solución `Redes.Knowledge.sln` tiene 5 proyectos (App Avalonia 12.1.1 · Domain · Infrastructure · Visualization · Tests) con **78/78 pruebas**. Entorno: **VS 2022 Enterprise 17.14 + .NET SDK 9.0.316**.
 
-Detalle: [REGISTRO/Estado-de-Fases.md](REGISTRO/Estado-de-Fases.md) · Historial: [REGISTRO/Bitacora.md](REGISTRO/Bitacora.md)
+| Release | Fecha | Contenido |
+|---|---|---|
+| v1.0.0 – v1.0.10 | 26–30-08-2026 | Primera publicación, instaladores por SO, tema oscuro por defecto, paleta por tokens |
+| v1.0.11 | 10-09-2026 | Instaladores sin dependencias nativas (`DOTNET_EnableDiagnostics=0`) y patrón de nombres unificado |
+| v1.0.12 | 10-09-2026 | Auto-cierre de tooltips por tiempo; el RPM excluye auto-Requires que rompían Fedora |
+| v1.0.13 | 10-09-2026 | Cierre incondicional de tooltips (6 s): X11 no es fiable con los eventos del overlay |
+| v1.0.14 | 10-09-2026 | Cierre por deadline (5 s) con supervisor global, inmune a re-enters espurios de X11 |
+
+Detalle: [REGISTRO/Estado-de-Fases.md](REGISTRO/Estado-de-Fases.md) · Historial: [REGISTRO/Bitacora.md](REGISTRO/Bitacora.md) · Cambios por versión: [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
@@ -85,7 +95,7 @@ protocolos/
 ├── FASE-07-DOMINIOS-ESPECIALES/  Fase 7 — Dominios profesionales y especiales (✅)
 ├── FASE-08-VALIDACION/           Fase 8 — Validación (✅)
 ├── FASE-09-PRODUCTO/             Fase 9 — Especificación de producto (✅)
-├── FASE-II-DISENO/               Fase II — Diseño y generación de software (en curso)
+├── FASE-II-DISENO/               Fase II — Diseño y generación de software (✅ D0–D7)
 ├── PLANTILLAS/                   Plantillas (ficha de protocolo formalizada en F4)
 ├── ESQUEMA/                      Esquema de datos y modelo de dominio
 └── REGISTRO/                     Estado de fases y bitácora del proyecto
@@ -125,7 +135,7 @@ protocolos/
 ### Fase 9 — Especificación de producto (✅ · cierre de la Fase I)
 [F9-Especificacion-de-Producto.md](FASE-09-PRODUCTO/F9-Especificacion-de-Producto.md) · [F9-Backlog.json](FASE-09-PRODUCTO/F9-Backlog.json) (épicas D0–D7)
 
-### Fase II — Diseño y generación de software (🔶 En curso)
+### Fase II — Diseño y generación de software (✅ D0–D7 + iteración 1.1)
 [F2I-Diseno-de-Software.md](FASE-II-DISENO/F2I-Diseno-de-Software.md) (arquitectura + ADR-001…005, UX/UI, módulos, pruebas, distribución, riesgos) · [F2I-Backlog-Detallado.json](FASE-II-DISENO/F2I-Backlog-Detallado.json) (8 épicas, 24 historias estimadas) · [F2I-Entorno-de-Desarrollo.md](FASE-II-DISENO/F2I-Entorno-de-Desarrollo.md) (VS 2022 Enterprise 17.14, .NET 9.0.316, git) · [F2I-D0-Spikes-y-ADR.md](FASE-II-DISENO/F2I-D0-Spikes-y-ADR.md) (épica D0 completada: Avalonia 12.1.1/net9.0 confirmados, determinismo del renderer demostrado)
 
 ### Plantillas
@@ -141,4 +151,14 @@ protocolos/
 4. **Versionado:** cada documento registra versión, fecha y estado; los registros vivos (IANA, RFC, MIL-STD) son datos versionables.
 ---
 
-Estado repo: publicado en GitHub (CI activo). 26-08-2026.
+## Licencia
+
+Distribuido bajo licencia **MIT** — ver [LICENSE](LICENSE). Las fuentes normativas referenciadas (RFC, ISO/IEC, IEEE, 3GPP, MIL-STD, IANA…) conservan sus propias condiciones; este proyecto solo las cita.
+
+## Seguridad
+
+Para reportar una vulnerabilidad, usa el reporte privado de GitHub descrito en [SECURITY.md](SECURITY.md).
+
+---
+
+Estado repo: publicado en GitHub (CI activo). Última sincronización documental: 13-11-2026 (v1.0.14).

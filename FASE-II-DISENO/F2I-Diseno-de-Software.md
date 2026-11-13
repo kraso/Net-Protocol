@@ -7,9 +7,9 @@
 | Campo | Valor |
 |---|---|
 | Documento | F2I-Diseno-de-Software.md |
-| Versión | 0.1 (borrador para revisión) |
-| Fecha | 26-08-2026 |
-| Estado | Pendiente de aprobación |
+| Versión | 1.0 |
+| Fecha | 26-08-2026 (rev. 13-11-2026) |
+| Estado | ✅ Aprobado y ejecutado — D0–D7 completadas; release v1.0.14 publicada |
 | Entorno | Ver [`F2I-Entorno-de-Desarrollo.md`](F2I-Entorno-de-Desarrollo.md) (VS 2022 Enterprise 17.14, .NET SDK 9.0.316, git) |
 
 > **Regla de la fase:** este plan entrega **arquitectura, UX/UI, módulos, pruebas, distribución y backlog detallado** listos para ejecutar. **No se escribe el código de la aplicación completa** hasta aprobar este plan y ejecutar la épica D0 (spikes + ADR finales).
