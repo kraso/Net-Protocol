@@ -7,4 +7,8 @@
     <RootNamespace>Redes.Knowledge.Visualization</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Redes.Knowledge.Domain\Redes.Knowledge.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

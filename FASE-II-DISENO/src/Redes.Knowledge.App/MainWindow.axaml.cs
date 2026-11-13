@@ -771,62 +771,20 @@ public partial class MainWindow : Window
         _fichas.TryGetValue(p.Acronimo, out var ficha);
         var vecinos = GrafoRelaciones.Vecinos1Salto(p.Acronimo, _relaciones);
 
-        var sb = new StringBuilder();
-        sb.AppendLine($"=== {p.Nombre} ({p.Acronimo}) ===");
-
-        // La ficha prioritaria F4 (si existe) aporta los 18 campos; el resto se completa
-        // con los catálogos F3/F5/F6/IANA. Solo se imprime una línea si hay dato:
-        // los campos sin dato no se muestran (lagunas registradas en bitácora/backlog).
-        void Linea(int n, string etiqueta, string? valor)
+        var modelo = new FichaTextoModelo
         {
-            if (string.IsNullOrWhiteSpace(valor)) return;
-            var num = n <= 9 ? $" {n}" : n.ToString();
-            sb.AppendLine($"{num}. {etiqueta,-22}: {valor}");
-        }
+            Protocolo = p,
+            Ficha = ficha,
+            Campos = _camposPorAcronimo.TryGetValue(p.Acronimo, out var camposF5) ? camposF5 : Array.Empty<Field>(),
+            Vecinos = vecinos.Select(EtiquetaVecino).ToArray(),
+            Pdu = _pduPorAcronimo.TryGetValue(p.Acronimo, out var pduV) ? pduV : ficha?.Campo(7),
+            Cifrado = _cifradoPorAcronimo.TryGetValue(p.Acronimo, out var cf) ? cf : null,
+            Puertos = PuertosDe(p.Acronimo),
+            Nota = nota,
+            FuenteF3 = fuenteF3
+        };
 
-        Linea(1, "Identidad", $"{p.Nombre} · {p.Acronimo} · familia {p.Familia} [F3]");
-        Linea(2, "Estado", ficha?.Campo(2) ?? $"{p.Estado} (catálogo F3, 2026-08-26)");
-        Linea(3, "Finalidad", ficha?.Campo(3));
-        Linea(4, "Encapsulación",
-            ficha?.Campo(4) ?? (vecinos.Count > 0 ? string.Join(", ", vecinos.Select(EtiquetaVecino)) : null));
-        Linea(5, "Capas", p.Capas ?? ficha?.Campo(5));
-        var puertos = PuertosDe(p.Acronimo);
-        Linea(6, "Transp./dir", ficha?.Campo(6)
-            ?? (puertos != "—" ? $"{puertos} [IANA]" : null));
-        var pdu = _pduPorAcronimo.TryGetValue(p.Acronimo, out var pduV) ? pduV : ficha?.Campo(7);
-        Linea(7, "PDU", pdu);
-        Linea(8, "Mensajes", ficha?.Campo(8));
-        Linea(9, "Campos", ficha?.Campo(9));
-        Linea(10, "Secuencia", ficha?.Campo(10));
-        Linea(11, "Addressing", ficha?.Campo(11));
-        Linea(12, "Routing", ficha?.Campo(12));
-
-        var cifrado = _cifradoPorAcronimo.TryGetValue(p.Acronimo, out var cf) ? cf : null;
-        Linea(13, "Seguridad", cifrado is not null ? $"cifrado: {cifrado} [F6]" : ficha?.Campo(13));
-        Linea(14, "QoS/rendim.", ficha?.Campo(14));
-        Linea(15, "Observabilidad", ficha?.Campo(15));
-        Linea(16, "Interoperabilidad", ficha?.Campo(16));
-        Linea(17, "Implementaciones", ficha?.Campo(17));
-        Linea(18, "Fuentes", ficha?.Campo(18) ?? fuenteF3);
-
-        if (!string.IsNullOrWhiteSpace(nota)) sb.AppendLine($"      Nota/F3 .....: {nota}");
-
-        if (ficha is null && vecinos.Count > 0)
-        {
-            sb.AppendLine();
-            sb.AppendLine("--- Vecinos a 1 salto (grafo F4) ---");
-            foreach (var v in vecinos) sb.AppendLine($"  • {EtiquetaVecino(v)}");
-        }
-
-        if (_camposPorAcronimo.TryGetValue(p.Acronimo, out var campos) && campos.Count > 0)
-        {
-            sb.AppendLine();
-            sb.AppendLine("--- Campos catalogados (F5) ---");
-            foreach (var f in campos)
-                sb.AppendLine($"  {f.Nombre}: offset {f.OffsetBits?.ToString() ?? "var"} · {f.LongitudBits?.ToString() ?? "var"} bits · {f.Tipo}{(f.Obligatorio ? "" : " (opt.)")}");
-        }
-
-        DetailText.Text = sb.ToString();
+        DetailText.Text = FichaTexto.Render(modelo);
         RenderDiagramas(p, vecinos);
     }
 

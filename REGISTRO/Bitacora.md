@@ -1008,3 +1008,28 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 - **Cobertura**: `FASE-II-DISENO/ci/check-coverage.py` (solo stdlib) lee el XML de cobertura y falla por debajo de 90 % de líneas o 75 % de ramas. El job `quality` pasa a ejecutar `dotnet test --collect:"XPlat Code Coverage"`, el script y la subida del artefacto `cobertura` (7 días).
 
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 96/96 en `Redes.Knowledge.Tests` y 4/4 en `Redes.Knowledge.App.Tests`, 0 errores. Cobertura medida: 94,23 % de líneas y 83,38 % de ramas (Domain 70,0 %, Infrastructure 95,6 %, Visualization 98,1 %). `check-coverage.py` probado en ambos sentidos (pasa con los umbrales actuales, falla al subirlos). Workflow validado con `yaml.safe_load` (7 jobs).
+
+## 13-11-2026 — P2/I0: pruebas de caracterización de la ventana
+
+**Motivo:** extraer los formateadores del code-behind (`MainWindow.axaml.cs`, 1563 líneas) sin cambiar ni un espacio de la salida visible exige congelar antes el texto exacto que produce hoy la ventana.
+
+**Cambios:**
+
+- **`tests/Redes.Knowledge.App.Tests/CaracterizacionTests.cs`**: 7 `AvaloniaFact` que fijan ficha TCP, ficha DNS, agrupación de la navegación por familia con recuento, filtro de familia exacta, comparador TCP/UDP, resumen y lista de la muestra de captura y detalle del primer paquete.
+- **`tests/Redes.Knowledge.App.Tests/Golden/`**: cinco doradas (`ficha-tcp.txt`, `ficha-dns.txt`, `comparador-tcp-udp.txt`, `captura-detalle0.txt`, `nav.txt`) copiadas al directorio de salida con `PreserveNewest`.
+- **Normalización**: las doradas y el texto real se comparan con CRLF y CR convertidos a `\n` y sin saltos finales, de modo que el resultado es idéntico en Windows y en Linux.
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 96/96 en `Redes.Knowledge.Tests` y 11/11 en `Redes.Knowledge.App.Tests` (4 previas + 7 nuevas), 0 errores. Revisión gentle-ai `review-49b17df12d8730f4` (lente `review-reliability`) aprobada y reconocida; sus dos hallazgos son de severidad baja y quedan registrados: el glob `Golden\**` con barra invertida aún no se ha ejecutado en el job `quality` de Linux, y `Assert.Contains` sobre `ResumenCaptura.Text` anulable daría `ArgumentNullException` en vez de un fallo legible.
+
+## 13-11-2026 — P2/I1: formateador de ficha extraído a Visualization
+
+**Motivo:** la ficha de 18 campos era el bloque de texto más grande del code-behind y no se podía probar sin arrancar Avalonia.
+
+**Cambios:**
+
+- **`Redes.Knowledge.Visualization/FichaTexto.cs`**: `FichaTextoModelo` (protocolo, ficha F4 opcional, campos F5, vecinos ya etiquetados, PDU, cifrado, puertos, nota y fuente F3) y `FichaTexto.Render`, que reproduce línea por línea el formato anterior (numeración 1–9 con espacio inicial, etiquetas alineadas a 22, omisión de campos sin dato, bloques de vecinos y de campos catalogados).
+- **`Redes.Knowledge.Visualization.csproj`**: referencia a `Redes.Knowledge.Domain` (sin ciclo: Domain no referencia Visualization).
+- **`MainWindow.RenderFicha`**: resuelve catálogos y etiquetas de vecinos y delega el texto en `FichaTexto.Render`; se elimina el `StringBuilder` local.
+- **`tests/Redes.Knowledge.Tests/FichaTextoTests.cs`**: 5 casos puros (ficha completa con numeración y alineación, ficha ausente con vecinos y catálogos, puertos vacíos que no imprimen línea, campos F5 con offset/longitud/tipo/opcionalidad y ficha presente que omite la lista de vecinos).
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 101/101 en `Redes.Knowledge.Tests` y 11/11 en `Redes.Knowledge.App.Tests`, 0 errores; las 7 pruebas de caracterización pasan sin tocar sus doradas, lo que confirma que la salida es idéntica. Cobertura (Domain + Infrastructure + Visualization): 94,40 % de líneas y 84,52 % de ramas, umbral 90/75 cumplido.

@@ -29,4 +29,4 @@ Control de progreso del plan maestro (`PLANREDES.md`, sección 8). Cada fase pro
 Una fase se considera **completada** solo cuando sus criterios de salida están cumplidos y registrados en la bitácora con fecha. No se inicia F_n+1 que dependa de F_n sin aprobación de la fase anterior.
 
 ---
-Última actualización: 13-11-2026 (sincronización documental con la realidad publicada: v1.0.14, 78/78 pruebas, releases v1.0.11–v1.0.14, CI verde)
+Última actualización: 13-11-2026 (P2 en curso: I0 pruebas de caracterización e I1 formateador de ficha en Visualization; 101/101 + 11/11 pruebas, cobertura 94,40 %/84,52 %)
