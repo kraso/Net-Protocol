@@ -41,6 +41,7 @@ internal static class AccesibilidadVentana
         AutomationProperties.SetHelpText(ventana.AbrirCapturaButton, Textos.T("help.abrir.captura"));
         AutomationProperties.SetName(ventana.MuestraButton, Textos.T("boton.muestra"));
         AutomationProperties.SetHelpText(ventana.MuestraButton, Textos.T("help.muestra"));
+        AutomationProperties.SetName(ventana.DownloadButton, Textos.T("boton.descargar"));
         AutomationProperties.SetName(ventana.LanguageButton, Textos.T("acc.idioma"));
         AutomationProperties.SetName(ventana.NavFilter, Textos.T("acc.filtro.familias"));
         AutomationProperties.SetName(ventana.ThemeButton, Textos.T("sidebar.tema"));

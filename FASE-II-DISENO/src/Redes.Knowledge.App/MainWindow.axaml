@@ -177,6 +177,10 @@
     <!-- Aviso de actualización (opcional, no bloqueante): solo aparece si hay versión nueva. -->
     <SelectableTextBlock DockPanel.Dock="Bottom" x:Name="UpdateText" Margin="10,0,10,6"
                          FontSize="11" Opacity="0.85" TextWrapping="Wrap" IsVisible="False" />
+    <!-- Descarga del instalador (v1.1 S2): solo aparece si la release publica asset para
+         este sistema. Descarga, verifica SHA256 y deja el archivo; nunca lo ejecuta. -->
+    <Button x:Name="DownloadButton" DockPanel.Dock="Bottom" Content="Descargar instalador"
+            HorizontalAlignment="Left" Margin="10,0,10,8" IsVisible="False" />
 
     <!--
       Sidebar lateral: SOLO los grupos de familias ("dropdowns" de la navegación).

@@ -171,6 +171,20 @@ public static class Textos
             ["estado.leyenda"] = ("Leyenda de familias · zoom {0}", "Family legend · zoom {0}"),
             ["estado.acerca"] = ("Acerca de · zoom {0}", "About · zoom {0}"),
             ["estado.actualizacion"] = ("Versión {0} disponible · {1}", "Version {0} available · {1}"),
+            ["boton.descargar"] = ("Descargar instalador", "Download installer"),
+            ["estado.descarga.ok"] = (
+                "Instalador descargado y verificado en {0} · ábrelo tú cuando quieras",
+                "Installer downloaded and verified at {0} · open it yourself when ready"),
+            ["estado.descarga.hash"] = (
+                "El instalador no coincide con el SHA256 publicado: se descartó",
+                "The installer does not match the published SHA256: discarded"),
+            ["estado.descarga.sin.sumas"] = (
+                "La release no publica SHA256SUMS para este instalador",
+                "The release does not publish SHA256SUMS for this installer"),
+            ["estado.descarga.sin.asset"] = (
+                "No hay instalador para este sistema en la release",
+                "No installer for this system in the release"),
+            ["estado.descarga.error"] = ("No se pudo descargar el instalador: {0}", "Could not download the installer: {0}"),
             ["estado.explorador.error"] = ("No se pudo abrir el explorador: {0}", "Could not open the file manager: {0}"),
             ["estado.captura.error"] = ("No se pudo abrir la captura: {0}", "Could not open the capture: {0}"),
             ["estado.muestra.ok"] = (

@@ -35,6 +35,9 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
 - El comprobador de actualizaciones elige el instalador del sistema en ejecución (win-x64,
   linux-x64/arm64, osx-x64/arm64) y puede descargarlo a una carpeta temporal sin ejecutarlo
   (v1.1, S2/T2). La verificación del hash y el aviso en la interfaz llegan en T3.
+- El instalador descargado se verifica contra el `SHA256SUMS` de la release antes de darlo por
+  bueno: si no coincide se borra y se avisa. La app deja la ruta y **nunca** ejecuta el archivo
+  (v1.1, S2/T3). El aviso explica qué garantiza el hash y qué no.
 
 ### Cambiado
 - `on.push` acotado a `main` y tags `v*`: la matriz ya no se lanza en cada rama.

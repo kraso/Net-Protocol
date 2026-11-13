@@ -1274,3 +1274,11 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 `FASE-08-VALIDACION/GUIA-CAPTURAS-L004.md`: los 18 protocolos que faltan, cada uno con escenario mínimo, filtro BPF exacto y dificultad; la VM única (Debian 12) con paquetes y módulos; network namespaces para los que necesitan dos extremos; validación con `tshark` y la prueba `CorpusL004`; y checklist de entrega.
 
 **Corrección de un dato mío:** los 18 **no** necesitan stacks antiguos; todos son modernos y salen de una VM Linux. Los stacks viejos (NetBEUI, IPX/SPX, AppleTalk) afectan a las fichas, no a los layouts F5. Además, dos capturas que ya están en el corpus no registran por ir cifradas: CoAP sobre DTLS y HTTP/2 sobre TLS.
+
+## 13-11-2026 — T3: el instalador se descarga verificado y nunca se ejecuta
+
+**Qué entra:** `ActualizadorInstalador.DescargarYVerificarAsync` baja el `SHA256SUMS` de la release, localiza la línea del asset del sistema, descarga el instalador a temporal y compara el hash; si no coincide, **borra el archivo** y devuelve `HashInvalido`. Devuelve estado en vez de lanzar (`Verificado`, `SinAsset`, `SinSumas`, `HashInvalido`, `Error`). En la ventana aparece un botón «Descargar instalador» solo cuando la release publica asset para el sistema; al pulsarlo, el aviso pasa a decir la ruta verificada o el motivo del fallo. **La app no ejecuta ni instala nada.**
+
+**Qué garantiza el hash:** integridad del transporte, no autoría. Sin firma de código, quien controle la release controla también el hash. Queda escrito en `SECURITY.md` y en el propio aviso.
+
+**Verificación:** 142/142 en `Redes.Knowledge.Tests` (siete nuevas: hash correcto, hash manipulado que borra el archivo, sumas sin el asset, release sin asset, red caída, parseo del `SHA256SUMS` con marcador binario y URL hermana) y 56/56 en `App.Tests` (el botón empieza oculto y se traduce). Cobertura 95,04 % líneas / 83,81 % ramas.

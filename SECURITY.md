@@ -43,3 +43,7 @@ Quedan fuera del alcance:
 Los instaladores Linux se firman con la clave GPG de releases `CD11DE8033B6E164`; la clave pública (`NetProtocol-gpg-pubkey.asc`) se adjunta a cada release. Instrucciones de verificación en el [README](README.md).
 
 La firma depende de que los secretos `GPG_PRIVATE_KEY` y `GPG_KEY_ID` estén configurados en el repositorio. Si faltan, el workflow emite un aviso y publica los instaladores **sin firmar**: en ese caso el release no incluye `.asc` ni `NetProtocol-gpg-pubkey.asc`, y esa ausencia es la señal de que no hay firma que verificar.
+
+Desde v1.1, cada release publica además `SHA256SUMS` con el hash de todos los instaladores. La aplicación lo usa antes de ofrecer una actualización: descarga el instalador a una carpeta temporal, comprueba su SHA256 y, si no coincide, lo borra y avisa.
+
+**Qué garantiza y qué no:** el SHA256 garantiza que el archivo descargado es el que la release publica, no quién lo publicó. Sin firma de código, quien controle la release controla también el hash. Por eso la aplicación **no instala ni ejecuta nada automáticamente**: deja el instalador verificado en disco y el usuario decide cuándo abrirlo.

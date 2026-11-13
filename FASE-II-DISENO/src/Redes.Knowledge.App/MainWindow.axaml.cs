@@ -71,6 +71,9 @@ public partial class MainWindow : Window
     // Captura en pantalla: se guarda para poder repintar sus textos al cambiar de idioma.
     private PcapCapture? _captura;
 
+    /// <summary>Última comprobación con versión nueva, para poder descargar su instalador.</summary>
+    private ResultadoActualizacion? _actualizacion;
+
     // Popups de información de los botones de acción y su supervisión global (deadline,
     // geometría del puntero y gracia anti-reabrir). Ver <see cref="SupervisorPopups"/>.
     private readonly SupervisorPopups _popups;
@@ -147,6 +150,7 @@ public partial class MainWindow : Window
         ExportButton.Click += async (_, _) => await ExportarDiagramasAsync();
         AbrirCapturaButton.Click += async (_, _) => await AbrirCapturaAsync();
         MuestraButton.Click += (_, _) => GenerarMuestra();
+        DownloadButton.Click += async (_, _) => await DescargarActualizacionAsync();
         // Tooltip de "Muestra de prueba": el contenido (frase + carpeta REAL de capturas) y
         // Popups de información de los botones de acción (Comparar, Exportar, Abrir captura,
         // Muestra de prueba), en sustitución de los tooltips nativos: estilo cristalino y
@@ -210,14 +214,52 @@ public partial class MainWindow : Window
             using var http = GitHubUpdateChecker.CrearCliente();
             var resultado = await new GitHubUpdateChecker(http).CheckAsync(version).ConfigureAwait(true);
             if (!resultado.HayActualizacion) return;
+            _actualizacion = resultado;
             UpdateText.Text = Textos.F("estado.actualizacion", resultado.VersionDisponible, resultado.UrlDescarga);
             UpdateText.IsVisible = true;
+            // El botón solo aparece si hay instalador para este sistema (S2).
+            DownloadButton.IsVisible = resultado.NombreAsset is not null;
         }
         catch
         {
             // La comprobación de actualizaciones nunca debe afectar al arranque ni a la UI.
         }
     }
+
+    /// <summary>
+    /// Descarga el instalador de la versión nueva y comprueba su SHA256. Nunca lo ejecuta:
+    /// deja la ruta en el aviso y el usuario decide si lo abre (S2/T3 de v1.1).
+    /// </summary>
+    private async Task DescargarActualizacionAsync()
+    {
+        if (_actualizacion is not { } actualizacion) return;
+
+        DownloadButton.IsEnabled = false;
+        try
+        {
+            using var http = GitHubUpdateChecker.CrearCliente();
+            var resultado = await ActualizadorInstalador
+                .DescargarYVerificarAsync(http, actualizacion)
+                .ConfigureAwait(true);
+
+            UpdateText.Text = MensajeDescarga(resultado);
+            UpdateText.IsVisible = true;
+        }
+        finally
+        {
+            DownloadButton.IsEnabled = true;
+        }
+    }
+
+    /// <summary>Traduce el resultado de la descarga al aviso de la ventana.</summary>
+    private static string MensajeDescarga(ResultadoDescarga resultado) => resultado.Estado switch
+    {
+        EstadoDescarga.Verificado => Textos.F("estado.descarga.ok", resultado.Ruta),
+        EstadoDescarga.HashInvalido => Textos.T("estado.descarga.hash"),
+        EstadoDescarga.SinSumas => Textos.T("estado.descarga.sin.sumas"),
+        EstadoDescarga.SinAsset => Textos.T("estado.descarga.sin.asset"),
+        _ => Textos.F("estado.descarga.error", resultado.Detalle ?? "")
+    };
 
     /// <summary>Configura los popups de información de los 4 botones de acción (Comparar,
     /// Exportar, Abrir captura, Muestra de prueba), sustituyendo a los tooltips nativos.</summary>
@@ -1268,6 +1310,7 @@ public partial class MainWindow : Window
         ExportButton.Content = Textos.T("boton.exportar");
         AbrirCapturaButton.Content = Textos.T("boton.abrir.captura");
         MuestraButton.Content = Textos.T("boton.muestra");
+        DownloadButton.Content = Textos.T("boton.descargar");
         LanguageButton.Content = Textos.T("boton.idioma");
         NavFilter.PlaceholderText = Textos.T("nav.filtro");
         LblAcciones.Text = Textos.T("sidebar.acciones");

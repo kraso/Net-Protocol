@@ -198,6 +198,30 @@ public class IdiomaTests
         }
     }
 
+    [AvaloniaFact]
+    public void ElBotonDeDescargaEmpiezaOcultoYSeTraduce()
+    {
+        var previo = Textos.Idioma;
+        try
+        {
+            Textos.Fijar(Textos.Es);
+            var ventana = NuevaVentana();
+            var boton = ventana.FindControl<Button>("DownloadButton")!;
+
+            // Solo aparece cuando la release publica un instalador para este sistema.
+            Assert.False(boton.IsVisible);
+            Assert.Equal("Descargar instalador", boton.Content);
+
+            Pulsar(ventana, "LanguageButton");
+
+            Assert.Equal("Download installer", boton.Content);
+        }
+        finally
+        {
+            Textos.Fijar(previo);
+        }
+    }
+
     private static List<Protocol> Recolectar(StackPanel panel) =>
         panel.Children.OfType<Expander>()
             .SelectMany(e => ((ListBox)e.Content!).Items.OfType<ListBoxItem>())
