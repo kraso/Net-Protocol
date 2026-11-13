@@ -55,6 +55,8 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
 - El comparador de protocolos sale del code-behind a `ComparadorTexto` en `Redes.Knowledge.Visualization`
   con seis pruebas puras: ancho fijo, marca de igualdad, campos largos, truncado y versión inglesa.
   La salida en español no cambia (la fija la prueba dorada).
+- Los nombres accesibles salen del code-behind a `AccesibilidadVentana`, que aplica el catálogo sobre
+  los controles con nombre; el code-behind baja de 1.691 a 1.648 líneas sin cambiar el resultado.
 
 ### Corregido
 - **L-005 cerrada**: 107/113 fichas con `Source` de nivel 1 (94,69 %, objetivo ≥90 %); el job

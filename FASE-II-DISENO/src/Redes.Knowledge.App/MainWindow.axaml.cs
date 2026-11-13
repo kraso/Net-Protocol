@@ -1420,7 +1420,7 @@ public partial class MainWindow : Window
     private void AplicarIdioma()
     {
         AplicarTextosChrome();
-        AplicarAccesibilidad();
+        AccesibilidadVentana.Aplicar(this);
         RefrescarFiltros();
         AplicarTextosPopups();
     }
@@ -1449,49 +1449,6 @@ public partial class MainWindow : Window
         LblAcerca.Text = Textos.T("sidebar.acerca");
         DiagramTitle.Text = Textos.T("diagramas.titulo");
         CerrarCapturaButton.Content = Textos.T("boton.cerrar.captura");
-    }
-
-    /// <summary>
-    /// Nombres accesibles: sin ellos un lector de pantalla anuncia botones vacíos (los glifos
-    /// de ventana) o campos sin propósito. Se aplican aquí para que sigan al idioma activo.
-    /// </summary>
-    private void AplicarAccesibilidad()
-    {
-        AutomationProperties.SetName(MinimizeButton, Textos.T("acc.ventana.minimizar"));
-        AutomationProperties.SetName(MaximizeButton, Textos.T("acc.ventana.maximizar"));
-        AutomationProperties.SetName(CloseButton, Textos.T("acc.ventana.cerrar"));
-        ToolTip.SetTip(MinimizeButton, Textos.T("acc.ventana.minimizar"));
-        ToolTip.SetTip(MaximizeButton, Textos.T("acc.ventana.maximizar"));
-        ToolTip.SetTip(CloseButton, Textos.T("acc.ventana.cerrar"));
-
-        AutomationProperties.SetName(SearchBox, Textos.T("acc.busqueda"));
-        AutomationProperties.SetName(SearchButton, Textos.T("buscar.boton"));
-        AutomationProperties.SetName(ProtocolSelector, Textos.T("acc.protocolo"));
-        AutomationProperties.SetName(CompareTarget, Textos.T("acc.comparar.con"));
-        AutomationProperties.SetName(CompareButton, Textos.T("boton.comparar"));
-        AutomationProperties.SetHelpText(CompareButton, Textos.T("help.comparar"));
-        AutomationProperties.SetName(VolverFichaButton, Textos.T("boton.volver.ficha"));
-        AutomationProperties.SetName(FilterFamilia, Textos.T("acc.familia"));
-        AutomationProperties.SetName(FilterEstado, Textos.T("acc.estado"));
-        AutomationProperties.SetName(ExportFormat, Textos.T("acc.formato.exportacion"));
-        AutomationProperties.SetName(ExportButton, Textos.T("boton.exportar"));
-        AutomationProperties.SetHelpText(ExportButton, Textos.T("help.exportar"));
-        AutomationProperties.SetName(AbrirCapturaButton, Textos.T("boton.abrir.captura"));
-        AutomationProperties.SetHelpText(AbrirCapturaButton, Textos.T("help.abrir.captura"));
-        AutomationProperties.SetName(MuestraButton, Textos.T("boton.muestra"));
-        AutomationProperties.SetHelpText(MuestraButton, Textos.T("help.muestra"));
-        AutomationProperties.SetName(LanguageButton, Textos.T("acc.idioma"));
-        AutomationProperties.SetName(NavFilter, Textos.T("acc.filtro.familias"));
-        AutomationProperties.SetName(ThemeButton, Textos.T("sidebar.tema"));
-        AutomationProperties.SetName(LegendButton, Textos.T("sidebar.leyenda"));
-        AutomationProperties.SetName(AboutButton, Textos.T("sidebar.acerca"));
-        AutomationProperties.SetName(DetailText, Textos.T("acc.ficha"));
-        AutomationProperties.SetName(DiagramTitle, Textos.T("acc.diagramas"));
-        AutomationProperties.SetName(StatusText, Textos.T("acc.estado.barra"));
-        AutomationProperties.SetName(ResumenCaptura, Textos.T("acc.captura.resumen"));
-        AutomationProperties.SetName(ListaPaquetes, Textos.T("acc.captura.paquetes"));
-        AutomationProperties.SetName(DetalleCaptura, Textos.T("acc.captura.detalle"));
-        AutomationProperties.SetName(CerrarCapturaButton, Textos.T("boton.cerrar.captura"));
     }
 
     /// <summary>Popups de información: se construyen una sola vez, así que su texto se refresca aquí.</summary>

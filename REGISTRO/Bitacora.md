@@ -1194,3 +1194,13 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Aparte:** `CorpusL004` capturaba `Exception ex` sin usar la variable; ahora es `catch (Exception)` y el build queda con 0 avisos.
 
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 124/124 en `Redes.Knowledge.Tests` y 49/49 en `App.Tests`. Cobertura 94,79 % líneas / 83,26 % ramas. La dorada del comparador pasa sin tocarla, así que el español no cambió.
+
+## 13-11-2026 — Los nombres accesibles salen del code-behind
+
+**Motivo:** `AplicarAccesibilidad` eran 35 líneas de asignaciones dentro de la ventana, mezcladas con el volcado de textos visibles. Es el bloque más mecánico y el que menos depende del resto del código.
+
+**Cambio:** `AccesibilidadVentana.Aplicar(ventana)` aplica el catálogo sobre los controles con nombre. Vive en la raíz del proyecto, junto a `DiagramExporter` y `DiagramView`, siguiendo la estructura plana que ya tenía `Redes.Knowledge.App`. `AplicarIdioma` queda como orquestador de cuatro pasos y `MainWindow` baja de 1.691 a 1.648 líneas.
+
+**Por qué se puede mover sin riesgo:** los campos que genera el compilador de XAML para `x:Name` son `internal`, así que un tipo del mismo ensamblado los lee sin exponer nada nuevo. La prueba de accesibilidad que recorre el árbol lógico sigue exigiendo nombre a todo control enfocable y pasa sin cambios: es la que demuestra que el volcado no perdió ningún control.
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 124/124 y 49/49. Cobertura 94,79 % líneas / 83,26 % ramas. Build sin advertencias.
