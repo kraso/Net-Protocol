@@ -20,6 +20,10 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
   selección y captura) salen del code-behind a clases puras, sin dependencia de Avalonia.
 - i18n es/en: `Textos` en `Redes.Knowledge.Visualization` (catálogo puro de ~50 claves), botón
   `EN`/`ES` en la barra superior y detección inicial por `NETPROTOCOL_IDIOMA` o `LANG`/`LC_ALL`.
+- Accesibilidad: nombre accesible (`AutomationProperties.Name`) en todos los controles interactivos
+  —incluidos los tres botones de ventana y las regiones de texto—, ayuda larga en los cuatro botones
+  de acción, tooltips localizados en la barra de título, anillo de foco visible con el acento de la app
+  y zoom por teclado `Ctrl` + `+` / `-` / `0`.
 - Proyecto `tests/Redes.Knowledge.App.Tests` con pruebas de UI headless (`Avalonia.Headless.XUnit`).
 - `FASE-II-DISENO/ci/check-coverage.py`: puerta de cobertura (90 % líneas, 75 % ramas) sobre el XML
   de Cobertura.

@@ -32,6 +32,40 @@ public static class Textos
             ["boton.muestra"] = ("Muestra de prueba", "Sample data"),
             ["boton.idioma"] = ("EN", "ES"),
 
+            // Accesibilidad: nombre que expone cada control a lectores de pantalla.
+            ["acc.ventana.minimizar"] = ("Minimizar", "Minimize"),
+            ["acc.ventana.maximizar"] = ("Maximizar", "Maximize"),
+            ["acc.ventana.cerrar"] = ("Cerrar", "Close"),
+            ["acc.busqueda"] = ("Búsqueda de protocolos", "Protocol search"),
+            ["acc.protocolo"] = ("Selector de protocolo", "Protocol selector"),
+            ["acc.comparar.con"] = ("Protocolo de comparación", "Comparison protocol"),
+            ["acc.familia"] = ("Filtro por familia", "Filter by family"),
+            ["acc.estado"] = ("Filtro por estado", "Filter by status"),
+            ["acc.formato.exportacion"] = ("Formato de exportación", "Export format"),
+            ["acc.idioma"] = ("Cambiar idioma", "Change language"),
+            ["acc.filtro.familias"] = ("Filtro de familias", "Family filter"),
+            ["acc.ficha"] = ("Ficha del protocolo", "Protocol sheet"),
+            ["acc.diagramas"] = ("Diagramas de arquitectura", "Architecture diagrams"),
+            ["acc.estado.barra"] = ("Barra de estado", "Status bar"),
+            ["acc.captura.resumen"] = ("Resumen de la captura", "Capture summary"),
+            ["acc.captura.paquetes"] = ("Paquetes de la captura", "Capture packets"),
+            ["acc.captura.detalle"] = ("Detalle del paquete", "Packet detail"),
+
+            // Ayuda larga de los botones de acción (se expone a lectores de pantalla; el
+            // popup visual conserva su propio texto mientras la i18n siga siendo parcial).
+            ["help.comparar"] = (
+                "Compara el protocolo actual con otro del catálogo. Pulsa «✕ Volver a la ficha» para salir.",
+                "Compares the current protocol with another one in the catalog. Press «✕ Back to sheet» to leave."),
+            ["help.exportar"] = (
+                "Exporta los diagramas de la ficha actual (pila, grafo, cabecera) al formato elegido: SVG, PNG o PDF.",
+                "Exports the current sheet diagrams (stack, graph, header) to the chosen format: SVG, PNG or PDF."),
+            ["help.abrir.captura"] = (
+                "Abre el explorador para elegir un archivo de captura PCAP o PCAPNG y muestra sus paquetes.",
+                "Opens the file manager to choose a PCAP or PCAPNG capture file and shows its packets."),
+            ["help.muestra"] = (
+                "Genera una captura sintética determinista con los 28 protocolos con layout F5.",
+                "Generates a deterministic synthetic capture with the 28 protocols that have an F5 layout."),
+
             // Sidebar y vistas textuales
             ["nav.filtro"] = ("Filtrar familias - Ver leyenda", "Filter families - View legend"),
             ["sidebar.acciones"] = ("Acciones", "Actions"),

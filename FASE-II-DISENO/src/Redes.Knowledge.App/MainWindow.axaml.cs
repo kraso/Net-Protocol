@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text;
 using Avalonia.Platform.Storage;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
@@ -199,9 +200,7 @@ public partial class MainWindow : Window
             (_, e) =>
             {
                 if ((e.KeyModifiers & KeyModifiers.Control) == 0) return;
-                _presentacion.AplicarZoom(e.Delta.Y > 0 ? PresentacionViewModel.ZoomPaso : -PresentacionViewModel.ZoomPaso);
-                AplicarZoomContenido();
-                StatusText.Text = Textos.F("estado.zoom", _presentacion.ZoomTexto);
+                AplicarPasoZoom(e.Delta.Y > 0 ? PresentacionViewModel.ZoomPaso : -PresentacionViewModel.ZoomPaso);
                 e.Handled = true;
             },
             RoutingStrategies.Bubble,
@@ -1306,6 +1305,51 @@ public partial class MainWindow : Window
 
     private void Close_Click(object? sender, RoutedEventArgs e) => Close();
 
+    /// <summary>
+    /// Atajos de teclado de la ventana: Ctrl+«+» y Ctrl+«-» mueven el zoom del contenido y
+    /// Ctrl+0 lo devuelve al 100 %. Se comprueba antes del resto de manejadores para que el
+    /// atajo no escriba en un campo con el foco; sin Ctrl, la tecla sigue su curso normal.
+    /// El zoom por rueda y por teclado comparten la misma ruta de aplicación.
+    /// </summary>
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (AtajoZoom(e.Key, e.KeyModifiers))
+        {
+            e.Handled = true;
+            return;
+        }
+        base.OnKeyDown(e);
+    }
+
+    private bool AtajoZoom(Key tecla, KeyModifiers modificadores)
+    {
+        if ((modificadores & KeyModifiers.Control) == 0) return false;
+        switch (tecla)
+        {
+            case Key.OemPlus or Key.Add:
+                AplicarPasoZoom(PresentacionViewModel.ZoomPaso);
+                return true;
+            case Key.OemMinus or Key.Subtract:
+                AplicarPasoZoom(-PresentacionViewModel.ZoomPaso);
+                return true;
+            case Key.D0 or Key.NumPad0:
+                _presentacion.RestablecerZoom();
+                AplicarZoomContenido();
+                StatusText.Text = Textos.F("estado.zoom", _presentacion.ZoomTexto);
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>Aplica una muesca de zoom y refleja el resultado en la barra de estado.</summary>
+    private void AplicarPasoZoom(double delta)
+    {
+        _presentacion.AplicarZoom(delta);
+        AplicarZoomContenido();
+        StatusText.Text = Textos.F("estado.zoom", _presentacion.ZoomTexto);
+    }
+
     /// <summary>Vuelca el catálogo de textos en los controles con nombre (chrome de la ventana).</summary>
     private void AplicarIdioma()
     {
@@ -1330,6 +1374,45 @@ public partial class MainWindow : Window
         LblAcerca.Text = Textos.T("sidebar.acerca");
         DiagramTitle.Text = Textos.T("diagramas.titulo");
         CerrarCapturaButton.Content = Textos.T("boton.cerrar.captura");
+
+        // Nombres accesibles: sin ellos un lector de pantalla anuncia botones vacíos (los
+        // glifos de ventana) o campos sin propósito. Se aplican aquí para que sigan al
+        // idioma activo igual que el resto del chrome.
+        AutomationProperties.SetName(MinimizeButton, Textos.T("acc.ventana.minimizar"));
+        AutomationProperties.SetName(MaximizeButton, Textos.T("acc.ventana.maximizar"));
+        AutomationProperties.SetName(CloseButton, Textos.T("acc.ventana.cerrar"));
+        ToolTip.SetTip(MinimizeButton, Textos.T("acc.ventana.minimizar"));
+        ToolTip.SetTip(MaximizeButton, Textos.T("acc.ventana.maximizar"));
+        ToolTip.SetTip(CloseButton, Textos.T("acc.ventana.cerrar"));
+
+        AutomationProperties.SetName(SearchBox, Textos.T("acc.busqueda"));
+        AutomationProperties.SetName(SearchButton, Textos.T("buscar.boton"));
+        AutomationProperties.SetName(ProtocolSelector, Textos.T("acc.protocolo"));
+        AutomationProperties.SetName(CompareTarget, Textos.T("acc.comparar.con"));
+        AutomationProperties.SetName(CompareButton, Textos.T("boton.comparar"));
+        AutomationProperties.SetHelpText(CompareButton, Textos.T("help.comparar"));
+        AutomationProperties.SetName(VolverFichaButton, Textos.T("boton.volver.ficha"));
+        AutomationProperties.SetName(FilterFamilia, Textos.T("acc.familia"));
+        AutomationProperties.SetName(FilterEstado, Textos.T("acc.estado"));
+        AutomationProperties.SetName(ExportFormat, Textos.T("acc.formato.exportacion"));
+        AutomationProperties.SetName(ExportButton, Textos.T("boton.exportar"));
+        AutomationProperties.SetHelpText(ExportButton, Textos.T("help.exportar"));
+        AutomationProperties.SetName(AbrirCapturaButton, Textos.T("boton.abrir.captura"));
+        AutomationProperties.SetHelpText(AbrirCapturaButton, Textos.T("help.abrir.captura"));
+        AutomationProperties.SetName(MuestraButton, Textos.T("boton.muestra"));
+        AutomationProperties.SetHelpText(MuestraButton, Textos.T("help.muestra"));
+        AutomationProperties.SetName(LanguageButton, Textos.T("acc.idioma"));
+        AutomationProperties.SetName(NavFilter, Textos.T("acc.filtro.familias"));
+        AutomationProperties.SetName(ThemeButton, Textos.T("sidebar.tema"));
+        AutomationProperties.SetName(LegendButton, Textos.T("sidebar.leyenda"));
+        AutomationProperties.SetName(AboutButton, Textos.T("sidebar.acerca"));
+        AutomationProperties.SetName(DetailText, Textos.T("acc.ficha"));
+        AutomationProperties.SetName(DiagramTitle, Textos.T("acc.diagramas"));
+        AutomationProperties.SetName(StatusText, Textos.T("acc.estado.barra"));
+        AutomationProperties.SetName(ResumenCaptura, Textos.T("acc.captura.resumen"));
+        AutomationProperties.SetName(ListaPaquetes, Textos.T("acc.captura.paquetes"));
+        AutomationProperties.SetName(DetalleCaptura, Textos.T("acc.captura.detalle"));
+        AutomationProperties.SetName(CerrarCapturaButton, Textos.T("boton.cerrar.captura"));
     }
 
     /// <summary>Alterna es/en, reaplica el chrome y repinta la MISMA vista en pantalla.</summary>

@@ -47,6 +47,22 @@ public class PresentacionViewModelTests
     }
 
     [Fact]
+    public void RestablecerZoom_devuelve_a_100_desde_cualquier_valor()
+    {
+        var vm = new PresentacionViewModel();
+        vm.AplicarZoom(PresentacionViewModel.ZoomPaso);
+        vm.AplicarZoom(PresentacionViewModel.ZoomPaso);
+        Assert.Equal("120%", vm.ZoomTexto);
+
+        Assert.Equal(1.0, vm.RestablecerZoom(), 10);
+        Assert.Equal("100%", vm.ZoomTexto);
+
+        // Idempotente: repetirlo no altera nada.
+        Assert.Equal(1.0, vm.RestablecerZoom(), 10);
+        Assert.Equal("100%", vm.ZoomTexto);
+    }
+
+    [Fact]
     public void AplicarZoom_no_baja_del_minimo_ni_sube_del_maximo()
     {
         var vm = new PresentacionViewModel();

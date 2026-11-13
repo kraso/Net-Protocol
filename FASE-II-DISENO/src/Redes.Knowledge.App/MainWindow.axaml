@@ -88,6 +88,22 @@
     <Style Selector="ComboBox:focus /template/ Border">
       <Setter Property="BorderBrush" Value="{DynamicResource tAcento}" />
     </Style>
+    <!-- Foco visible por teclado. Con WindowDecorations=None no hay marco del sistema que
+         lo dibuje, y los botones propios no tenían ningún anillo: sin esto, recorrer con
+         Tab no indica dónde está el foco. Solo se pinta en :focus-visible, así que el
+         clic con ratón no cambia el aspecto. -->
+    <Style Selector="Button:focus-visible /template/ ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource tAcento}" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="ListBoxItem:focus-visible /template/ ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource tAcento}" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="ComboBoxItem:focus-visible /template/ ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource tAcento}" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
   </Window.Styles>
   <!-- Redimensión por borde con WindowDecorations=None: el marco del sistema no existe,
        así que la ventana NO redimensiona por defecto. Se añaden grips invisibles (bordes
@@ -114,11 +130,11 @@
         <!-- Botones de ventana propios (SystemDecorations=None) -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
                     VerticalAlignment="Top" Spacing="0">
-          <Button Content="&#x2014;" Width="46" Height="44" Classes="WinBtn"
+          <Button x:Name="MinimizeButton" Content="&#x2014;" Width="46" Height="44" Classes="WinBtn"
                   Click="Minimize_Click" />
-          <Button Content="&#x25A1;" Width="46" Height="44" Classes="WinBtn"
+          <Button x:Name="MaximizeButton" Content="&#x25A1;" Width="46" Height="44" Classes="WinBtn"
                   Click="Maximize_Click" />
-          <Button Content="&#x2715;" Width="46" Height="44" Classes="WinBtn CloseBtn"
+          <Button x:Name="CloseButton" Content="&#x2715;" Width="46" Height="44" Classes="WinBtn CloseBtn"
                   Click="Close_Click" />
         </StackPanel>
       </Grid>

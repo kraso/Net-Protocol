@@ -1098,3 +1098,19 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Ventana:** `AplicarIdioma` vuelca el catálogo en los controles con nombre (se añadieron `LblProtocolo`, `LblComparar`, `LblFamilia`, `LblEstado`, `LblExportar`, `LblAcciones`, `LblTema`, `LblLeyenda`, `LblAcerca`), y el botón `LanguageButton` alterna idioma, reaplica el chrome y repinta la ficha; con una captura abierta solo cambia el chrome, porque la captura es una vista de datos. Las 22 cadenas de estado y los bloques de leyenda y «Acerca de» pasan a `Textos.F`/`Textos.T`.
 
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 117/117 en `Redes.Knowledge.Tests` (8 nuevas en `TextosTests`: cobertura de claves en ambos idiomas, clave desconocida, `Fijar` con valor inválido, `Alternar`, `Detectar` por entorno, formato con argumentos y cultura invariante) y 33/33 en `App.Tests`. Puerta de cobertura: 94,47 % líneas y 83,48 % ramas. Las siete pruebas de caracterización siguen pasando sin tocar las doradas.
+
+## 13-11-2026 — Accesibilidad: nombres, ayuda, foco visible y zoom por teclado
+
+**Motivo:** con `WindowDecorations="None"` los botones de ventana son glifos sin nombre, los campos no declaran propósito y el zoom solo existía detrás de `Ctrl`+rueda. Un lector de pantalla anunciaba botones vacíos.
+
+**Nombres accesibles:** `AplicarIdioma` asigna `AutomationProperties.Name` a 27 controles (botones, cajas de texto, desplegables y las regiones de ficha, diagramas, barra de estado y captura) y `AutomationProperties.HelpText` a los cuatro botones que tienen popup propio. El nombre sale del catálogo `Textos` (17 claves `acc.*` y 4 `help.*` nuevas), así que sigue al idioma activo; los tres botones de ventana reciben además `ToolTip.Tip` localizado.
+
+**Foco visible:** estilos `:focus-visible` para `Button`, `ListBoxItem` y `ComboBoxItem` con `tAcento` y borde de 2 px. Antes solo los campos de escritura y los desplegables marcaban el foco, y sin marco del sistema no hay nada más que lo dibuje.
+
+**Zoom por teclado:** `Ctrl`+`+` y `Ctrl`+`-` mueven una muesca; `Ctrl`+`0` vuelve al 100 % con `PresentacionViewModel.RestablecerZoom`. La rueda y el teclado comparten `AplicarPasoZoom`, así que la barra de estado informa igual por ambos caminos. Sin `Ctrl` la tecla no se consume.
+
+**Contraste (medido, sin cambios):** el texto secundario de `ItemProtocolo` (`Opacity=0.65`, `FontSize=11`) compone 6,4:1 sobre el fondo oscuro y 5,7:1 sobre el claro, por encima del 4,5:1 de WCAG AA. No se toca.
+
+**Decidido no hacer:** los ocho grips de redimensión son `Border` sin automation peer, así que nombrarlos no aportaría nada; redimensionar por teclado queda documentado como limitación (la ventana se maximiza con su botón, que sí es accesible). El orden de tabulación del `WrapPanel` ya coincide con el orden lógico de uso y no se reordena con `TabIndex`.
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 117/117 en `Redes.Knowledge.Tests` y 44/44 en `App.Tests` (7 nuevas: seis en `AccesibilidadTests` —nombres de todos los controles, botones de ventana y tooltip localizados, ayuda larga, `Ctrl`+`+` y `Ctrl`+`0`, `Ctrl`+`-`, y que sin `Ctrl` no se consume— y una de `RestablecerZoom`). Cobertura 94,57 % líneas / 83,48 % ramas. Las pruebas nuevas fijan `NETPROTOCOL_IDIOMA` para no depender del `LANG` del equipo.

@@ -82,6 +82,16 @@ public sealed class PresentacionViewModel
     }
 
     /// <summary>
+    /// Devuelve el zoom a 100 % (atajo Ctrl+0) ignorando el valor previo. Es independiente
+    /// de las muescas: siempre deja el factor en 1.0, que está dentro de los límites.
+    /// </summary>
+    public double RestablecerZoom()
+    {
+        Zoom = 1.0;
+        return Zoom;
+    }
+
+    /// <summary>
     /// Fija las fuentes base al abrir la ventana. Un valor no positivo o NaN se sustituye
     /// por <see cref="FuenteReserva"/>; el título nunca queda por debajo del contenido.
     /// </summary>
