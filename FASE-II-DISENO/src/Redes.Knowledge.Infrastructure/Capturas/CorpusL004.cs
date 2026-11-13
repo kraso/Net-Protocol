@@ -35,7 +35,7 @@ public static class CorpusL004
         {
             PcapCapture captura;
             try { captura = PcapCaptureReader.Abrir(ruta); }
-            catch (Exception ex)
+            catch (Exception)
             {
                 ficheros.Add(new FicheroL004(Path.GetFileName(ruta), 0, 0, 0));
                 continue; // fichero no parseable: se anota sin paquetes
