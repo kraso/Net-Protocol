@@ -156,6 +156,9 @@
 
     <!-- Barra de estado -->
     <SelectableTextBlock DockPanel.Dock="Bottom" x:Name="StatusText" Margin="10,6" TextWrapping="Wrap" />
+    <!-- Aviso de actualización (opcional, no bloqueante): solo aparece si hay versión nueva. -->
+    <SelectableTextBlock DockPanel.Dock="Bottom" x:Name="UpdateText" Margin="10,0,10,6"
+                         FontSize="11" Opacity="0.85" TextWrapping="Wrap" IsVisible="False" />
 
     <!--
       Sidebar lateral: SOLO los grupos de familias ("dropdowns" de la navegación).

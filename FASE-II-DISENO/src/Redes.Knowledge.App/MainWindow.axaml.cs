@@ -15,6 +15,7 @@ using Avalonia.Threading;
 using Redes.Knowledge.Domain;
 using Redes.Knowledge.Infrastructure;
 using Redes.Knowledge.Infrastructure.Capturas;
+using Redes.Knowledge.Infrastructure.Updates;
 using Redes.Knowledge.Visualization;
 
 namespace Redes.Knowledge.App;
@@ -255,6 +256,7 @@ public partial class MainWindow : Window
             _tituloBase = Math.Max(_fuenteBase, tituloBase);
             AplicarZoomContenido();
             if (IsLoaded) StatusText.Text = $"Dataset: {_protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · zoom del contenido {_zoom * 100:0}% (Ctrl+Scroll)";
+            _ = ComprobarActualizacionesAsync();
         };
 
         // Última posición del puntero (coordenadas de la ventana), compartida por todos
@@ -263,6 +265,28 @@ public partial class MainWindow : Window
             (_, e) => _ultimaPosPuntero = e.GetPosition(this),
             RoutingStrategies.Bubble,
             handledEventsToo: true);
+    }
+
+    /// <summary>
+    /// Comprobación de actualizaciones (P1): opcional y no bloqueante. Si hay una versión
+    /// más reciente se muestra un aviso bajo la barra de estado; cualquier fallo (sin red,
+    /// timeout, API caída) se ignora en silencio porque la app es local-first.
+    /// </summary>
+    private async Task ComprobarActualizacionesAsync()
+    {
+        try
+        {
+            var version = Assembly.GetExecutingAssembly().GetName().Version ?? new System.Version(0, 0, 0);
+            using var http = GitHubUpdateChecker.CrearCliente();
+            var resultado = await new GitHubUpdateChecker(http).CheckAsync(version).ConfigureAwait(true);
+            if (!resultado.HayActualizacion) return;
+            UpdateText.Text = $"Versión {resultado.VersionDisponible} disponible · {resultado.UrlDescarga}";
+            UpdateText.IsVisible = true;
+        }
+        catch
+        {
+            // La comprobación de actualizaciones nunca debe afectar al arranque ni a la UI.
+        }
     }
 
     /// <summary>Crea el popup de información "cristalino" con el que se sustituyen los

@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Redes.Knowledge.App", "Rede
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Redes.Knowledge.Visualization", "Redes.Knowledge.Visualization\Redes.Knowledge.Visualization.csproj", "{33180C4A-4F40-4CED-B789-730E32F3759E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Redes.Knowledge.App.Tests", "..\tests\Redes.Knowledge.App.Tests\Redes.Knowledge.App.Tests.csproj", "{64A65571-EA80-458E-AAC7-1C3019CCA721}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{33180C4A-4F40-4CED-B789-730E32F3759E}.Release|x64.Build.0 = Release|Any CPU
 		{33180C4A-4F40-4CED-B789-730E32F3759E}.Release|x86.ActiveCfg = Release|Any CPU
 		{33180C4A-4F40-4CED-B789-730E32F3759E}.Release|x86.Build.0 = Release|Any CPU
+		{64A65571-EA80-458E-AAC7-1C3019CCA721}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64A65571-EA80-458E-AAC7-1C3019CCA721}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64A65571-EA80-458E-AAC7-1C3019CCA721}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{64A65571-EA80-458E-AAC7-1C3019CCA721}.Debug|x64.Build.0 = Debug|Any CPU
+		{64A65571-EA80-458E-AAC7-1C3019CCA721}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{64A65571-EA80-458E-AAC7-1C3019CCA721}.Debug|x86.Build.0 = Debug|Any CPU
+		{64A65571-EA80-458E-AAC7-1C3019CCA721}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64A65571-EA80-458E-AAC7-1C3019CCA721}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64A65571-EA80-458E-AAC7-1C3019CCA721}.Release|x64.ActiveCfg = Release|Any CPU
+		{64A65571-EA80-458E-AAC7-1C3019CCA721}.Release|x64.Build.0 = Release|Any CPU
+		{64A65571-EA80-458E-AAC7-1C3019CCA721}.Release|x86.ActiveCfg = Release|Any CPU
+		{64A65571-EA80-458E-AAC7-1C3019CCA721}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -19,8 +19,22 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-      - name: Restaurar y probar (quality gate A01..A07 + golden-master)
-        run: dotnet test FASE-II-DISENO/tests/Redes.Knowledge.Tests/Redes.Knowledge.Tests.csproj --configuration Release
+      - name: Restaurar y probar (quality gate A01..A07 + golden-master + UI headless)
+        run: >
+          dotnet test FASE-II-DISENO/src/Redes.Knowledge.sln
+          --configuration Release
+          --collect:"XPlat Code Coverage"
+          --results-directory coverage
+      - name: Umbral de cobertura (línea ≥ 90 %, rama ≥ 75 %)
+        run: python3 FASE-II-DISENO/ci/check-coverage.py coverage --lineas 90 --ramas 75
+      - name: Publicar informe de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura
+          path: coverage/**/coverage.cobertura.xml
+          if-no-files-found: warn
+          retention-days: 7
 
   build:
     if: github.event_name != 'workflow_dispatch'

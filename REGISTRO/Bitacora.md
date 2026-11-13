@@ -986,3 +986,25 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Verificación:** `dotnet publish -c Release -r linux-arm64` y `-r osx-arm64` con `--self-contained true` → exit 0. Cabeceras comprobadas: el binario Linux es ELF `e_machine=0xb7` (AArch64) y el de macOS es Mach-O `cputype=0x0100000c` (arm64). Tamaños: 110,7 MB y 115,5 MB.
 
 **Fuera de alcance:** `win-arm64`. Windows on ARM ejecuta el binario x64 por emulación y el instalador Inno Setup necesitaría `ArchitecturesAllowed=arm64` (Inno Setup 6.3+), que no se puede verificar desde este equipo.
+
+## 13-11-2026 — Verificación real del runner `ubuntu-24.04-arm` (P1)
+
+**Motivo:** el AppImage arm64 se movió a un runner arm64 nativo porque `appimagetool-aarch64.AppImage` no puede ejecutarse en un host x86_64. Faltaba comprobar que el runner hospedado `ubuntu-24.04-arm` existe, está disponible para este repositorio y trae las herramientas que el job asume.
+
+**Cambios:** ninguno permanente. Se añadió un workflow temporal `arm64-runner-check.yml` (`workflow_dispatch`), se lanzó con `gh workflow run`, se leyó el log y se retiró en el commit siguiente.
+
+**Verificación:** run `43348543681`, conclusión `success`, sobre `ubuntu-24.04-arm`. Dentro del runner: `uname -m` → `aarch64`, `dpkg --print-architecture` → `arm64`, kernel `Linux 7.0.0-1017-azure`, Ubuntu 24.04.5 LTS, imagen `ubuntu24-arm64/20261101.172`, región Azure `northcentralus`. `appimagetool-aarch64.AppImage` arranca y reporta `continuous build (commit 5735cc5)`, que es lo que el job de empaquetado necesita. El runner hospedado arm64 es gratuito e ilimitado en repositorios públicos (4 vCPU / 16 GB / 14 GB SSD).
+
+## 13-11-2026 — Comprobador de actualizaciones, puerta de cobertura y pruebas de UI headless (P1)
+
+**Motivo:** el diseño F2I define `IUpdateService` (MOD-09) pero no existía implementación; la CI no impedía que la cobertura cayera; y la ventana principal no tenía ninguna prueba automatizada, de modo que cualquier regresión de XAML o de arranque solo se detectaba a mano.
+
+**Cambios:**
+
+- **`IUpdateChecker` (Domain, `Ports.cs`)**: `EstadoActualizacion` (`NoComprobado`, `AlDia`, `Disponible`), `ResultadoActualizacion` con `HayActualizacion` y `IUpdateChecker.CheckAsync(versionActual, ct)`. Cierra el hueco de MOD-09 sin acoplar el dominio a HTTP.
+- **`GitHubUpdateChecker` (Infrastructure, `Updates/`)**: consulta `releases/latest` de `kraso/Net-Protocol` con timeout de 5 s, no lanza nunca (devuelve `NoComprobado` con detalle), compara con `System.Version` y expone `TryParsearVersion` para tolerar el prefijo `v`. `System.Version` se usa cualificado para no colisionar con `Redes.Knowledge.Domain.Version`.
+- **UI**: `UpdateText` (`SelectableTextBlock`, oculto por defecto) bajo `StatusText` en `MainWindow.axaml`; `ComprobarActualizacionesAsync()` en el code-behind se dispara al terminar la carga del dataset y traga cualquier excepción, de modo que un fallo de red no puede tumbar el arranque.
+- **Pruebas**: `UpdateCheckerTests.cs` (18 casos: parseo de versiones, estados, timeout y respuesta malformada) y nuevo proyecto `tests/Redes.Knowledge.App.Tests` con `Avalonia.Headless.XUnit` (4 `AvaloniaFact`: controles expuestos, `StatusText` con dataset, `UpdateText` oculto, título y tamaño mínimo). Añadido a `Redes.Knowledge.sln`.
+- **Cobertura**: `FASE-II-DISENO/ci/check-coverage.py` (solo stdlib) lee el XML de cobertura y falla por debajo de 90 % de líneas o 75 % de ramas. El job `quality` pasa a ejecutar `dotnet test --collect:"XPlat Code Coverage"`, el script y la subida del artefacto `cobertura` (7 días).
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 96/96 en `Redes.Knowledge.Tests` y 4/4 en `Redes.Knowledge.App.Tests`, 0 errores. Cobertura medida: 94,23 % de líneas y 83,38 % de ramas (Domain 70,0 %, Infrastructure 95,6 %, Visualization 98,1 %). `check-coverage.py` probado en ambos sentidos (pasa con los umbrales actuales, falla al subirlos). Workflow validado con `yaml.safe_load` (7 jobs).
