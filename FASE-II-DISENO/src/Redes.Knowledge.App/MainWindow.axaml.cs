@@ -30,7 +30,6 @@ namespace Redes.Knowledge.App;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private const double ZoomMin = 0.7, ZoomMax = 3.0;
     private const double ListaAltura = 240;
     private const double ListaAnchura = 306; // idéntica para todos los grupos (340 - márgenes - scrollbar)
 
@@ -43,18 +42,13 @@ public partial class MainWindow : Window
     private const double MaxAnchoVentana = 1400;  // tope: no romper pantallas normales a zoom alto
 
     private readonly CatalogoViewModel _catalogo;
+
+    // Estado de presentación (zoom, selección, captura) sin dependencia de Avalonia.
+    private readonly PresentacionViewModel _presentacion = new();
     private readonly SqliteProtocolRepository _repo;
     private readonly SqliteServiceRepository _servicios;
     private readonly SqliteSearchEngine _busqueda;
     private bool _cargando;
-    private Protocol? _seleccionado;
-    private double _zoom = 1.0;
-
-    // Base de fuente EFECTIVA del contenido (capturada al abrir la ventana): el zoom se
-    // aplica como multiplicador real (reflow), así a 100 % el aspecto es el del tema.
-    // Valores provisionales razonables: Opened los sobrescribe con los del tema aplicado.
-    private double _fuenteBase = 13;
-    private double _tituloBase = 14;
 
     // Evita recursión al sincronizar el selector de protocolo con RenderFicha.
     private bool _sincronizandoSelector;
@@ -80,10 +74,6 @@ public partial class MainWindow : Window
 
     /// <summary>Diagramas de la ficha actual (cache para la exportación D4-3).</summary>
     private List<(string Titulo, DiagramDocument Doc, IReadOnlyList<NodoGrafo>? Nodos, IReadOnlyDictionary<string, string?>? Abrir)> _docsActuales = new();
-
-    /// <summary>Paquetes de la captura abierta (vista D6).</summary>
-    private List<PcapPacket> _paquetesCaptura = new();
-    private string _rutaCaptura = "";
 
     public MainWindow()
     {
@@ -136,7 +126,7 @@ public partial class MainWindow : Window
         RenderFicha(inicial);
 
         StatusText.Text = $"Dataset: {_catalogo.Protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · " +
-                          $"{_catalogo.Relaciones.Count} relaciones F4 · importados: {importados} · zoom {_zoom * 100:0}% (Ctrl+Scroll)";
+                          $"{_catalogo.Relaciones.Count} relaciones F4 · importados: {importados} · zoom {_presentacion.ZoomTexto} (Ctrl+Scroll)";
 
         SearchButton.Click += (_, _) => EjecutarBusqueda();
         SearchBox.KeyDown += (_, e) => { if (e.Key == Key.Enter) EjecutarBusqueda(); };
@@ -185,8 +175,9 @@ public partial class MainWindow : Window
         ListaPaquetes.SelectionChanged += (_, _) =>
         {
             if (ListaPaquetes.SelectedItem is ListBoxItem { Tag: int idx } &&
-                idx >= 0 && idx < _paquetesCaptura.Count)
-                DetalleCaptura.Text = DetalleDe(_paquetesCaptura[idx]);
+                _presentacion.SeleccionarPaquete(idx) &&
+                _presentacion.PaqueteActual is { } paquete)
+                DetalleCaptura.Text = DetalleDe(paquete);
         };
 
         // Zoom del contenido por REFLOW (diseño UX adoptado): se escala el FontSize real
@@ -198,9 +189,9 @@ public partial class MainWindow : Window
             (_, e) =>
             {
                 if ((e.KeyModifiers & KeyModifiers.Control) == 0) return;
-                _zoom = Math.Clamp(_zoom + (e.Delta.Y > 0 ? 0.1 : -0.1), ZoomMin, ZoomMax);
+                _presentacion.AplicarZoom(e.Delta.Y > 0 ? PresentacionViewModel.ZoomPaso : -PresentacionViewModel.ZoomPaso);
                 AplicarZoomContenido();
-                StatusText.Text = $"Zoom del contenido: {_zoom * 100:0}% — Ctrl+Scroll ajusta el tamaño de letra (reflow, sin desbordes)";
+                StatusText.Text = $"Zoom del contenido: {_presentacion.ZoomTexto} — Ctrl+Scroll ajusta el tamaño de letra (reflow, sin desbordes)";
                 e.Handled = true;
             },
             RoutingStrategies.Bubble,
@@ -211,11 +202,9 @@ public partial class MainWindow : Window
         // montaje anterior. Hasta que se dispare, AplicarZoomContenido no hace nada.
         Opened += (_, _) =>
         {
-            _fuenteBase = double.IsNaN(DetailText.FontSize) || DetailText.FontSize <= 0 ? 13 : DetailText.FontSize;
-            var tituloBase = double.IsNaN(DiagramTitle.FontSize) || DiagramTitle.FontSize <= 0 ? _fuenteBase : DiagramTitle.FontSize;
-            _tituloBase = Math.Max(_fuenteBase, tituloBase);
+            _presentacion.FijarBases(DetailText.FontSize, DiagramTitle.FontSize);
             AplicarZoomContenido();
-            if (IsLoaded) StatusText.Text = $"Dataset: {_catalogo.Protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · zoom del contenido {_zoom * 100:0}% (Ctrl+Scroll)";
+            if (IsLoaded) StatusText.Text = $"Dataset: {_catalogo.Protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · zoom del contenido {_presentacion.ZoomTexto} (Ctrl+Scroll)";
             _ = ComprobarActualizacionesAsync();
         };
 
@@ -476,22 +465,22 @@ public partial class MainWindow : Window
     /// FactorZoom (unidad), y su ScrollViewer horizontal aparece solo si desbordan.</summary>
     private void AplicarZoomContenido()
     {
-        if (_fuenteBase <= 0) return; // la ventana aún no está abierta (base no capturada)
+        if (!_presentacion.BasesFijadas) return; // la ventana aún no está abierta (base no capturada)
 
-        DetailText.FontSize = _fuenteBase * _zoom;
-        DiagramTitle.FontSize = _tituloBase * _zoom;
-        ResumenCaptura.FontSize = _fuenteBase * _zoom;
-        DetalleCaptura.FontSize = _fuenteBase * _zoom;
-        ListaPaquetes.FontSize = _fuenteBase * _zoom;
+        DetailText.FontSize = _presentacion.FuenteContenido;
+        DiagramTitle.FontSize = _presentacion.FuenteTitulo;
+        ResumenCaptura.FontSize = _presentacion.FuenteContenido;
+        DetalleCaptura.FontSize = _presentacion.FuenteContenido;
+        ListaPaquetes.FontSize = _presentacion.FuenteContenido;
 
         // Los diagramas se reconstruyen con el nuevo factor SOLO si se están mostrando en
         // este momento (ficha con diagramas en pantalla): en Leyenda/Acerca de/Comparador
         // el panel está vacío a propósito y no debe repoblarse al hacer zoom; con una
         // captura abierta el panel está oculto y cada texto de captura ya escaló su fuente.
-        if (!PanelCaptura.IsVisible && _seleccionado is not null && DiagramPanel.Children.Count > 0)
+        if (!PanelCaptura.IsVisible && _presentacion.Seleccionado is not null && DiagramPanel.Children.Count > 0)
         {
-            var vecinos = GrafoRelaciones.Vecinos1Salto(_seleccionado.Acronimo, _catalogo.Relaciones);
-            RenderDiagramas(_seleccionado, vecinos);
+            var vecinos = GrafoRelaciones.Vecinos1Salto(_presentacion.Seleccionado.Acronimo, _catalogo.Relaciones);
+            RenderDiagramas(_presentacion.Seleccionado, vecinos);
         }
     }
 
@@ -646,7 +635,7 @@ public partial class MainWindow : Window
         _cargando = false;
 
         if (IsLoaded)
-            StatusText.Text = $"Visible: {Activos.Count()} de {_catalogo.Protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · zoom {_zoom * 100:0}%";
+            StatusText.Text = $"Visible: {Activos.Count()} de {_catalogo.Protocolos.Count} protocolos · {_servicios.Contar()} servicios IANA · zoom {_presentacion.ZoomTexto}";
     }
 
     private static void CerrarOtros(Expander abierto, IEnumerable<Expander> todos)
@@ -694,13 +683,13 @@ public partial class MainWindow : Window
             Margin = new Thickness(0, 0, 0, 6),
             Padding = new Thickness(4)
         });
-        StatusText.Text = $"Búsqueda \"{q}\": {encontrados.Count} resultados · zoom {_zoom * 100:0}%";
+        StatusText.Text = $"Búsqueda \"{q}\": {encontrados.Count} resultados · zoom {_presentacion.ZoomTexto}";
         RenderFicha(encontrados[0]);
     }
 
     private void RenderFicha(Protocol? p)
     {
-        _seleccionado = p;
+        _presentacion.Seleccionar(p);
 
         // Navegar a un protocolo (búsqueda, selector, sidebar, grafo…) cierra la captura
         // en pantalla: la ficha vuelve a ocupar el panel central y no queda texto de
@@ -836,7 +825,7 @@ public partial class MainWindow : Window
         // de encoger en pantallas normales).
         if (docs.Count > 0)
         {
-            var anchoMax = docs.Max(d => d.Doc.Width) * _zoom;
+            var anchoMax = docs.Max(d => d.Doc.Width) * _presentacion.Zoom;
             MinWidth = Math.Clamp(AnchoFijoRedimension + anchoMax, MinAnchoVentana, MaxAnchoVentana);
         }
         else
@@ -860,7 +849,7 @@ public partial class MainWindow : Window
             {
                 Text = titulo,
                 FontWeight = Avalonia.Media.FontWeight.SemiBold,
-                FontSize = _tituloBase * _zoom
+                FontSize = _presentacion.FuenteTitulo
             });
             var view = new DiagramView
             {
@@ -868,7 +857,7 @@ public partial class MainWindow : Window
                 Nodos = nodosGrafo,
                 // Zoom del diagrama como UNIDAD (reflow de texto + factor propio):
                 // geometría y texto escalan de verdad vía el contexto de dibujo.
-                FactorZoom = _zoom
+                FactorZoom = _presentacion.Zoom
             };
             // Navegación del grafo (D5-1): un clic en un nodo abre su ficha.
             if (abrir is not null)
@@ -896,7 +885,7 @@ public partial class MainWindow : Window
         if (!_catalogo.Normalizados.TryGetValue(Normalizar(acronimo), out var proto)) return;
         RenderFicha(proto);
         if (IsLoaded)
-            StatusText.Text = $"Grafo: {proto.Acronimo} · {_catalogo.Relaciones.Count} relaciones F4 · zoom {_zoom * 100:0}%";
+            StatusText.Text = $"Grafo: {proto.Acronimo} · {_catalogo.Relaciones.Count} relaciones F4 · zoom {_presentacion.ZoomTexto}";
     }
 
     /// <summary>Exporta los diagramas de la ficha actual al formato elegido (D4-3):
@@ -904,7 +893,7 @@ public partial class MainWindow : Window
     /// Nombres: NetProtocol-&lt;acrónimo&gt;-&lt;tipo&gt;.&lt;ext&gt;.</summary>
     private async Task ExportarDiagramasAsync()
     {
-        if (_seleccionado is null || _docsActuales.Count == 0)
+        if (_presentacion.Seleccionado is null || _docsActuales.Count == 0)
         {
             if (IsLoaded) StatusText.Text = "Nada que exportar: abre la ficha de un protocolo con diagramas.";
             return;
@@ -921,7 +910,7 @@ public partial class MainWindow : Window
 
         var formato = (ExportFormat.SelectedItem as string) ?? "SVG";
         var ext = formato switch { "PNG" => ".png", "PDF" => ".pdf", _ => ".svg" };
-        var acronimo = _seleccionado.Acronimo;
+        var acronimo = _presentacion.Seleccionado.Acronimo;
         var ok = 0;
         foreach (var (_, doc, _, _) in _docsActuales)
         {
@@ -1007,8 +996,7 @@ public partial class MainWindow : Window
 
     private void MostrarCaptura(PcapCapture captura, string ruta)
     {
-        _paquetesCaptura = captura.Paquetes.ToList();
-        _rutaCaptura = ruta;
+        _presentacion.AbrirCaptura(captura.Paquetes, ruta);
         DetailText.IsVisible = false;
         DiagramTitle.IsVisible = false;
         DiagramPanel.IsVisible = false;
@@ -1017,9 +1005,9 @@ public partial class MainWindow : Window
         VolverFichaButton.IsVisible = false; // la captura no es una comparación
 
         ResumenCaptura.Text =
-            $"{Path.GetFileName(ruta)} · linktype {captura.LinkType} ({(captura.EsEthernet ? "Ethernet" : "otro")}) · {_paquetesCaptura.Count} paquetes";
+            $"{Path.GetFileName(ruta)} · linktype {captura.LinkType} ({(captura.EsEthernet ? "Ethernet" : "otro")}) · {_presentacion.TotalPaquetes} paquetes";
         ListaPaquetes.Items.Clear();
-        for (var i = 0; i < _paquetesCaptura.Count; i++)
+        for (var i = 0; i < _presentacion.TotalPaquetes; i++)
             ListaPaquetes.Items.Add(new ListBoxItem { Content = ResumenPaquete(i), Tag = i });
         ListaPaquetes.SelectedIndex = 0;
     }
@@ -1035,20 +1023,19 @@ public partial class MainWindow : Window
         DetailText.IsVisible = true;
         DiagramPanel.IsVisible = true;
         DiagramTitle.IsVisible = true;
-        _paquetesCaptura.Clear();
-        _rutaCaptura = "";
+        _presentacion.CerrarCaptura();
     }
 
     private void CerrarCaptura()
     {
         CerrarCapturaSiAbierta();
-        if (_seleccionado is not null) RenderFicha(_seleccionado);
-        if (IsLoaded) StatusText.Text = $"Captura cerrada · {_catalogo.Protocolos.Count} protocolos · zoom {_zoom * 100:0}%";
+        if (_presentacion.Seleccionado is not null) RenderFicha(_presentacion.Seleccionado);
+        if (IsLoaded) StatusText.Text = $"Captura cerrada · {_catalogo.Protocolos.Count} protocolos · zoom {_presentacion.ZoomTexto}";
     }
 
     private string ResumenPaquete(int i)
     {
-        var p = _paquetesCaptura[i];
+        var p = _presentacion.Paquetes[i];
         var d = PcapDissector.Disectar(p.Data);
         var proto = d.EsTcp ? "TCP"
             : d.ProtocoloIp == 17 ? "UDP"
@@ -1187,7 +1174,7 @@ public partial class MainWindow : Window
         // Restaura la alineación izquierda por si "Acerca de" la dejó centrada.
         DetailText.TextAlignment = TextAlignment.Left;
         CerrarCapturaSiAbierta(); // la comparación es una vista de ficha: sale de la captura
-        if (_seleccionado is null) return;
+        if (_presentacion.Seleccionado is null) return;
         // Referencia elegida por el usuario (ComboBox "Comparar con:"); TCP por defecto,
         // pero cualquier protocolo del catálogo es válido.
         var referencia = CompareTarget.SelectedItem as Protocol
@@ -1202,7 +1189,7 @@ public partial class MainWindow : Window
         VolverFichaButton.IsVisible = true; // la comparación queda "en pantalla"; hay salida explícita
 
         var filas = ProtocoloComparador.Comparar(
-            new[] { _seleccionado, referencia },
+            new[] { _presentacion.Seleccionado, referencia },
             (nombre, lim) => _servicios.PorNombre(nombre, lim),
             _catalogo.Pdu,
             _catalogo.Cifrado,
@@ -1216,7 +1203,7 @@ public partial class MainWindow : Window
             => s.Length <= ancho ? s.PadRight(ancho) : s[..(ancho - 1)] + "…";
 
         // Tabla transpuesta: filas = aspectos cortos, columnas = protocolos.
-        var a = filas.First(f => f.Protocolo == _seleccionado.Acronimo);
+        var a = filas.First(f => f.Protocolo == _presentacion.Seleccionado.Acronimo);
         var b = filas.First(f => f.Protocolo == referencia.Acronimo);
         var cortos = new[]
         {
@@ -1258,19 +1245,19 @@ public partial class MainWindow : Window
     }
 
     /// <summary>Salida explícita de la vista de comparación: restaura la ficha del
-    /// protocolo previo (la comparación nunca cambia _seleccionado, solo oculta la ficha).
+    /// protocolo previo (la comparación nunca cambia _presentacion.Seleccionado, solo oculta la ficha).
     /// El botón "✕ Volver a la ficha" solo es visible mientras la comparación está en
     /// pantalla.</summary>
     private void VolverALaFicha()
     {
-        if (_seleccionado is not null)
-            RenderFicha(_seleccionado); // vuelve a la ficha del protocolo que se comparaba
+        if (_presentacion.Seleccionado is not null)
+            RenderFicha(_presentacion.Seleccionado); // vuelve a la ficha del protocolo que se comparaba
         else
         {
             DetailText.Text = "Seleccione un protocolo.";
             DiagramPanel.IsVisible = true;
         }
-        // RenderFicha ya oculta el botón; por si _seleccionado fuera null, se oculta aquí.
+        // RenderFicha ya oculta el botón; por si _presentacion.Seleccionado fuera null, se oculta aquí.
         VolverFichaButton.IsVisible = false;
     }
 
@@ -1359,7 +1346,7 @@ public partial class MainWindow : Window
         DetailText.Text = sb.ToString();
 
         if (IsLoaded)
-            StatusText.Text = $"Leyenda de familias · zoom {_zoom * 100:0}%";
+            StatusText.Text = $"Leyenda de familias · zoom {_presentacion.ZoomTexto}";
     }
 
     /// <summary>Sección "Acerca de" con los datos de la aplicación, centrados y formateados.</summary>
@@ -1391,7 +1378,7 @@ public partial class MainWindow : Window
         DetailText.TextAlignment = TextAlignment.Center;
 
         if (IsLoaded)
-            StatusText.Text = "Acerca de · zoom " + $"{_zoom * 100:0}%";
+            StatusText.Text = "Acerca de · zoom " + $"{_presentacion.ZoomTexto}";
     }
 
     private static string Normalizar(string s)

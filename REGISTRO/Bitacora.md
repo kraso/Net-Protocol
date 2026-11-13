@@ -1062,3 +1062,17 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 - **`Redes.Knowledge.App.Tests.csproj`.** El glob de las doradas pasa de `Golden\**` a `Golden/**`, que resuelve también en Linux (hallazgo LOW de la revisión de I0).
 
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 101/101 y 18/18, 0 errores. Puerta de cobertura: 94,40 % líneas y 84,52 % ramas, umbral 90/75 cumplido. Las siete pruebas de caracterización siguen pasando sin tocar las doradas.
+
+## 13-11-2026 — P2/I3: ViewModels de presentación (zoom, selección y captura)
+
+**Motivo:** tercer incremento de P2. Tras extraer el catálogo (I2), el code-behind seguía guardando el zoom, el protocolo seleccionado y la captura abierta en campos propios, sin posibilidad de probarlos sin arrancar Avalonia.
+
+**Cambios:**
+
+- **`ViewModels/PresentacionViewModel.cs` (nuevo).** Estado de presentación puro: `Zoom` (con `ZoomMin` 0,7, `ZoomMax` 3,0 y `ZoomPaso` 0,1), `FuenteBase`/`TituloBase`, `Seleccionado`, `Paquetes`, `RutaCaptura`, `CapturaAbierta` e `IndicePaquete`. Métodos: `AplicarZoom`, `FijarBases`, `Seleccionar`, `AbrirCaptura`, `CerrarCaptura` y `SeleccionarPaquete`. Propiedades derivadas: `ZoomTexto`, `FuenteContenido`, `FuenteTitulo`, `TotalPaquetes`, `PaqueteActual` y `BasesFijadas`. No referencia Avalonia.
+- **`MainWindow.axaml.cs`.** Desaparecen los campos `_zoom`, `_fuenteBase`, `_tituloBase`, `_seleccionado`, `_paquetesCaptura` y `_rutaCaptura`, y las constantes `ZoomMin`/`ZoomMax`; en su lugar hay un único `_presentacion`. La rueda con Ctrl llama a `AplicarZoom`, `Opened` a `FijarBases`, `RenderFicha` a `Seleccionar`, `MostrarCaptura` a `AbrirCaptura` y el cierre a `CerrarCaptura`. El code-behind queda en 1.449 líneas.
+- **`tests/Redes.Knowledge.App.Tests/PresentacionViewModelTests.cs` (nuevo).** Catorce pruebas puras: zoom inicial, paso y formato, topes por ambos extremos, reserva de fuente, título nunca menor que el contenido, escalado de fuentes efectivas, selección y su interacción con la captura, apertura con y sin paquetes, cierre idempotente e índices de paquete fuera de rango.
+
+**Regresión detectada y corregida durante el incremento:** la primera versión del ViewModel arrancaba `FuenteBase`/`TituloBase` en 0, y `RenderDiagramas` asignaba `FontSize = 0` al construir la ventana, lo que Avalonia rechaza con `ArgumentException: 0 is not a valid value for 'FontSize'`. Se restauraron los valores provisionales 13/14 del código original, que `FijarBases` sobrescribe al abrir. Las pruebas headless lo detectaron antes del commit.
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 101/101 y 32/32, 0 errores. Puerta de cobertura: 94,40 % líneas y 84,52 % ramas. Las siete pruebas de caracterización siguen pasando sin tocar las doradas.

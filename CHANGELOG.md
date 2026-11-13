@@ -12,6 +12,8 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
   `.rpm` `aarch64`, AppImage `aarch64` y `.dmg` `arm64` en los jobs de release.
 - Comprobación de actualizaciones: `IUpdateChecker` en el dominio, `GitHubUpdateChecker` en infraestructura
   (timeout de 5 s, nunca lanza) y aviso `UpdateText` en la ventana principal.
+- `CatalogoViewModel` y `PresentacionViewModel`: el estado del catálogo y el de presentación (zoom,
+  selección y captura) salen del code-behind a clases puras, sin dependencia de Avalonia.
 - Proyecto `tests/Redes.Knowledge.App.Tests` con pruebas de UI headless (`Avalonia.Headless.XUnit`).
 - `FASE-II-DISENO/ci/check-coverage.py`: puerta de cobertura (90 % líneas, 75 % ramas) sobre el XML
   de Cobertura.
