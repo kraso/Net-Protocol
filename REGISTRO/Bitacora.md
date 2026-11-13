@@ -1248,3 +1248,15 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Verificación local:** con un `dist/` sintético y los assets aplanados como los deja una release, `sha256sum -c SHA256SUMS` devuelve `OK` en los dos ficheros de prueba. El YAML parsea y el job `release` queda con cuatro pasos.
 
 **No verificado:** la ejecución real del job, que solo corre con un tag `v*`; hasta el próximo tag no hay evidencia de runner.
+
+## 13-11-2026 — S3: el registro IANA se importa en el arranque
+
+**Motivo:** la tabla `Services` quedaba vacía en una base nueva, así que la vista de servicio IANA nunca aparecía y la columna «Puertos (IANA)» del comparador salía con «—». El importador y el CSV ya existían; faltaba conectarlos al arranque.
+
+**Cambio:** `ArranqueCatalogo` importa el registro la primera vez (`Contar() == 0`) desde el CSV más reciente de `FASE-II-DISENO/data/`, y el `.csproj` lo copia a `datos/FASE-II-DISENO/data/` para que también viaje en el modo instalado. El nombre del CSV se resuelve por comodín ordenado por fecha, así que actualizarlo no toca código.
+
+**Efecto visible y esperado:** el comparador ya muestra puertos IANA reales (`1/TCP, 1/UDP, 475/TCP…`) en vez de «—». Por eso se regeneró la dorada `Golden/comparador-tcp-udp.txt`: el cambio es de datos, no de formato. Consecuencia a tener en cuenta: esa dorada ahora también fija el contenido del CSV, así que actualizar el registro IANA obligará a regenerarla.
+
+**Coste:** el CSV pesa 1,1 MB y pasa a formar parte del instalador.
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 124/124 y 55/55. Cobertura 94,79 % / 83,26 %. Build sin advertencias.

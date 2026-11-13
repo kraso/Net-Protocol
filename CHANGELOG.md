@@ -29,6 +29,9 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
   de Cobertura.
 - `SHA256SUMS` en cada release con el hash y el nombre plano de todos los instaladores, para que la
   app pueda verificar la descarga antes de ofrecer el instalador (v1.1, S1).
+- El arranque importa el registro IANA de servicios y puertos desde el CSV versionado la primera vez
+  que la base está vacía (v1.1, S3), y el CSV viaja con la app en `datos/`. La vista de servicio IANA
+  y la columna de puertos del comparador dejan de salir vacías.
 
 ### Cambiado
 - `on.push` acotado a `main` y tags `v*`: la matriz ya no se lanza en cada rama.

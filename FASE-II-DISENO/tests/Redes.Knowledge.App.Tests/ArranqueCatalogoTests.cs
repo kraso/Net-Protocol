@@ -27,9 +27,8 @@ public class ArranqueCatalogoTests
         Assert.Contains("TCP", arranque.Catalogo.Protocolos.Values.Select(p => p.Acronimo));
         Assert.NotEmpty(arranque.Catalogo.Relaciones);
         Assert.True(arranque.Catalogo.Familias.Count > 0);
-        // Los servicios IANA no se importan en el arranque (la tabla puede estar vacía en una
-        // base nueva), así que aquí solo se comprueba que el repositorio responde.
-        Assert.True(arranque.Servicios.Contar() >= 0);
+        // S3: el arranque importa el registro IANA del CSV versionado si la tabla está vacía.
+        Assert.True(arranque.Servicios.Contar() > 0);
     }
 
     [Fact]
@@ -39,6 +38,7 @@ public class ArranqueCatalogoTests
         var segundo = ArranqueCatalogo.Cargar();
 
         Assert.Equal(primero.Catalogo.Protocolos.Count, segundo.Catalogo.Protocolos.Count);
+        Assert.Equal(primero.Servicios.Contar(), segundo.Servicios.Contar());
         Assert.Equal(0, segundo.Importados); // la segunda pasada no inserta nada
     }
 }

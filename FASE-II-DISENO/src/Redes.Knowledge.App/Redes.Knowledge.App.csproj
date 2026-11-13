@@ -57,6 +57,11 @@
     <None Include="..\..\..\FASE-08-VALIDACION\F8-Fuentes-Fichas.json"
           Link="datos\FASE-08-VALIDACION\F8-Fuentes-Fichas.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <!-- Registro IANA de servicios y puertos: el arranque lo importa la primera vez que la
+         base está vacía (S3 de v1.1). Comodín por si se actualiza el CSV con otra fecha. -->
+    <None Include="..\..\data\iana-service-names-port-numbers-*.csv"
+          Link="datos\FASE-II-DISENO\data\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,6 @@
 using Redes.Knowledge.App.ViewModels;
 using Redes.Knowledge.Infrastructure;
+using Redes.Knowledge.Infrastructure.Iana;
 
 namespace Redes.Knowledge.App;
 
@@ -52,6 +53,19 @@ public static class ArranqueCatalogo
         var servicios = new SqliteServiceRepository(store);
         var busqueda = new SqliteSearchEngine(store);
 
+        // Servicios IANA (S3): la tabla puede estar vacía en una base nueva, y sin ella la
+        // vista de servicio IANA nunca aparece. Se importa del CSV versionado la primera vez;
+        // después se reutiliza lo cargado (el registro no cambia entre arranques).
+        if (servicios.Contar() == 0)
+        {
+            var csv = CsvIana(raiz);
+            if (csv is not null)
+            {
+                var importacion = IanaServiceImporter.Importar(csv);
+                servicios.ReemplazarEInsertar(importacion.Entradas, importacion.FechaConsulta);
+            }
+        }
+
         var importados = DatasetBootstrap.EnsureProtocolos(store,
             Path.Combine(raiz, "FASE-03-INVENTARIO", "F3-Protocolos.json"));
 
@@ -60,5 +74,18 @@ public static class ArranqueCatalogo
         var catalogo = CatalogoViewModel.Cargar(raiz, repositorio.GetAll(), servicios.Todos());
 
         return new EstadoArranque(repositorio, servicios, busqueda, catalogo, importados);
+    }
+
+    /// <summary>
+    /// CSV del registro IANA que viaja en el repositorio. Se elige el más reciente por nombre
+    /// (lleva la fecha de consulta), para no tener que tocar código al actualizarlo.
+    /// </summary>
+    private static string? CsvIana(string raiz)
+    {
+        var carpeta = Path.Combine(raiz, "FASE-II-DISENO", "data");
+        if (!Directory.Exists(carpeta)) return null;
+        return Directory.EnumerateFiles(carpeta, "iana-service-names-port-numbers-*.csv")
+            .OrderByDescending(f => f, StringComparer.Ordinal)
+            .FirstOrDefault();
     }
 }

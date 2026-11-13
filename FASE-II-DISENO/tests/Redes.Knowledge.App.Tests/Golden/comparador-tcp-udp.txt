@@ -6,7 +6,7 @@ Familia         | TRAN                                 | TRAN                   
 Estado          | Vigente                              | Vigente                               (= igual)
 Capas           | OSI 4 (Transporte); TCP/IP: Transpo… | OSI 4 (Transporte); TCP/IP: Transpo…  (= igual)
 PDU             | segmento                             | datagrama                           
-Puertos (IANA)  | —                                    | —                                   
+Puertos (IANA)  | 1/TCP, 1/UDP, 475/TCP, 475/UDP       | 1624/TCP, 1624/UDP, 1833/TCP, 1833/…
 Cifrado (F6)    | No                                   | No                                    (= igual)
 
 Finalidad — TCP: Transporte fiable, ordenado, orientado a conexión, con control de congestión. Casos: aplicaciones que exigen fiabilidad. No usar para broadcast/multicast ni tráfico time-critica…
