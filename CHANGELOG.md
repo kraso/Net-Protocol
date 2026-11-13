@@ -15,6 +15,15 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
 - `FASE-II-DISENO/ci/` deja de duplicar el workflow: apunta a `.github/workflows/github-actions-ci.yml`
   como fuente de verdad única.
 
+### Corregido
+- `SECURITY.md` ya no compromete un plazo de acuse de recibo que el proyecto no puede garantizar, y
+  ofrece una ruta alternativa si el reporte privado de GitHub no está disponible.
+- `SECURITY.md` y README advierten de que la firma GPG de los instaladores Linux es opcional: si faltan
+  los secretos del repositorio, el release se publica sin `.asc` ni clave pública.
+- `FASE-II-DISENO/ci/README.md` documenta los 7 jobs reales (incluido `diagnostico-gpg`) y la cadena `needs`.
+- `LICENSE` identifica al titular con nombre y apellidos.
+- La tabla de releases del README marca v1.0.0 como retirada y v1.0.1/v1.0.2 como superseded.
+
 ### Eliminado
 - Plantilla obsoleta `FASE-II-DISENO/ci/github-actions-ci.yml` (51 líneas frente a las 535 del workflow real).
 

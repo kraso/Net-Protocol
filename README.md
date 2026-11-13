@@ -32,11 +32,16 @@ Las 8 épicas (D0–D7) se completaron el 26-08-2026 y la **iteración 1.1** el 
 
 | Release | Fecha | Contenido |
 |---|---|---|
-| v1.0.0 – v1.0.10 | 26–30-08-2026 | Primera publicación, instaladores por SO, tema oscuro por defecto, paleta por tokens |
+| v1.0.0 | 26-08-2026 | Primera publicación — **retirada** por un bug de arranque |
+| v1.0.1 | 26-08-2026 | Corrección del arranque — **superseded** por v1.0.2 |
+| v1.0.2 | 27-08-2026 | Grafo navegable, exportación SVG/PNG/PDF, vista de capturas — **superseded** por v1.0.3 |
+| v1.0.3 – v1.0.10 | 28–30-08-2026 | Instaladores por SO, tema oscuro por defecto, paleta por tokens, zoom por reflow, selector de protocolo |
 | v1.0.11 | 10-09-2026 | Instaladores sin dependencias nativas (`DOTNET_EnableDiagnostics=0`) y patrón de nombres unificado |
 | v1.0.12 | 10-09-2026 | Auto-cierre de tooltips por tiempo; el RPM excluye auto-Requires que rompían Fedora |
 | v1.0.13 | 10-09-2026 | Cierre incondicional de tooltips (6 s): X11 no es fiable con los eventos del overlay |
-| v1.0.14 | 10-09-2026 | Cierre por deadline (5 s) con supervisor global, inmune a re-enters espurios de X11 |
+| v1.0.14 | 10-09-2026 | Cierre por deadline (5 s) con supervisor global, inmune a re-enters espurios de X11 — **última** |
+
+Solo la última versión es instalable con garantías; las marcadas como retiradas o superseded se conservan por trazabilidad.
 
 Detalle: [REGISTRO/Estado-de-Fases.md](REGISTRO/Estado-de-Fases.md) · Historial: [REGISTRO/Bitacora.md](REGISTRO/Bitacora.md) · Cambios por versión: [CHANGELOG.md](CHANGELOG.md)
 
@@ -44,7 +49,7 @@ Detalle: [REGISTRO/Estado-de-Fases.md](REGISTRO/Estado-de-Fases.md) · Historial
 
 ## Descarga e instalación
 
-Los instaladores se publican como **GitHub Release** por cada tag `v*` ([releases](https://github.com/kraso/Net-Protocol/releases)). Los instaladores Linux van **firmados con la clave GPG de releases** (`NetProtocol-gpg-pubkey.asc`, adjunta a cada release; clave `CD11DE8033B6E164`). Windows y macOS no llevan firma de código (decisión del proyecto) — SmartScreen/Gatekeeper pueden avisar; se abren igualmente.
+Los instaladores se publican como **GitHub Release** por cada tag `v*` ([releases](https://github.com/kraso/Net-Protocol/releases)). Los instaladores Linux se firman con la **clave GPG de releases** (`NetProtocol-gpg-pubkey.asc`, adjunta a cada release; clave `CD11DE8033B6E164`); si un release no trae `.asc` ni esa clave, se publicó sin firma porque faltaban los secretos GPG del repositorio. Windows y macOS no llevan firma de código (decisión del proyecto) — SmartScreen/Gatekeeper pueden avisar; se abren igualmente.
 
 | SO | Archivo | Instalación |
 |---|---|---|

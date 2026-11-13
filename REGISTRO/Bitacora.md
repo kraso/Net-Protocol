@@ -953,3 +953,19 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Motivo:** el README, el registro de fases y el plan de Fase II seguían describiendo el proyecto como "en curso / pendiente de aprobación" cuando hay 14 releases publicadas; la bitácora terminaba en v1.0.10 y la plantilla de CI de `FASE-II-DISENO/ci/` había quedado obsoleta frente al workflow real.
 
 **Cambios:** README (estado, tabla de releases v1.0.11–v1.0.14, licencia y seguridad), `REGISTRO/Estado-de-Fases.md` (observaciones y fecha), `F2I-Diseno-de-Software.md` (versión 1.0, estado aprobado y ejecutado), esta bitácora (entradas v1.0.11–v1.0.14 y notas de paquetería) y `FASE-II-DISENO/ci/` (la plantilla se sustituye por un puntero al workflow real, única fuente de verdad). Se añaden `LICENSE` (MIT), `SECURITY.md` y `CHANGELOG.md`. **Verificado: `dotnet test -c Release` → 78/78, 0 errores.**
+
+## 13-11-2026 — Corrección de los hallazgos de la revisión del commit `abbdb2c`
+
+**Motivo:** la revisión del P0 (4 lentes: riesgo, resiliencia, legibilidad, fiabilidad) dejó seis hallazgos, ninguno bloqueante, que se corrigen aquí.
+
+**Cambios:**
+
+- **`SECURITY.md` — plazo de acuse de recibo.** Se retira el compromiso de responder en 7 días, que el proyecto no puede garantizar con un solo mantenedor, y se sustituye por atención por orden de llegada sin plazo garantizado.
+- **`SECURITY.md` — ruta alternativa de reporte.** Si el reporte privado de GitHub no está disponible, se indica abrir un issue sin detalles del fallo para habilitar un canal privado, en lugar de dejar un enlace que puede devolver 404.
+- **`SECURITY.md` y `README.md` — firma GPG opcional.** Se documenta que la firma depende de los secretos `GPG_PRIVATE_KEY` y `GPG_KEY_ID`; si faltan, el workflow publica los instaladores sin firmar y el release no incluye `.asc` ni `NetProtocol-gpg-pubkey.asc`.
+- **`FASE-II-DISENO/ci/README.md` — jobs reales.** La tabla pasa de 6 a 7 filas (añadido `diagnostico-gpg`, que corre en `workflow_dispatch`) y se añade la columna de dependencias `needs`, verificada contra el YAML.
+- **`LICENSE` — titular.** El aviso de copyright pasa de "Marcos" a "Marcos Calabrés Ibáñez", coherente con la identidad de la clave de firma.
+- **`README.md` — tabla de releases.** v1.0.0 se marca como retirada y v1.0.1/v1.0.2 como superseded, en lugar de agruparlas con las versiones usables.
+- **`.gitignore`** — se añade `.gentle-ai-default-agent.json`, generado por `gentle-ai sync` y no versionable.
+
+**Verificación:** `dotnet test -c Release` → 78/78, 0 errores. Enlaces relativos del README resueltos. Tabla de jobs contrastada con `yaml.safe_load` del workflow real.

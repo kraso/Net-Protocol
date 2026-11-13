@@ -17,7 +17,9 @@ Solo la última versión publicada recibe correcciones de seguridad.
 2. Describe el impacto, los pasos de reproducción y la versión afectada.
 3. Adjunta una captura o un PCAP si aplica (sin datos personales ni credenciales).
 
-Acuse de recibo en un plazo orientativo de 7 días y comunicación del plan de corrección tras la evaluación.
+Si esa página no está disponible (reporte privado deshabilitado en el repositorio), abre un issue indicando solo que necesitas un canal privado, **sin detalles del fallo**, y se habilitará uno.
+
+Este es un proyecto mantenido por una sola persona: los reportes se atienden por orden de llegada y sin plazo de respuesta garantizado. La evaluación y el plan de corrección se comunican cuando estén listos.
 
 ## Alcance
 
@@ -38,4 +40,6 @@ Quedan fuera del alcance:
 
 ## Verificación de los artefactos
 
-Los instaladores Linux van firmados con la clave GPG de releases `CD11DE8033B6E164`; la clave pública (`NetProtocol-gpg-pubkey.asc`) se adjunta a cada release. Instrucciones de verificación en el [README](README.md).
+Los instaladores Linux se firman con la clave GPG de releases `CD11DE8033B6E164`; la clave pública (`NetProtocol-gpg-pubkey.asc`) se adjunta a cada release. Instrucciones de verificación en el [README](README.md).
+
+La firma depende de que los secretos `GPG_PRIVATE_KEY` y `GPG_KEY_ID` estén configurados en el repositorio. Si faltan, el workflow emite un aviso y publica los instaladores **sin firmar**: en ese caso el release no incluye `.asc` ni `NetProtocol-gpg-pubkey.asc`, y esa ausencia es la señal de que no hay firma que verificar.

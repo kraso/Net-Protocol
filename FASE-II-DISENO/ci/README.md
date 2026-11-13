@@ -6,14 +6,17 @@
 
 ## Jobs del workflow real
 
-| Job | Disparador | Plataforma | Qué hace |
-|---|---|---|---|
-| `quality` | push, pull_request | ubuntu-latest | `dotnet test` en Release con la **auditoría automática** (A01–A07 incl. golden-master) como compuerta |
-| `build` | push, pull_request | matriz win-x64 / linux-x64 / osx-x64 | `dotnet publish` self-contained por RID → artifact con retención de 2 días |
-| `package-win` | tags `v*` | windows-latest | instalador Inno Setup (`packaging/windows/Redes.Knowledge.iss`) |
-| `package-linux` | tags `v*` | ubuntu-latest | `.deb` + `.rpm` + AppImage, firmados con GPG, con `.desktop`, icono y comando `netprotocol` |
-| `package-macos` | tags `v*` | macos-latest | `.dmg` |
-| `release` | tags `v*` | ubuntu-latest | publica los assets y las notas de instalación por SO |
+| Job | Disparador | Plataforma | Depende de | Qué hace |
+|---|---|---|---|---|
+| `quality` | push, pull_request | ubuntu-latest | — | `dotnet test` en Release con la **auditoría automática** (A01–A07 incl. golden-master) como compuerta |
+| `build` | push, pull_request | matriz win-x64 / linux-x64 / osx-x64 | — | `dotnet publish` self-contained por RID → artifact con retención de 2 días |
+| `package-win` | tags `v*` | windows-latest | `quality`, `build` | instalador Inno Setup (`packaging/windows/Redes.Knowledge.iss`) |
+| `package-linux` | tags `v*` | ubuntu-latest | `quality`, `build` | `.deb` + `.rpm` + AppImage, firmados con GPG, con `.desktop`, icono y comando `netprotocol` |
+| `package-macos` | tags `v*` | macos-latest | `quality`, `build` | `.dmg` |
+| `release` | tags `v*` | ubuntu-latest | `package-win`, `package-linux`, `package-macos` | publica los assets y las notas de instalación por SO |
+| `diagnostico-gpg` | `workflow_dispatch` | ubuntu-latest | — | diagnóstico manual de la clave GPG de firma; no participa en la cadena de release |
+
+`quality` y `build` se omiten en `workflow_dispatch`; `diagnostico-gpg` solo corre en `workflow_dispatch`.
 
 ## Controles automáticos de datos (compuerta de calidad §9.3 del plan, en `DatasetQuality`)
 

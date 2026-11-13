@@ -24,6 +24,7 @@ FASE-II-DISENO/dist/
 AGENTS.md
 GEMINI.md
 opencode.jsonc
+.gentle-ai-default-agent.json
 _prompt_extraido.txt
 
 # Logs y temporales
