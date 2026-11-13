@@ -44,7 +44,9 @@ NetProtocol.rar
 .tmp-inspect/
 
 # Registros de sesiones con la IA
+sessions/
 SESION-*
+conversation.txt
 
 # Cobertura generada por dotnet test
 coverage/

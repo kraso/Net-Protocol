@@ -1114,3 +1114,11 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Decidido no hacer:** los ocho grips de redimensión son `Border` sin automation peer, así que nombrarlos no aportaría nada; redimensionar por teclado queda documentado como limitación (la ventana se maximiza con su botón, que sí es accesible). El orden de tabulación del `WrapPanel` ya coincide con el orden lógico de uso y no se reordena con `TabIndex`.
 
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 117/117 en `Redes.Knowledge.Tests` y 44/44 en `App.Tests` (7 nuevas: seis en `AccesibilidadTests` —nombres de todos los controles, botones de ventana y tooltip localizados, ayuda larga, `Ctrl`+`+` y `Ctrl`+`0`, `Ctrl`+`-`, y que sin `Ctrl` no se consume— y una de `RestablecerZoom`). Cobertura 94,57 % líneas / 83,48 % ramas. Las pruebas nuevas fijan `NETPROTOCOL_IDIOMA` para no depender del `LANG` del equipo.
+
+## 13-11-2026 — Logs de sesión agrupados en `sessions/`
+
+**Motivo:** los volcados de conversación con la IA (`conversation.txt` y `SESION-NETPROTOCOL.md`, 136 KB y 327 KB) vivían en la raíz del repositorio, excluidos con patrones sueltos. Agruparlos en una carpeta deja la raíz limpia y separa el material de trabajo de los entregables del proyecto.
+
+**Cambio:** `.gitignore` excluye `sessions/` como carpeta y conserva `SESION-*` y `conversation.txt`, que siguen cubriendo copias sueltas en la raíz. El árbol de `README.md` documenta la carpeta como local y fuera de git. No se versiona ningún volcado: contienen conversaciones completas y no son entregables.
+
+**Verificación:** `git check-ignore -v sessions` → `.gitignore:47:sessions/`; `git ls-files` no devuelve ningún fichero bajo `sessions/`; el árbol de trabajo queda limpio tras el commit.

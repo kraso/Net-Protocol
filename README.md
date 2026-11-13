@@ -107,6 +107,7 @@ protocolos/
 ├── FASE-II-DISENO/               Fase II — Diseño y generación de software (✅ D0–D7)
 ├── PLANTILLAS/                   Plantillas (ficha de protocolo formalizada en F4)
 ├── ESQUEMA/                      Esquema de datos y modelo de dominio
+├── sessions/                     Logs de sesiones con la IA (local, ignorado por git)
 └── REGISTRO/                     Estado de fases y bitácora del proyecto
 ```
 
