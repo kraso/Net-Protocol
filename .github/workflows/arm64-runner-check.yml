@@ -1,0 +1,26 @@
+name: ARM64 runner check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  arm64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Arquitectura del runner
+        run: |
+          echo "uname -m: $(uname -m)"
+          echo "dpkg arch: $(dpkg --print-architecture)"
+          echo "kernel: $(uname -sr)"
+          grep -m1 'model name\|CPU part' /proc/cpuinfo || true
+          nproc
+
+      - name: appimagetool aarch64 ejecutable aqui
+        run: |
+          wget -q --tries=3 --timeout=30 -O /tmp/appimagetool \
+            "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-aarch64.AppImage"
+          chmod +x /tmp/appimagetool
+          /tmp/appimagetool --appimage-extract-and-run --version
