@@ -1,0 +1,8 @@
+=== Paquete de 54 bytes ===
+Ethernet II: 00:11:22:33:44:55 → 66:77:88:99:AA:BB · EtherType 0x0800
+IPv4: 10.0.0.2 → 10.0.0.1 · TTL 64 · proto 6
+TCP: 49152 → 80
+
+   ETH [ETH: 3/5 campos dentro de límites — TRUNCADO/FUERA] · Preamble=, SFD=, Destination MAC=001122334455, Source MAC=66778899AABB, EtherType / Length=0800
+   IPv4 [IPv4: 12/12 campos dentro de límites — OK] · Version=45, IHL=45, DSCP/ECN=00, Total Length=0028, Identification=0001, Flags=40, Fragment Offset=4000, TTL=40, Protocol=06, Header Checksum=26CD, Source Address=0A000002, Destination Address=0A000001
+   TCP [TCP: 10/10 campos dentro de límites — OK] · Source Port=C000, Destination Port=0050, Sequence Number=01020304, Acknowledgment Number=00000000, Data Offset=50, Reserved=50, Flags=02, Window=2000, Checksum=0000, Urgent Pointer=0000

@@ -1,0 +1,32 @@
+=== Transmission Control Protocol (TCP) ===
+ 1. Identidad             : Transmission Control Protocol · TCP · familia TRAN [F3]
+ 2. Estado                : Vigente (26-08-2026; RFC 9293)
+ 3. Finalidad             : Transporte fiable, ordenado, orientado a conexión, con control de congestión. Casos: aplicaciones que exigen fiabilidad. No usar para broadcast/multicast ni tráfico time-critical sin tolerancia a retransmisión
+ 4. Encapsulación         : Corre sobre IPv4/IPv6 (IP protocol number 6); bajo él: HTTP, TLS, SSH, SMTP, BGP…
+ 5. Capas                 : Transporte
+ 6. Transp./dir           : Es transporte; puertos 0–65535 (well-known 0–1023 registrados en IANA; verificar rango y asignaciones por pipeline)
+ 7. PDU                   : segmento
+ 8. Mensajes              : Segmentos sin tipos formales; control por flags: SYN, ACK, FIN, RST, PSH, URG, ECE, CWR, NS
+ 9. Campos                : Cabecera 20–60 B. Detalle por campo en `F5-Campos-PDU.json` (PR-036)
+10. Secuencia             : 3-way handshake (SYN → SYN+ACK → ACK); datos; cierre FIN / FIN+ACK o RST
+11. Addressing            : Combinación (IP origen/destino, puerto origen/destino); los puertos identifican servicios locales
+12. Routing               : No participa (capa transporte)
+13. Seguridad             : cifrado: No [F6]
+14. QoS/rendim.           : Control de congestión (RFC 5681 y sucesivas), retransmisión, ventana deslizante, temporizadores; MSS/MTU negotiation. Detalles de heurísticas de implementación: `[n.p.d.]` salvo RFC
+15. Observabilidad        : Puertos, flags, números de secuencia/acknowledgment visibles en capturas; filtros tcp.* (Wireshark)
+16. Interoperabilidad     : Extensiones: ventana escalada y timestamps (RFC 7323), SACK (RFC 2018); diferencias entre SO en valores por defecto
+17. Implementaciones      : Pilas de SO (Linux, Windows, BSD), lwIP, librerías de sockets; "soporta" ≠ "implementa completamente"
+18. Fuentes               : RFC 9293 (nivel 1); IANA R1 (puertos) — consulta 26-08-2026
+
+--- Campos catalogados (F5) ---
+  Source Port: offset 0 · 16 bits · uint16
+  Destination Port: offset 16 · 16 bits · uint16
+  Sequence Number: offset 32 · 32 bits · uint32
+  Acknowledgment Number: offset 64 · 32 bits · uint32
+  Data Offset: offset 96 · 4 bits · uint4
+  Reserved: offset 100 · 4 bits · flags
+  Flags: offset 104 · 8 bits · bitset
+  Window: offset 112 · 16 bits · uint16
+  Checksum: offset 128 · 16 bits · checksum
+  Urgent Pointer: offset 144 · 16 bits · uint16
+  Options: offset 160 · var bits · opciones (opt.)

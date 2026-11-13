@@ -1,0 +1,30 @@
+=== Domain Name System (DNS) ===
+ 1. Identidad             : Domain Name System · DNS · familia ADCONF [F3]
+ 2. Estado                : Vigente (26-08-2026)
+ 3. Finalidad             : Resolver nombres de dominio ↔ direcciones (A/AAAA) y otros registros; jerárquico y distribuido. No usar cuando se necesita un registro local efímero (mDNS/LLMNR)
+ 4. Encapsulación         : Corre sobre UDP (habitual) y TCP (truncación/zonas grandes), puerto 53 registrado en IANA; DNSSEC añade registros y firmas (PR-078)
+ 5. Capas                 : Aplicación
+ 6. Transp./dir           : UDP/TCP 53; RCODE, QTYPE/QCLASS
+ 7. PDU                   : mensaje
+ 8. Mensajes              : Query/Response; tipos de registro: A, AAAA, CNAME, MX, NS, SOA, PTR, TXT…
+ 9. Campos                : Cabecera de 12 B: ID, flags, QDCOUNT, ANCOUNT, NSCOUNT, ARCOUNT; secciones question/answer/authority/additional. Detalle en `F5-Campos-PDU.json` (PR-015)
+10. Secuencia             : Query → Response; iterativo/recursivo según configuración; caché con TTL; reintentos y timeout
+11. Addressing            : FQDN jerárquico; resolvers y servidores autoritativos
+12. Routing               : No (servicio de resolución; enroutable como aplicación)
+13. Seguridad             : cifrado: DoT/DoH opcional [F6]
+14. QoS/rendim.           : TTL/caché; latencia de resolución; EDNS0 (tamaño)
+15. Observabilidad        : ID, flags, QNAME, RCODE visibles; filtros dns.*
+16. Interoperabilidad     : Alta; variantes entre resolvers (RD/RA); EDNS0
+17. Implementaciones      : BIND, Unbound, dnsmasq, resolvers de SO, librerías (libc, getaddrinfo)
+18. Fuentes               : RFC 1035 y relacionadas (nivel 1); IANA R1 (puerto 53) — 26-08-2026
+      Nota/F3 .....: Servicio de nombres; no confundir con su transporte
+
+--- Campos catalogados (F5) ---
+  ID: offset 0 · 16 bits · uint16
+  Flags: offset 16 · 16 bits · bitset
+  QDCOUNT: offset 32 · 16 bits · uint16
+  ANCOUNT: offset 48 · 16 bits · uint16
+  NSCOUNT: offset 64 · 16 bits · uint16
+  ARCOUNT: offset 80 · 16 bits · uint16
+  Question: offset 96 · var bits · secciones
+  Answer/Authority/Additional: offset var · var bits · secciones (opt.)

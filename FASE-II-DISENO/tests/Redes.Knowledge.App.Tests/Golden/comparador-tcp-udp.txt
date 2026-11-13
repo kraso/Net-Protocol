@@ -1,0 +1,18 @@
+=== Comparador: TCP vs UDP ===
+
+Aspecto         | TCP                                  | UDP                                 
+-----------------------------------------------------------------------------------------------
+Familia         | TRAN                                 | TRAN                                  (= igual)
+Estado          | Vigente                              | Vigente                               (= igual)
+Capas           | OSI 4 (Transporte); TCP/IP: Transpo… | OSI 4 (Transporte); TCP/IP: Transpo…  (= igual)
+PDU             | segmento                             | datagrama                           
+Puertos (IANA)  | —                                    | —                                   
+Cifrado (F6)    | No                                   | No                                    (= igual)
+
+Finalidad — TCP: Transporte fiable, ordenado, orientado a conexión, con control de congestión. Casos: aplicaciones que exigen fiabilidad. No usar para broadcast/multicast ni tráfico time-critica…
+Finalidad — UDP: Transporte sin conexión, sin fiabilidad garantizada, mínimo overhead. Casos: DNS, DHCP, RTP, QUIC, juegos. No usar cuando se exige entrega ordenada/fiable
+
+Encapsulación — TCP: Corre sobre IPv4/IPv6 (IP protocol number 6); bajo él: HTTP, TLS, SSH, SMTP, BGP…
+Encapsulación — UDP: Corre sobre IPv4/IPv6 (IP protocol number 17); bajo él: DNS, DHCP, RTP, QUIC…
+
+Fuentes: F3 (familia/estado/capas/puertos IANA), F4 (finalidad/encapsulación por ficha y grafo), F5 (PDU), F6 (cifrado).
