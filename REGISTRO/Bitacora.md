@@ -1033,3 +1033,19 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 - **`tests/Redes.Knowledge.Tests/FichaTextoTests.cs`**: 5 casos puros (ficha completa con numeración y alineación, ficha ausente con vecinos y catálogos, puertos vacíos que no imprimen línea, campos F5 con offset/longitud/tipo/opcionalidad y ficha presente que omite la lista de vecinos).
 
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 101/101 en `Redes.Knowledge.Tests` y 11/11 en `Redes.Knowledge.App.Tests`, 0 errores; las 7 pruebas de caracterización pasan sin tocar sus doradas, lo que confirma que la salida es idéntica. Cobertura (Domain + Infrastructure + Visualization): 94,40 % de líneas y 84,52 % de ramas, umbral 90/75 cumplido.
+
+## 13-11-2026 — Endurecimiento del job `diagnostico-gpg`
+
+**Motivo:** el job manual de diagnóstico GPG imprimía `sha256` de la frase almacenada en el secreto y probaba una tercera vía de firma con `--passphrase "$PASS"`, que deja la frase visible en `argv` dentro del runner. Además llevaba `set +e`, de modo que su conclusión era `success` aunque la firma fallara: su verde no era evidencia de nada.
+
+**Cambios (`.github/workflows/github-actions-ci.yml`):**
+
+- Se elimina la impresión de `sha256(PASS)` y la vía `--passphrase` por argumento. Quedan las dos vías que usa el empaquetado real: `--passphrase-fd 0` (`.deb`, `.asc`) y `--passphrase-file` (`rpmsign`), esta última con `umask 077` y borrado del fichero temporal al terminar.
+- Se añade `gpg --batch --verify` de la firma producida, que comprueba validez y no solo el código de salida.
+- `set -uo pipefail` y contador `fallos`: cada vía se evalúa sin tubería que enmascare el estado, y el job termina con `[ "$fallos" -eq 0 ]`. Un fallo de firma ahora pone el job en rojo.
+- Comprobación previa de que los tres secretos existen, con mensaje explícito si falta alguno.
+- Se conservan `len_RAW`/`len_PASS`, espacios extremos y ASCII, que son los diagnósticos útiles para detectar CRLF en el secreto.
+
+**Verificación local (clave desechable, no la de release):** se generó una clave `rsa2048` en un `GNUPGHOME` temporal y se ejecutó el script extraído del YAML con `bash -n` (sintaxis OK) y dos pasadas. Con la frase correcta: `importacion=OK`, `exit_fd0=0`, `exit_file=0`, `verify=OK`, `vias_fallidas=0`, salida 0. Con frase incorrecta y el agente reiniciado: `exit_fd0=1`, `exit_file=1`, `verify=FALLO`, `vias_fallidas=3`, salida 1. La clave y los ficheros temporales se borraron después. YAML validado con `yaml.safe_load` (7 jobs).
+
+**Nota sobre la revisión de I0:** el hallazgo `R3-JOBS-INCOMPLETOS` (MEDIUM) afirmaba que `ci/README.md` omitía `diagnostico-gpg` y la cadena `needs`. Es incorrecto: la fila existe desde `b407434` y la cadena está en la tabla. Se actualiza la descripción de esa fila al comportamiento endurecido.

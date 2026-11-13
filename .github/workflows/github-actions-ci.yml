@@ -563,8 +563,9 @@ jobs:
             --title "Net Protocol ${VER}" \
             --notes-file RELEASE_NOTES.md
 
-  # Job de diagnostico (solo manual): inspecciona la frase almacenada en el secreto
-  # (longitud, sha256, espacios, ASCII) y prueba 3 vias de firma, sin revelar el valor.
+  # Job de diagnostico (solo manual): comprueba que la clave y la frase guardadas en
+  # secretos sirven para firmar. No imprime la frase ni ningun derivado suyo, no la pasa
+  # por argumentos de linea de comandos y falla si alguna via de firma falla.
   diagnostico-gpg:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -575,27 +576,62 @@ jobs:
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
-          set +e
+          set -uo pipefail
+          fallos=0
+
+          if [ -z "${GPG_PRIVATE_KEY:-}" ] || [ -z "${GPG_KEY_ID:-}" ]; then
+            echo "secretos=FALTAN (GPG_PRIVATE_KEY / GPG_KEY_ID)"; exit 1
+          fi
+          if [ -z "${GPG_PASSPHRASE:-}" ]; then
+            echo "secretos=FALTAN (GPG_PASSPHRASE)"; exit 1
+          fi
+
           echo "== importar =="
-          echo "${GPG_PRIVATE_KEY}" | gpg --batch --import 2>&1 | tail -3
+          if printf '%s' "${GPG_PRIVATE_KEY}" | gpg --batch --import >/tmp/import.log 2>&1; then
+            echo "importacion=OK"
+          else
+            echo "importacion=FALLO"; tail -3 /tmp/import.log; exit 1
+          fi
           echo "== claves importadas =="
           gpg --list-secret-keys --with-colons 2>/dev/null | awk -F: '/^sec:/{print $5}'
+
           RAW="${GPG_PASSPHRASE}"
           PASS=$(printf '%s' "$RAW" | tr -d '\r\n')
           echo "== frase almacenada =="
           echo "len_RAW=${#RAW}"
           echo "len_PASS=${#PASS}"
-          echo "sha256(PASS)=$(printf '%s' "$PASS" | sha256sum | cut -d' ' -f1)"
           case "$PASS" in " "*|*" ") echo "TIPO=espacios_extremos";; *) echo "TIPO=sin_espacios_extremos";; esac
           if printf '%s' "$PASS" | LC_ALL=C grep -q '[^ -~]'; then echo "CONTENIDO=No-ASCII"; else echo "CONTENIDO=ASCII"; fi
+
           printf 'x' > /tmp/t.txt
-          echo "== firma fd0 =="
-          printf '%s\n' "$PASS" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --detach-sign -u "${GPG_KEY_ID}" /tmp/t.txt 2>&1 | tail -1
-          echo "exit_fd0=$?"
+
+          echo "== firma passphrase-fd 0 =="
+          if printf '%s\n' "$PASS" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
+               --detach-sign -u "${GPG_KEY_ID}" /tmp/t.txt >/tmp/fd0.log 2>&1; then
+            echo "exit_fd0=0"
+          else
+            echo "exit_fd0=1"; tail -2 /tmp/fd0.log; fallos=$((fallos+1))
+          fi
+
           echo "== firma passphrase-file =="
+          umask 077
           printf '%s' "$PASS" > /tmp/pf.txt
-          gpg --batch --yes --pinentry-mode loopback --passphrase-file /tmp/pf.txt --detach-sign -u "${GPG_KEY_ID}" /tmp/t.txt 2>&1 | tail -1
-          echo "exit_file=$?"
-          echo "== firma passphrase-arg =="
-          gpg --batch --yes --pinentry-mode loopback --passphrase "$PASS" --detach-sign -u "${GPG_KEY_ID}" /tmp/t.txt 2>&1 | tail -1
-          echo "exit_arg=$?"
+          if gpg --batch --yes --pinentry-mode loopback --passphrase-file /tmp/pf.txt \
+               --detach-sign -u "${GPG_KEY_ID}" /tmp/t.txt >/tmp/pf.log 2>&1; then
+            echo "exit_file=0"
+          else
+            echo "exit_file=1"; tail -2 /tmp/pf.log; fallos=$((fallos+1))
+          fi
+          rm -f /tmp/pf.txt
+
+          echo "== verificacion de la firma =="
+          if gpg --batch --verify /tmp/t.txt.sig /tmp/t.txt >/tmp/verify.log 2>&1; then
+            echo "verify=OK"
+          else
+            echo "verify=FALLO"; tail -2 /tmp/verify.log; fallos=$((fallos+1))
+          fi
+          rm -f /tmp/t.txt /tmp/t.txt.sig
+
+          echo "== resultado =="
+          echo "vias_fallidas=${fallos}"
+          [ "$fallos" -eq 0 ]

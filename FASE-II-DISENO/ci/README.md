@@ -14,7 +14,7 @@
 | `package-linux` | tags `v*` | ubuntu-latest (matriz amd64 / arm64) | `quality`, `build` | `.deb` + `.rpm` + AppImage por arquitectura, firmados con GPG, con `.desktop`, icono y comando `netprotocol` |
 | `package-macos` | tags `v*` | macos-latest (matriz x64 / arm64) | `quality`, `build` | `.dmg` por arquitectura |
 | `release` | tags `v*` | ubuntu-latest | `package-win`, `package-linux`, `package-macos` | publica los assets y las notas de instalación por SO |
-| `diagnostico-gpg` | `workflow_dispatch` | ubuntu-latest | — | diagnóstico manual de la clave GPG de firma; no participa en la cadena de release |
+| `diagnostico-gpg` | `workflow_dispatch` | ubuntu-latest | — | comprueba que la clave y la frase de los secretos firman de verdad (importación, `--passphrase-fd 0`, `--passphrase-file` y `gpg --verify`); no imprime la frase ni derivados suyos, no la pasa por argumentos y **falla** si alguna vía falla |
 
 `quality` y `build` se omiten en `workflow_dispatch`; `diagnostico-gpg` solo corre en `workflow_dispatch`.
 
