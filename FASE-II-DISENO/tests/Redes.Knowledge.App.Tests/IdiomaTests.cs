@@ -109,4 +109,55 @@ public class IdiomaTests
             Textos.Fijar(previo);
         }
     }
+
+    [AvaloniaFact]
+    public void CambiarIdiomaTraduceElComparador()
+    {
+        var previo = Textos.Idioma;
+        try
+        {
+            Textos.Fijar(Textos.Es);
+            var ventana = NuevaVentana();
+
+            Pulsar(ventana, "LanguageButton");
+            Pulsar(ventana, "CompareButton");
+
+            var texto = Detalle(ventana);
+            Assert.Contains("=== Comparison:", texto);
+            Assert.Contains("Ports (IANA)", texto);
+            Assert.Contains("Sources: F3", texto);
+            Assert.DoesNotContain("Comparador:", texto);
+        }
+        finally
+        {
+            Textos.Fijar(previo);
+        }
+    }
+
+    [AvaloniaFact]
+    public void CambiarIdiomaTraduceLaCabeceraDeResultados()
+    {
+        var previo = Textos.Idioma;
+        try
+        {
+            Textos.Fijar(Textos.Es);
+            var ventana = NuevaVentana();
+            ventana.FindControl<TextBox>("SearchBox")!.Text = "TCP";
+
+            Pulsar(ventana, "SearchButton");
+
+            var panel = ventana.FindControl<StackPanel>("NavPanel")!;
+            var cabecera = panel.Children.OfType<Expander>().Single().Header as string;
+            Assert.StartsWith("Resultados (", cabecera);
+
+            Pulsar(ventana, "LanguageButton");
+
+            var traducida = panel.Children.OfType<Expander>().Single().Header as string;
+            Assert.StartsWith("Results (", traducida);
+        }
+        finally
+        {
+            Textos.Fijar(previo);
+        }
+    }
 }

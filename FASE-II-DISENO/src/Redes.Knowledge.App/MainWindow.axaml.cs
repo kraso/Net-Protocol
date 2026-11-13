@@ -59,6 +59,16 @@ public partial class MainWindow : Window
 
     private Vista _vista = Vista.Ficha;
 
+    // Texto de los popups de información: se conserva la referencia para poder traducirlo
+    // cuando cambia el idioma (los popups se construyen una sola vez).
+    private TextBlock? _popupComparar;
+    private TextBlock? _popupExportar;
+    private TextBlock? _popupAbrirCaptura;
+    private TextBlock? _popupMuestra;
+
+    // Captura en pantalla: se guarda para poder repintar sus textos al cambiar de idioma.
+    private PcapCapture? _captura;
+
     // Última posición del puntero (coordenadas de la ventana) para el cierre por geometría
     // de los popups de información (sin parpadeo).
     private Point _ultimaPosPuntero = new(-1, -1);
@@ -383,27 +393,29 @@ public partial class MainWindow : Window
     /// Exportar, Abrir captura, Muestra de prueba), sustituyendo a los tooltips nativos.</summary>
     private void ConfigurarPopupsBotones()
     {
-        CrearPopupInfo(CompareButton, new TextBlock
+        _popupComparar = new TextBlock
         {
-            Text = "Compara el protocolo actual con otro del catálogo (referencia seleccionable). " +
-                   "Pulsa «✕ Volver a la ficha» para salir.",
+            Text = Textos.T("help.comparar"),
             TextWrapping = TextWrapping.Wrap,
             Foreground = TextoPopup
-        });
+        };
+        CrearPopupInfo(CompareButton, _popupComparar);
 
-        CrearPopupInfo(ExportButton, new TextBlock
+        _popupExportar = new TextBlock
         {
-            Text = "Exporta los diagramas de la ficha actual (pila, grafo, cabecera) al formato elegido: SVG, PNG o PDF.",
+            Text = Textos.T("help.exportar"),
             TextWrapping = TextWrapping.Wrap,
             Foreground = TextoPopup
-        });
+        };
+        CrearPopupInfo(ExportButton, _popupExportar);
 
-        CrearPopupInfo(AbrirCapturaButton, new TextBlock
+        _popupAbrirCaptura = new TextBlock
         {
-            Text = "Abre una ventana del explorador para que selecciones el archivo .cap de captura de paquetes con PCAP/PCAPNG y luego muestra sus detalles en pantalla.",
+            Text = Textos.T("help.abrir.captura"),
             TextWrapping = TextWrapping.Wrap,
             Foreground = TextoPopup
-        });
+        };
+        CrearPopupInfo(AbrirCapturaButton, _popupAbrirCaptura);
 
         // Muestra de prueba: texto + HIPERVÍNCULO a la carpeta/captura real (abre el
         // explorador con el archivo seleccionado: explorer /select en Windows, open -R en
@@ -420,10 +432,11 @@ public partial class MainWindow : Window
 
         var intro = new TextBlock
         {
-            Text = "Genera una captura sintética determinista (28 protocolos F5). Para localizar la captura:",
+            Text = Textos.T("help.muestra"),
             TextWrapping = TextWrapping.Wrap,
             Foreground = TextoPopup
         };
+        _popupMuestra = intro;
         var enlace = new TextBlock
         {
             Text = ruta,
@@ -685,7 +698,8 @@ public partial class MainWindow : Window
         };
         NavPanel.Children.Add(new Expander
         {
-            Header = $"Resultados ({encontrados.Count})",
+            Header = Textos.F("nav.resultados", encontrados.Count),
+            Tag = encontrados.Count,
             Content = lista,
             IsExpanded = true,
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
@@ -1007,6 +1021,7 @@ public partial class MainWindow : Window
     private void MostrarCaptura(PcapCapture captura, string ruta)
     {
         _presentacion.AbrirCaptura(captura.Paquetes, ruta);
+        _captura = captura;
         DetailText.IsVisible = false;
         DiagramTitle.IsVisible = false;
         DiagramPanel.IsVisible = false;
@@ -1014,12 +1029,34 @@ public partial class MainWindow : Window
         MinWidth = MinAnchoVentana; // la vista de captura no tiene diagramas
         VolverFichaButton.IsVisible = false; // la captura no es una comparación
 
-        ResumenCaptura.Text =
-            $"{Path.GetFileName(ruta)} · linktype {captura.LinkType} ({(captura.EsEthernet ? "Ethernet" : "otro")}) · {_presentacion.TotalPaquetes} paquetes";
+        PintarCaptura();
+    }
+
+    /// <summary>
+    /// Vuelca en la vista de captura el resumen, la lista de paquetes y (vía selección) el
+    /// detalle. Se usa al abrir y al cambiar de idioma, para que no quede texto en el idioma
+    /// anterior; conserva el paquete seleccionado.
+    /// </summary>
+    private void PintarCaptura()
+    {
+        if (_captura is not { } captura) return;
+
+        ResumenCaptura.Text = Textos.F(
+            "cap.resumen",
+            Path.GetFileName(_presentacion.RutaCaptura),
+            captura.LinkType,
+            captura.EsEthernet ? "Ethernet" : Textos.T("cap.otro"),
+            _presentacion.TotalPaquetes);
+
+        var seleccionado = ListaPaquetes.SelectedIndex;
         ListaPaquetes.Items.Clear();
         for (var i = 0; i < _presentacion.TotalPaquetes; i++)
             ListaPaquetes.Items.Add(new ListBoxItem { Content = ResumenPaquete(i), Tag = i });
-        ListaPaquetes.SelectedIndex = 0;
+
+        if (seleccionado >= 0 && seleccionado < ListaPaquetes.ItemCount)
+            ListaPaquetes.SelectedIndex = seleccionado;
+        else if (ListaPaquetes.ItemCount > 0)
+            ListaPaquetes.SelectedIndex = 0;
     }
 
     /// <summary>Cierra la captura en pantalla si está abierta (idempotente): restaura la
@@ -1033,6 +1070,7 @@ public partial class MainWindow : Window
         DetailText.IsVisible = true;
         DiagramPanel.IsVisible = true;
         DiagramTitle.IsVisible = true;
+        _captura = null;
         _presentacion.CerrarCaptura();
     }
 
@@ -1052,7 +1090,7 @@ public partial class MainWindow : Window
             : d.ProtocoloIp == 1 ? "ICMP"
             : d.EtherType == 0x86DD ? "IPv6"
             : d.EsIpv4 ? "IPv4"
-            : d.ProtocoloIp is { } pp ? $"IP proto {pp}" : "otro";
+            : d.ProtocoloIp is { } pp ? $"IP proto {pp}" : Textos.T("cap.otro");
         var dir = d.IpOrigen is null
             ? ""
             : $"{d.IpOrigen}{(d.PuertoOrigen is { } po ? $":{po}" : "")} → {d.IpDestino}{(d.PuertoDestino is { } pd ? $":{pd}" : "")}";
@@ -1064,13 +1102,13 @@ public partial class MainWindow : Window
         var f = p.Data;
         var d = PcapDissector.Disectar(f);
         var sb = new StringBuilder();
-        sb.AppendLine($"=== Paquete de {f.Length} bytes ===");
+        sb.AppendLine(Textos.F("cap.paquete", f.Length));
         if (d.EsEthernet)
         {
             sb.AppendLine($"Ethernet II: {Mac(f, 0)} → {Mac(f, 6)} · EtherType 0x{(d.EtherType ?? 0):X4}");
             if (d.EsIpv4) sb.AppendLine($"IPv4: {d.IpOrigen} → {d.IpDestino} · TTL {f[22]} · proto {d.ProtocoloIp}");
             if (d.EsTcp) sb.AppendLine($"TCP: {d.PuertoOrigen} → {d.PuertoDestino}");
-            if (d.EtherType == 0x86DD) sb.AppendLine("IPv6: capas y campos en el detalle F5");
+            if (d.EtherType == 0x86DD) sb.AppendLine(Textos.T("cap.ipv6.f5"));
         }
         sb.AppendLine();
         // Cadena de capas detectada → validación del layout F5 de cada una (D6-2/L-004).
@@ -1085,7 +1123,7 @@ public partial class MainWindow : Window
     {
         var campos = CamposF5De(acronimoF5);
         if (campos is null || campos.Count == 0)
-            return $"   {acronimoF5}: sin layout F5 en el catálogo";
+            return "   " + Textos.F("cap.sin.layout", acronimoF5);
         var definidos = campos
             .Where(f => f.OffsetBits.HasValue)
             .Select(f => new CampoDefinido(f.OffsetBits!.Value, f.LongitudBits, f.Nombre))
@@ -1118,10 +1156,10 @@ public partial class MainWindow : Window
         _catalogo.Normalizados.TryGetValue(ServiciosDedup.Normalizar(acronimo ?? svc.Nombre), out var proto);
 
         var sb = new StringBuilder();
-        sb.AppendLine($"=== Servicio IANA: {svc.Nombre} ===");
-        sb.AppendLine($"Puertos registrados: {string.Join(", ", svc.Puertos.Select(p => $"{p.Puerto}/{p.Transporte}"))}");
+        sb.AppendLine(Textos.F("iana.titulo", svc.Nombre));
+        sb.AppendLine(Textos.F("iana.puertos", string.Join(", ", svc.Puertos.Select(p => $"{p.Puerto}/{p.Transporte}"))));
         if (proto is not null)
-            sb.AppendLine($"Protocolo vinculado del catálogo: {proto.Nombre} ({proto.Acronimo}) [vínculo curado IANA→F3]");
+            sb.AppendLine(Textos.F("iana.vinculo", proto.Nombre, proto.Acronimo));
         DetailText.TextAlignment = TextAlignment.Left;
         DetailText.Text = sb.ToString();
         DiagramTitle.IsVisible = false;
@@ -1218,29 +1256,29 @@ public partial class MainWindow : Window
         var b = filas.First(f => f.Protocolo == referencia.Acronimo);
         var cortos = new[]
         {
-            ("Familia", a.Familia, b.Familia),
-            ("Estado", a.Estado, b.Estado),
-            ("Capas", a.Capas, b.Capas),
-            ("PDU", a.Pdu, b.Pdu),
-            ("Puertos (IANA)", a.Puertos, b.Puertos),
-            ("Cifrado (F6)", a.Cifrado, b.Cifrado)
+            (Textos.T("cmp.familia"), a.Familia, b.Familia),
+            (Textos.T("cmp.estado"), a.Estado, b.Estado),
+            (Textos.T("cmp.capas"), a.Capas, b.Capas),
+            (Textos.T("cmp.pdu"), a.Pdu, b.Pdu),
+            (Textos.T("cmp.puertos"), a.Puertos, b.Puertos),
+            (Textos.T("cmp.cifrado"), a.Cifrado, b.Cifrado)
         };
         // Campos largos: fuera de la tabla, en líneas envueltas por protocolo.
         var largos = new[]
         {
-            ("Finalidad", Acortar(a.Finalidad), Acortar(b.Finalidad)),
-            ("Encapsulación", Acortar(a.Encapsulacion), Acortar(b.Encapsulacion))
+            (Textos.T("cmp.finalidad"), Acortar(a.Finalidad), Acortar(b.Finalidad)),
+            (Textos.T("cmp.encapsulacion"), Acortar(a.Encapsulacion), Acortar(b.Encapsulacion))
         };
 
         var sb = new StringBuilder();
-        sb.AppendLine($"=== Comparador: {a.Protocolo} vs {b.Protocolo} ===");
+        sb.AppendLine(Textos.F("cmp.titulo", a.Protocolo, b.Protocolo));
         sb.AppendLine();
-        sb.AppendLine($"{"Aspecto",-16}| {Celda(a.Protocolo, anchoCelda)} | {Celda(b.Protocolo, anchoCelda)}");
+        sb.AppendLine($"{Textos.T("cmp.aspecto"),-16}| {Celda(a.Protocolo, anchoCelda)} | {Celda(b.Protocolo, anchoCelda)}");
         sb.AppendLine(new string('-', 17 + 3 + anchoCelda + 3 + anchoCelda));
         foreach (var (nombre, va, vb) in cortos)
         {
             sb.Append($"{nombre,-16}| {Celda(va, anchoCelda)} | {Celda(vb, anchoCelda)}");
-            if (va == vb && va != "—") sb.AppendLine("  (= igual)");
+            if (va == vb && va != "—") sb.AppendLine(Textos.T("cmp.igual"));
             else sb.AppendLine();
         }
         sb.AppendLine();
@@ -1250,8 +1288,7 @@ public partial class MainWindow : Window
             sb.AppendLine($"{nombre} — {b.Protocolo}: {vb ?? "—"}");
             sb.AppendLine();
         }
-        sb.AppendLine("Fuentes: F3 (familia/estado/capas/puertos IANA), " +
-                      "F4 (finalidad/encapsulación por ficha y grafo), F5 (PDU), F6 (cifrado).");
+        sb.AppendLine(Textos.T("cmp.fuentes"));
         DetailText.Text = sb.ToString();
     }
 
@@ -1413,6 +1450,12 @@ public partial class MainWindow : Window
         AutomationProperties.SetName(ListaPaquetes, Textos.T("acc.captura.paquetes"));
         AutomationProperties.SetName(DetalleCaptura, Textos.T("acc.captura.detalle"));
         AutomationProperties.SetName(CerrarCapturaButton, Textos.T("boton.cerrar.captura"));
+
+        // Popups de información: se construyen una sola vez, así que su texto se refresca aquí.
+        if (_popupComparar is not null) _popupComparar.Text = Textos.T("help.comparar");
+        if (_popupExportar is not null) _popupExportar.Text = Textos.T("help.exportar");
+        if (_popupAbrirCaptura is not null) _popupAbrirCaptura.Text = Textos.T("help.abrir.captura");
+        if (_popupMuestra is not null) _popupMuestra.Text = Textos.T("help.muestra");
     }
 
     /// <summary>Alterna es/en, reaplica el chrome y repinta la MISMA vista en pantalla.</summary>
@@ -1420,8 +1463,20 @@ public partial class MainWindow : Window
     {
         Textos.Alternar();
         AplicarIdioma();
-        // La captura abierta es una vista de datos: se deja tal cual y solo cambia el chrome.
-        if (PanelCaptura.IsVisible) return;
+
+        // La captura ya se puede traducir (resumen, lista y detalle): se repinta en su sitio
+        // en vez de dejar el texto en el idioma anterior.
+        if (PanelCaptura.IsVisible)
+        {
+            PintarCaptura();
+            return;
+        }
+
+        // Cabeceras de resultados de búsqueda: se actualizan sin repetir la búsqueda.
+        foreach (var expander in NavPanel.Children.OfType<Expander>())
+            if (expander.Tag is int encontrados)
+                expander.Header = Textos.F("nav.resultados", encontrados);
+
         switch (_vista)
         {
             case Vista.Leyenda: MostrarLeyenda(); break;

@@ -95,6 +95,39 @@ public static class Textos
             ["ficha.vecinos"] = ("--- Vecinos a 1 salto (grafo F4) ---", "--- 1-hop neighbors (F4 graph) ---"),
             ["ficha.campos.titulo"] = ("--- Campos catalogados (F5) ---", "--- Catalogued fields (F5) ---"),
 
+            // Comparador de dos protocolos
+            ["cmp.titulo"] = ("=== Comparador: {0} vs {1} ===", "=== Comparison: {0} vs {1} ==="),
+            ["cmp.aspecto"] = ("Aspecto", "Aspect"),
+            ["cmp.igual"] = ("  (= igual)", "  (= equal)"),
+            ["cmp.familia"] = ("Familia", "Family"),
+            ["cmp.estado"] = ("Estado", "Status"),
+            ["cmp.capas"] = ("Capas", "Layers"),
+            ["cmp.pdu"] = ("PDU", "PDU"),
+            ["cmp.puertos"] = ("Puertos (IANA)", "Ports (IANA)"),
+            ["cmp.cifrado"] = ("Cifrado (F6)", "Encryption (F6)"),
+            ["cmp.finalidad"] = ("Finalidad", "Purpose"),
+            ["cmp.encapsulacion"] = ("Encapsulación", "Encapsulation"),
+            ["cmp.fuentes"] = (
+                "Fuentes: F3 (familia/estado/capas/puertos IANA), F4 (finalidad/encapsulación por ficha y grafo), F5 (PDU), F6 (cifrado).",
+                "Sources: F3 (family/status/layers/IANA ports), F4 (purpose/encapsulation per sheet and graph), F5 (PDU), F6 (encryption)."),
+
+            // Vista de captura y servicio IANA
+            ["cap.resumen"] = (
+                "{0} · linktype {1} ({2}) · {3} paquetes",
+                "{0} · linktype {1} ({2}) · {3} packets"),
+            ["cap.otro"] = ("otro", "other"),
+            ["cap.paquete"] = ("=== Paquete de {0} bytes ===", "=== Packet of {0} bytes ==="),
+            ["cap.ipv6.f5"] = ("IPv6: capas y campos en el detalle F5", "IPv6: layers and fields in the F5 detail"),
+            ["cap.sin.layout"] = ("{0}: sin layout F5 en el catálogo", "{0}: no F5 layout in the catalog"),
+            ["iana.titulo"] = ("=== Servicio IANA: {0} ===", "=== IANA service: {0} ==="),
+            ["iana.puertos"] = ("Puertos registrados: {0}", "Registered ports: {0}"),
+            ["iana.vinculo"] = (
+                "Protocolo vinculado del catálogo: {0} ({1}) [vínculo curado IANA→F3]",
+                "Catalog protocol linked: {0} ({1}) [curated IANA→F3 link]"),
+
+            // Navegación
+            ["nav.resultados"] = ("Resultados ({0})", "Results ({0})"),
+
             // Sidebar y vistas textuales
             ["nav.filtro"] = ("Filtrar familias - Ver leyenda", "Filter families - View legend"),
             ["sidebar.acciones"] = ("Acciones", "Actions"),

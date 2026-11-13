@@ -45,6 +45,9 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
 - Las pruebas de UI fijan `NETPROTOCOL_IDIOMA=es` antes de construir la ventana, así que ya no dependen
   del `LANG` del equipo; `Redes.Knowledge.Tests` deja de paralelizar colecciones porque el catálogo de
   textos es estado estático del proceso.
+- El comparador, la vista de captura, el bloque de servicio IANA, la cabecera de resultados y los popups
+  de ayuda también salen del catálogo. El popup se refresca al cambiar de idioma y una captura abierta
+  se repinta en su sitio conservando el paquete seleccionado.
 
 ### Corregido
 - **L-005 cerrada**: 107/113 fichas con `Source` de nivel 1 (94,69 %, objetivo ≥90 %); el job

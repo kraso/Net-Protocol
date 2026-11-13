@@ -1136,3 +1136,19 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 118/118 en `Redes.Knowledge.Tests` (una nueva: la ficha en inglés traduce etiquetas sin perder el padding y traduce el estado) y 44/44 en `App.Tests`. Las siete doradas siguen pasando sin tocarlas, que es la prueba de que el español no cambió. Cobertura 94,69 % líneas / 83,33 % ramas.
 
 **Lo que queda de i18n:** comparador, panel de captura, desplegables de familia/estado y popups de ayuda siguen en español.
+
+## 13-11-2026 — i18n del comparador, la captura y los popups
+
+**Motivo:** tras traducir la ficha, el resto de vistas seguía en español: el comparador, el detalle de captura, el bloque de servicio IANA y los popups de información. Además, el `HelpText` accesible ya se traducía mientras el popup visible no, así que ambos canales describían el mismo botón en idiomas distintos.
+
+**Catálogo:** 20 claves nuevas (`cmp.*` para el comparador, `cap.*` para la captura, `iana.*` para el servicio y `nav.resultados`). Los ancho fijos se mantienen: `Encapsulation` y `Encryption (F6)` caben en las 16 columnas de la tabla y en las 36 de cada celda.
+
+**Popups:** `ConfigurarPopupsBotones` guarda la referencia a los cuatro `TextBlock` y `AplicarIdioma` reescribe su texto. Cierra el hallazgo `R3-ayuda-vs-popup`: ya no hay discrepancia entre lo que anuncia el lector y lo que se ve.
+
+**Captura:** `PintarCaptura()` centraliza resumen, lista y detalle; se usa al abrir y al cambiar de idioma, conservando el paquete seleccionado. `AlternarIdioma` deja de abandonar la captura con el texto antiguo.
+
+**Navegación:** la cabecera de resultados guarda el recuento en `Tag` y se retraduce en el sitio, sin repetir la búsqueda.
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 118/118 en `Redes.Knowledge.Tests` y 46/46 en `App.Tests` (dos nuevas: comparador traducido y cabecera de resultados traducida). Las siete doradas siguen pasando sin tocarlas. Cobertura 94,78 % líneas / 83,45 % ramas.
+
+**Lo único que queda de i18n:** el nombre visible de familia y estado en los desplegables y en el ítem de navegación, que exige mover el valor del enum a `Tag` para no romper el filtro.
