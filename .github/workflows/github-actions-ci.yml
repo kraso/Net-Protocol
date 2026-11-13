@@ -88,18 +88,20 @@ jobs:
 
   package-linux:
     if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     needs: [quality, build]
     strategy:
       fail-fast: false
       matrix:
         include:
-          - rid: linux-x64
+          - os: ubuntu-latest
+            rid: linux-x64
             deb_arch: amd64
             rpm_arch: x86_64
             appimage_arch: x86_64
             appimage_tool: appimagetool-x86_64.AppImage
-          - rid: linux-arm64
+          - os: ubuntu-24.04-arm
+            rid: linux-arm64
             deb_arch: arm64
             rpm_arch: aarch64
             appimage_arch: aarch64
@@ -246,7 +248,8 @@ jobs:
           set -euo pipefail
           VER="${GITHUB_REF_NAME#v}"
           # Descargar appimagetool (AppImage type 2, sin FUSE en CI).
-          wget -q -O /tmp/appimagetool "https://github.com/AppImage/AppImageKit/releases/download/continuous/${{ matrix.appimage_tool }}"
+          wget -q --tries=3 --timeout=30 -O /tmp/appimagetool "https://github.com/AppImage/AppImageKit/releases/download/continuous/${{ matrix.appimage_tool }}" \
+            || { echo "::error::No se pudo descargar ${{ matrix.appimage_tool }} desde AppImageKit continuous"; exit 1; }
           chmod +x /tmp/appimagetool
           # Estructura AppDir estándar.
           APPDIR="dist/NetProtocol.AppDir"

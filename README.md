@@ -55,11 +55,11 @@ Los instaladores se publican como **GitHub Release** por cada tag `v*` ([release
 |---|---|---|---|
 | Windows | x64 | `NetProtocol-<versión>-win-x64.exe` | Ejecutar el instalador (cierra la app sola si está abierta; actualiza en el mismo directorio sin desinstalar). |
 | Debian/Ubuntu | amd64 | `NetProtocol-<versión>-linux-amd64.deb` + `.deb.asc` | `sudo apt install ./NetProtocol-<versión>-linux-amd64.deb` · verificar: `gpg --verify NetProtocol-<versión>-linux-amd64.deb.asc NetProtocol-<versión>-linux-amd64.deb` |
-| Debian/Ubuntu | arm64 | `NetProtocol-<versión>-linux-arm64.deb` + `.deb.asc` | `sudo apt install ./NetProtocol-<versión>-linux-arm64.deb` |
+| Debian/Ubuntu | arm64 | `NetProtocol-<versión>-linux-arm64.deb` + `.deb.asc` | `sudo apt install ./NetProtocol-<versión>-linux-arm64.deb` · verificar: `gpg --verify NetProtocol-<versión>-linux-arm64.deb.asc NetProtocol-<versión>-linux-arm64.deb` |
 | openSUSE / Fedora / RHEL | x86_64 | `NetProtocol-<versión>-linux-x86_64.rpm` (+ `.rpm.asc`) | Ver abajo (importar la clave primero). |
-| openSUSE / Fedora / RHEL | aarch64 | `NetProtocol-<versión>-linux-aarch64.rpm` (+ `.rpm.asc`) | Igual que el x86_64, con el paquete `aarch64`. |
+| openSUSE / Fedora / RHEL | aarch64 | `NetProtocol-<versión>-linux-aarch64.rpm` (+ `.rpm.asc`) | Igual que el x86_64, con el paquete `aarch64` · verificar: `gpg --verify NetProtocol-<versión>-linux-aarch64.rpm.asc NetProtocol-<versión>-linux-aarch64.rpm` |
 | Linux (portable) | x86_64 | `NetProtocol-<versión>-linux-x86_64.AppImage` (+ `.AppImage.asc`) | `chmod +x ...AppImage && ./...AppImage` (sin instalar). |
-| Linux (portable) | aarch64 | `NetProtocol-<versión>-linux-aarch64.AppImage` (+ `.AppImage.asc`) | Igual, con el AppImage `aarch64`. |
+| Linux (portable) | aarch64 | `NetProtocol-<versión>-linux-aarch64.AppImage` (+ `.AppImage.asc`) | Igual, con el AppImage `aarch64` · verificar: `gpg --verify NetProtocol-<versión>-linux-aarch64.AppImage.asc NetProtocol-<versión>-linux-aarch64.AppImage` |
 | macOS | x64 (Intel) | `NetProtocol-<versión>-macos-x64.dmg` | Clic derecho → Abrir (sin firma de código). |
 | macOS | arm64 (Apple Silicon) | `NetProtocol-<versión>-macos-arm64.dmg` | Igual, nativo sin Rosetta. |
 
