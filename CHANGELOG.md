@@ -57,6 +57,9 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
   La salida en español no cambia (la fija la prueba dorada).
 - Los nombres accesibles salen del code-behind a `AccesibilidadVentana`, que aplica el catálogo sobre
   los controles con nombre; el code-behind baja de 1.691 a 1.648 líneas sin cambiar el resultado.
+- Los popups de información y su supervisión (deadline de 5 s, gracia anti-reabrir de 1,2 s y cierre
+  por geometría) salen a `SupervisorPopups` sin cambiar ninguna constante; el code-behind baja a 1.486
+  líneas y las dos reglas de tiempo quedan cubiertas por pruebas.
 
 ### Corregido
 - **L-005 cerrada**: 107/113 fichas con `Source` de nivel 1 (94,69 %, objetivo ≥90 %); el job

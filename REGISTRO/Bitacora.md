@@ -1204,3 +1204,15 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Por qué se puede mover sin riesgo:** los campos que genera el compilador de XAML para `x:Name` son `internal`, así que un tipo del mismo ensamblado los lee sin exponer nada nuevo. La prueba de accesibilidad que recorre el árbol lógico sigue exigiendo nombre a todo control enfocable y pasa sin cambios: es la que demuestra que el volcado no perdió ningún control.
 
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 124/124 y 49/49. Cobertura 94,79 % líneas / 83,26 % ramas. Build sin advertencias.
+
+## 13-11-2026 — Los popups de información salen del code-behind
+
+**Motivo:** era el bloque más grande que quedaba en la ventana (~160 líneas): creación del popup cristalino, deadline global, gracia anti-reabrir, cierre por geometría y resolución de los tokens de color.
+
+**Cambio:** `SupervisorPopups` (en la raíz de `Redes.Knowledge.App`, junto a los demás helpers) posee el temporizador, la lista de vigilados y la posición del puntero. `Registrar(anfitrion, contenido, alPulsar)` sustituye a `CrearPopupInfo`; `RegistrarPuntero(Point)` es lo único que la ventana le pasa en cada movimiento del ratón.
+
+**No se cambió ninguna constante:** 500 ms de tick, 5 s de deadline, 1200 ms de gracia y 400 ms de cierre por geometría siguen igual. Los comentarios que explican el comportamiento en X11 (re-enters espurios al desmapear, light-dismiss que consume el clic, deadline que solo se fija en la transición cerrado→abierto) se mudaron con el código.
+
+**Lo que sí se gana:** las dos reglas de tiempo salen a métodos puros (`DebeCerrarse`, `EnGracia`) y quedan probadas, junto con el registro de los cuatro popups en el árbol de la ventana. Lo que no se puede probar sin pantalla real —cierre por geometría y re-enters de X11— sigue siendo comprobación manual, igual que antes.
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 124/124 en `Redes.Knowledge.Tests` y 52/52 en `App.Tests` (tres nuevas en `PopupsTests`). Cobertura 94,79 % líneas / 83,26 % ramas. Build sin advertencias. `MainWindow` baja de 1.648 a 1.486 líneas.
