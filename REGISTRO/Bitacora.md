@@ -1260,3 +1260,17 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Coste:** el CSV pesa 1,1 MB y pasa a formar parte del instalador.
 
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 124/124 y 55/55. Cobertura 94,79 % / 83,26 %. Build sin advertencias.
+
+## 13-11-2026 — T2: el actualizador elige y descarga el instalador correcto
+
+**Qué entra:** `AssetsActualizacion.Seleccionar(rid, nombres)` traduce el RID en ejecución al asset publicado —en Linux el AppImage, que no pide root y corre en cualquier distro—. `GitHubUpdateChecker` lee el array `assets` de la release y rellena `NombreAsset`/`UrlAsset` en `ResultadoActualizacion`. `DescargadorActualizacion.DescargarAsync` baja el fichero a `%TEMP%/NetProtocol/actualizaciones` con el nombre base saneado (un asset con separadores no puede escribir fuera de la carpeta).
+
+**Qué NO entra (T3):** la verificación SHA256 y el aviso en la interfaz. Hoy la ventana no descarga ni ejecuta nada: las piezas están probadas, pero sin cablear.
+
+**Verificación:** 135/135 en `Redes.Knowledge.Tests` (once nuevas: los cinco RID, que una firma `.asc` no se confunda con el instalador, RID no soportado, descarga con bytes reales, saneado del nombre y un 404 que lanza sin dejar archivo) y 55/55 en `App.Tests`.
+
+## 13-11-2026 — Guía de capturas para S4
+
+`FASE-08-VALIDACION/GUIA-CAPTURAS-L004.md`: los 18 protocolos que faltan, cada uno con escenario mínimo, filtro BPF exacto y dificultad; la VM única (Debian 12) con paquetes y módulos; network namespaces para los que necesitan dos extremos; validación con `tshark` y la prueba `CorpusL004`; y checklist de entrega.
+
+**Corrección de un dato mío:** los 18 **no** necesitan stacks antiguos; todos son modernos y salen de una VM Linux. Los stacks viejos (NetBEUI, IPX/SPX, AppleTalk) afectan a las fichas, no a los layouts F5. Además, dos capturas que ya están en el corpus no registran por ir cifradas: CoAP sobre DTLS y HTTP/2 sobre TLS.

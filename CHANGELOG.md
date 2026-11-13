@@ -32,6 +32,9 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
 - El arranque importa el registro IANA de servicios y puertos desde el CSV versionado la primera vez
   que la base está vacía (v1.1, S3), y el CSV viaja con la app en `datos/`. La vista de servicio IANA
   y la columna de puertos del comparador dejan de salir vacías.
+- El comprobador de actualizaciones elige el instalador del sistema en ejecución (win-x64,
+  linux-x64/arm64, osx-x64/arm64) y puede descargarlo a una carpeta temporal sin ejecutarlo
+  (v1.1, S2/T2). La verificación del hash y el aviso en la interfaz llegan en T3.
 
 ### Cambiado
 - `on.push` acotado a `main` y tags `v*`: la matriz ya no se lanza en cada rama.
