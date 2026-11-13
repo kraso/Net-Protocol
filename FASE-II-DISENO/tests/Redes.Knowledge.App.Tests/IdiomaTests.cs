@@ -77,12 +77,15 @@ public class IdiomaTests
             Textos.Fijar(Textos.Es);
             var ventana = NuevaVentana();
             var antes = Detalle(ventana);
-            Assert.False(string.IsNullOrWhiteSpace(antes));
+            Assert.Contains("Identidad", antes);
 
             Pulsar(ventana, "LanguageButton");
 
             Assert.Equal(Textos.En, Textos.Idioma);
-            Assert.False(string.IsNullOrWhiteSpace(Detalle(ventana)));
+            var despues = Detalle(ventana);
+            Assert.Contains("Identity", despues);
+            Assert.DoesNotContain("Identidad", despues);
+            Assert.StartsWith("===", despues); // sigue siendo la ficha, no otra vista
         }
         finally
         {
@@ -200,4 +203,30 @@ public class IdiomaTests
             .SelectMany(e => ((ListBox)e.Content!).Items.OfType<ListBoxItem>())
             .Select(i => i.Tag).OfType<Protocol>()
             .ToList();
+
+    [AvaloniaFact]
+    public void CambiarIdiomaConservaElAvisoDeBusquedaSinResultados()
+    {
+        var previo = Textos.Idioma;
+        try
+        {
+            Textos.Fijar(Textos.Es);
+            var ventana = NuevaVentana();
+            ventana.FindControl<TextBox>("SearchBox")!.Text = "zzzz-no-existe";
+
+            Pulsar(ventana, "SearchButton");
+
+            Assert.Contains("Sin resultados", Detalle(ventana));
+
+            Pulsar(ventana, "LanguageButton");
+
+            // El aviso es una vista en pantalla: se repinta, no se sustituye por la ficha.
+            Assert.Contains("No results for the search.", Detalle(ventana));
+            Assert.DoesNotContain("Sin resultados", Detalle(ventana));
+        }
+        finally
+        {
+            Textos.Fijar(previo);
+        }
+    }
 }

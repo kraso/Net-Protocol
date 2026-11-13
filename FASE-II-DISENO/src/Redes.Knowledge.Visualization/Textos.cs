@@ -51,6 +51,7 @@ public static class Textos
             ["acc.captura.resumen"] = ("Resumen de la captura", "Capture summary"),
             ["acc.captura.paquetes"] = ("Paquetes de la captura", "Capture packets"),
             ["acc.captura.detalle"] = ("Detalle del paquete", "Packet detail"),
+            ["acc.lista.protocolos"] = ("Lista de protocolos", "Protocol list"),
 
             // Ayuda larga de los botones de acción (se expone a lectores de pantalla; el
             // popup visual conserva su propio texto mientras la i18n siga siendo parcial).

@@ -50,6 +50,8 @@ está en [`REGISTRO/Bitacora.md`](REGISTRO/Bitacora.md).
   se repinta en su sitio conservando el paquete seleccionado.
 - Los desplegables de familia y estado y el ítem de navegación muestran el nombre traducido del estado:
   el valor del enum viaja en `Tag`, así que el filtro sigue comparando el mismo dato.
+- El aviso de búsqueda sin resultados se conserva al cambiar de idioma (se repinta en su sitio) y los
+  ítems de navegación y captura exponen nombre accesible explícito.
 
 ### Corregido
 - **L-005 cerrada**: 107/113 fichas con `Source` de nivel 1 (94,69 %, objetivo ≥90 %); el job

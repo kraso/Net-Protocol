@@ -55,9 +55,12 @@ public partial class MainWindow : Window
     private bool _sincronizandoSelector;
 
     /// <summary>Vista textual en pantalla: el cambio de idioma la repinta en vez de navegar.</summary>
-    private enum Vista { Ficha, Leyenda, Acerca, Comparacion }
+    private enum Vista { Ficha, Leyenda, Acerca, Comparacion, SinResultados }
 
     private Vista _vista = Vista.Ficha;
+
+    /// <summary>Término de la última búsqueda sin resultados, para repintar su aviso.</summary>
+    private string _busquedaVacia = "";
 
     // Texto de los popups de información: se conserva la referencia para poder traducirlo
     // cuando cambia el idioma (los popups se construyen una sola vez).
@@ -666,9 +669,11 @@ public partial class MainWindow : Window
         foreach (var g in grupos)
         {
             var lista = new ListBox { Height = ListaAltura, Width = ListaAnchura }; // anchura idéntica en todos
+            AutomationProperties.SetName(lista, Textos.T("acc.lista.protocolos"));
             foreach (var p in g.OrderBy(p => p.Acronimo, StringComparer.OrdinalIgnoreCase))
             {
                 var item = new ListBoxItem { Tag = p, Content = ItemProtocolo(p) };
+                AutomationProperties.SetName(item, $"{p.Acronimo} · {p.Nombre}");
                 lista.Items.Add(item);
             }
             lista.SelectionChanged += (_, _) =>
@@ -718,6 +723,8 @@ public partial class MainWindow : Window
         {
             // D2-2: el término puede ser un nombre de servicio IANA (con sinónimos agrupados).
             if (MostrarServicioIana(q)) return;
+            _vista = Vista.SinResultados;
+            _busquedaVacia = q;
             DetailText.Text = Textos.T("estado.sin.resultados");
             StatusText.Text = Textos.F("estado.busqueda.cero", q);
             return;
@@ -725,8 +732,13 @@ public partial class MainWindow : Window
 
         NavPanel.Children.Clear();
         var lista = new ListBox { Height = ListaAltura, Width = ListaAnchura };
+        AutomationProperties.SetName(lista, Textos.T("acc.lista.protocolos"));
         foreach (var p in encontrados.OrderBy(p => p.Acronimo, StringComparer.OrdinalIgnoreCase))
-            lista.Items.Add(new ListBoxItem { Content = ItemProtocolo(p), Tag = p });
+        {
+            var item = new ListBoxItem { Content = ItemProtocolo(p), Tag = p };
+            AutomationProperties.SetName(item, $"{p.Acronimo} · {p.Nombre}");
+            lista.Items.Add(item);
+        }
         lista.SelectionChanged += (_, _) =>
         {
             if (lista.SelectedItem is ListBoxItem sel && sel.Tag is Protocol proto) RenderFicha(proto);
@@ -1086,7 +1098,12 @@ public partial class MainWindow : Window
         var seleccionado = ListaPaquetes.SelectedIndex;
         ListaPaquetes.Items.Clear();
         for (var i = 0; i < _presentacion.TotalPaquetes; i++)
-            ListaPaquetes.Items.Add(new ListBoxItem { Content = ResumenPaquete(i), Tag = i });
+        {
+            var resumen = ResumenPaquete(i);
+            var item = new ListBoxItem { Content = resumen, Tag = i };
+            AutomationProperties.SetName(item, resumen);
+            ListaPaquetes.Items.Add(item);
+        }
 
         if (seleccionado >= 0 && seleccionado < ListaPaquetes.ItemCount)
             ListaPaquetes.SelectedIndex = seleccionado;
@@ -1425,6 +1442,15 @@ public partial class MainWindow : Window
     /// <summary>Vuelca el catálogo de textos en los controles con nombre (chrome de la ventana).</summary>
     private void AplicarIdioma()
     {
+        AplicarTextosChrome();
+        AplicarAccesibilidad();
+        RefrescarFiltros();
+        AplicarTextosPopups();
+    }
+
+    /// <summary>Texto visible de los controles con nombre: título, barra superior y sidebar.</summary>
+    private void AplicarTextosChrome()
+    {
         Title = Textos.T("app.titulo");
         SearchBox.PlaceholderText = Textos.T("buscar.placeholder");
         SearchButton.Content = Textos.T("buscar.boton");
@@ -1446,10 +1472,14 @@ public partial class MainWindow : Window
         LblAcerca.Text = Textos.T("sidebar.acerca");
         DiagramTitle.Text = Textos.T("diagramas.titulo");
         CerrarCapturaButton.Content = Textos.T("boton.cerrar.captura");
+    }
 
-        // Nombres accesibles: sin ellos un lector de pantalla anuncia botones vacíos (los
-        // glifos de ventana) o campos sin propósito. Se aplican aquí para que sigan al
-        // idioma activo igual que el resto del chrome.
+    /// <summary>
+    /// Nombres accesibles: sin ellos un lector de pantalla anuncia botones vacíos (los glifos
+    /// de ventana) o campos sin propósito. Se aplican aquí para que sigan al idioma activo.
+    /// </summary>
+    private void AplicarAccesibilidad()
+    {
         AutomationProperties.SetName(MinimizeButton, Textos.T("acc.ventana.minimizar"));
         AutomationProperties.SetName(MaximizeButton, Textos.T("acc.ventana.maximizar"));
         AutomationProperties.SetName(CloseButton, Textos.T("acc.ventana.cerrar"));
@@ -1485,12 +1515,11 @@ public partial class MainWindow : Window
         AutomationProperties.SetName(ListaPaquetes, Textos.T("acc.captura.paquetes"));
         AutomationProperties.SetName(DetalleCaptura, Textos.T("acc.captura.detalle"));
         AutomationProperties.SetName(CerrarCapturaButton, Textos.T("boton.cerrar.captura"));
+    }
 
-        // Desplegables de familia/estado: su texto visible sigue al idioma; el valor del
-        // enum queda en Tag, así que la selección no se pierde.
-        RefrescarFiltros();
-
-        // Popups de información: se construyen una sola vez, así que su texto se refresca aquí.
+    /// <summary>Popups de información: se construyen una sola vez, así que su texto se refresca aquí.</summary>
+    private void AplicarTextosPopups()
+    {
         if (_popupComparar is not null) _popupComparar.Text = Textos.T("help.comparar");
         if (_popupExportar is not null) _popupExportar.Text = Textos.T("help.exportar");
         if (_popupAbrirCaptura is not null) _popupAbrirCaptura.Text = Textos.T("help.abrir.captura");
@@ -1524,6 +1553,12 @@ public partial class MainWindow : Window
             case Vista.Leyenda: MostrarLeyenda(); break;
             case Vista.Acerca: MostrarAcercaDe(); break;
             case Vista.Comparacion: CompararConReferencia(); break;
+            case Vista.SinResultados:
+                // Se repinta el aviso, no la ficha anterior: la búsqueda sin resultados es
+                // también una vista en pantalla.
+                DetailText.Text = Textos.T("estado.sin.resultados");
+                StatusText.Text = Textos.F("estado.busqueda.cero", _busquedaVacia);
+                break;
             default: RenderFicha(_presentacion.Seleccionado); break;
         }
     }

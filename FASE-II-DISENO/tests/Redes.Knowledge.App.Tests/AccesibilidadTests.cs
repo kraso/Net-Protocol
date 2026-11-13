@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Redes.Knowledge.App;
 using Redes.Knowledge.Visualization;
 
@@ -40,15 +41,24 @@ public class AccesibilidadTests
         }
     }
 
-    private static readonly string[] ControlesConNombre =
+    /// <summary>Regiones de texto que también deben tener nombre (no son controles de interacción).</summary>
+    private static readonly string[] RegionesConNombre =
     {
-        "SearchBox", "SearchButton", "ProtocolSelector", "CompareTarget", "CompareButton",
-        "VolverFichaButton", "FilterFamilia", "FilterEstado", "ExportFormat", "ExportButton",
-        "AbrirCapturaButton", "MuestraButton", "LanguageButton", "NavFilter", "ThemeButton",
-        "LegendButton", "AboutButton", "MinimizeButton", "MaximizeButton", "CloseButton",
-        "CerrarCapturaButton", "ListaPaquetes", "DetailText", "StatusText", "ResumenCaptura",
-        "DetalleCaptura", "DiagramTitle"
+        "DetailText", "DiagramTitle", "StatusText", "ResumenCaptura", "DetalleCaptura"
     };
+
+    /// <summary>
+    /// Recorre el árbol lógico de la ventana. Así cualquier control enfocable nuevo entra solo
+    /// en la comprobación, sin una lista de nombres mantenida a mano que se quede atrás.
+    /// </summary>
+    private static IEnumerable<Control> Recorrer(ILogical raiz)
+    {
+        foreach (var hijo in raiz.LogicalChildren.OfType<Control>())
+        {
+            yield return hijo;
+            foreach (var nieto in Recorrer(hijo)) yield return nieto;
+        }
+    }
 
     private static void PulsarTecla(MainWindow ventana, Key tecla, KeyModifiers modificadores)
         => ventana.RaiseEvent(new KeyEventArgs
@@ -59,17 +69,36 @@ public class AccesibilidadTests
         });
 
     [AvaloniaFact]
-    public void TodoControlInteractivoExponeNombreAccesible()
+    public void TodoControlEnfocableExponeNombreAccesible()
     {
         using var _ = new IdiomaFijo(Textos.Es);
         var ventana = new MainWindow();
 
-        foreach (var nombre in ControlesConNombre)
+        // Los SelectableTextBlock son enfocables por ser seleccionables, pero su nombre se
+        // comprueba como región. Los ítems de lista y desplegable toman el nombre de su
+        // contenido, así que aquí interesan los controles de interacción con etiqueta propia.
+        var enfocables = Recorrer(ventana)
+            .Where(c => c.Focusable && c is not TextBlock and not ComboBoxItem and not ListBoxItem)
+            .ToList();
+
+        Assert.True(enfocables.Count >= 15, $"solo {enfocables.Count} controles enfocables en el árbol");
+        foreach (var control in enfocables)
+            Assert.False(string.IsNullOrWhiteSpace(AutomationProperties.GetName(control)),
+                $"{control.GetType().Name} sin nombre accesible");
+    }
+
+    [AvaloniaFact]
+    public void LasRegionesDeTextoExponenNombreAccesible()
+    {
+        using var _ = new IdiomaFijo(Textos.Es);
+        var ventana = new MainWindow();
+
+        foreach (var nombre in RegionesConNombre)
         {
             var control = ventana.FindControl<Control>(nombre);
-            Assert.True(control is not null, $"no se encontró el control {nombre}");
-            var accesible = AutomationProperties.GetName(control!);
-            Assert.False(string.IsNullOrWhiteSpace(accesible), $"{nombre} no tiene nombre accesible");
+            Assert.True(control is not null, $"no se encontró la región {nombre}");
+            Assert.False(string.IsNullOrWhiteSpace(AutomationProperties.GetName(control!)),
+                $"{nombre} no tiene nombre accesible");
         }
     }
 

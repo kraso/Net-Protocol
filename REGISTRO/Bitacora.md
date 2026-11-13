@@ -1109,7 +1109,7 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 
 **Zoom por teclado:** `Ctrl`+`+` y `Ctrl`+`-` mueven una muesca; `Ctrl`+`0` vuelve al 100 % con `PresentacionViewModel.RestablecerZoom`. La rueda y el teclado comparten `AplicarPasoZoom`, así que la barra de estado informa igual por ambos caminos. Sin `Ctrl` la tecla no se consume.
 
-**Contraste (medido, sin cambios):** el texto secundario de `ItemProtocolo` (`Opacity=0.65`, `FontSize=11`) compone 6,4:1 sobre el fondo oscuro y 5,7:1 sobre el claro, por encima del 4,5:1 de WCAG AA. No se toca.
+**Contraste (medido, sin cambios):** el texto secundario de `ItemProtocolo` (`Opacity=0.65`, `FontSize=11`) queda entre 5,34:1 y 6,42:1 según la superficie del tema (luminancia relativa sobre `#1E1E1E`, `#2B2B2B` y `#F3F3F3`), por encima del 4,5:1 de WCAG AA. No se toca.
 
 **Decidido no hacer:** los ocho grips de redimensión son `Border` sin automation peer, así que nombrarlos no aportaría nada; redimensionar por teclado queda documentado como limitación (la ventana se maximiza con su botón, que sí es accesible). El orden de tabulación del `WrapPanel` ya coincide con el orden lógico de uso y no se reordena con `TabIndex`.
 
@@ -1164,3 +1164,21 @@ Se añade `.atl/` (registro de skills del agente, 245 KB generados) a la lista d
 **Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 118/118 en `Redes.Knowledge.Tests` y 47/47 en `App.Tests` (una nueva: al filtrar por el primer estado, el conjunto visible coincide exactamente con los protocolos de ese estado y no cambia al traducir la etiqueta). Cobertura 94,73 % líneas / 83,26 % ramas.
 
 **Cobertura de i18n:** con esto la interfaz completa sale del catálogo — chrome, ficha, comparador, captura, IANA, navegación, popups y estados.
+
+## 13-11-2026 — Cierre de los hallazgos informativos de las revisiones
+
+**Motivo:** las revisiones de i18n y accesibilidad dejaron ocho hallazgos no bloqueantes. Se atienden los que seguían abiertos; los otros tres los resolvió el propio trabajo posterior.
+
+**Resueltos en este cambio:**
+
+| Hallazgo | Disposición |
+|---|---|
+| `R3-test-ficha-sin-asercion` | `CambiarIdiomaEnLaFichaConservaLaFicha` comprueba que la ficha pasa de «Identidad» a «Identity»; antes solo miraba que el texto no estuviera vacío. |
+| `R3-vista-sin-resultados` | nueva vista `SinResultados` con el término guardado: el aviso se repinta en el idioma nuevo en vez de desaparecer. |
+| `R2-aplicaridioma-mezcla` | `AplicarIdioma` queda como orquestador de cuatro pasos: `AplicarTextosChrome`, `AplicarAccesibilidad`, `RefrescarFiltros` y `AplicarTextosPopups`. |
+| `R3-lista-manual` | la prueba de accesibilidad recorre el árbol lógico y exige nombre a todo control enfocable; los ítems de lista y desplegable se exceptúan porque toman el nombre de su contenido. Los ítems de navegación y de captura reciben además nombre explícito. |
+| `R2-contraste-supuesto` | la entrada de accesibilidad pasa de dos cifras sueltas al rango 5,34–6,42:1 con las superficies usadas. |
+
+**Ya resueltos por el trabajo posterior:** `R3-idioma-parcial` (la i18n ya cubre ficha, comparador, captura, navegación y popups), `R3-deteccion-por-entorno` (`PruebasAppBuilder` fija `NETPROTOCOL_IDIOMA=es` antes de construir ventanas) y `R3-ayuda-vs-popup` (los popups se refrescan con el idioma).
+
+**Verificación:** `dotnet test src/Redes.Knowledge.sln -c Release` → 118/118 en `Redes.Knowledge.Tests` y 49/49 en `App.Tests`. Cobertura 94,74 % líneas / 83,26 % ramas. Las siete doradas siguen intactas.
